@@ -20,44 +20,89 @@ class AppDrawer extends StatelessWidget {
         backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         child: Column(
           children: [
-            // Header
-            DrawerHeader(
+            // ── Premium Header ────────────────────────────────────────────
+            Container(
+              width: double.infinity,
               decoration: const BoxDecoration(
                 gradient: AppColors.primaryGradient,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.menu_book_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Close button row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // App icon with glow
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.menu_book_rounded,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                          ),
+                          // Close drawer button
+                          Material(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => Get.back(),
+                              child: const Padding(
+                                padding: EdgeInsets.all(8),
+                                child: Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.black,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // App name
+                      Text(
+                        bn ? 'কুরআন অ্যাপ' : 'Quran App',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Tagline
+                      Text(
+                        bn
+                            ? 'পড়ুন · শুনুন · চিন্তা করুন'
+                            : 'Read · Listen · Reflect',
+                        style: TextStyle(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    bn ? 'কুরআন অ্যাপ' : 'Quran App',
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  Text(
-                    bn ? 'পড়ুন · শুনুন · চিন্তা করুন' : 'Read · Listen · Reflect',
-                    style: TextStyle(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
 
@@ -136,15 +181,6 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.settings_rounded,
                       label: bn ? 'সেটিংস' : 'Settings',
                       onTap: () { Get.back(); home.goToSettings(); },
-                    ),
-                    _DrawerItem(
-                      icon: isDark
-                          ? Icons.light_mode_rounded
-                          : Icons.dark_mode_rounded,
-                      label: isDark
-                          ? (bn ? 'লাইট মোড' : 'Light Mode')
-                          : (bn ? 'ডার্ক মোড' : 'Dark Mode'),
-                      onTap: settings.toggleTheme,
                     ),
                   ]),
                 ],

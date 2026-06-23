@@ -166,6 +166,24 @@ class AppTheme {
   static TextTheme _buildTextTheme(Brightness brightness) {
     final Color color =
         brightness == Brightness.dark ? AppColors.textWhite : AppColors.textDark;
-    return GoogleFonts.interTextTheme().apply(bodyColor: color, displayColor: color);
+    final baseTheme = GoogleFonts.interTextTheme();
+    return baseTheme.copyWith(
+      displayLarge: baseTheme.displayLarge?.copyWith(inherit: true, color: color),
+      displayMedium: baseTheme.displayMedium?.copyWith(inherit: true, color: color),
+      displaySmall: baseTheme.displaySmall?.copyWith(inherit: true, color: color),
+      headlineLarge: baseTheme.headlineLarge?.copyWith(inherit: true, color: color),
+      headlineMedium: baseTheme.headlineMedium?.copyWith(inherit: true, color: color),
+      headlineSmall: baseTheme.headlineSmall?.copyWith(inherit: true, color: color),
+      titleLarge: baseTheme.titleLarge?.copyWith(inherit: true, color: color),
+      titleMedium: baseTheme.titleMedium?.copyWith(inherit: true, color: color),
+      titleSmall: baseTheme.titleSmall?.copyWith(inherit: true, color: color),
+      bodyLarge: baseTheme.bodyLarge?.copyWith(inherit: true, color: color),
+      bodyMedium: baseTheme.bodyMedium?.copyWith(inherit: true, color: color),
+      bodySmall: baseTheme.bodySmall?.copyWith(inherit: true, color: color),
+      labelLarge: baseTheme.labelLarge?.copyWith(inherit: true, color: color),
+      labelMedium: baseTheme.labelMedium?.copyWith(inherit: true, color: color),
+      labelSmall: baseTheme.labelSmall?.copyWith(inherit: true, color: color),
+    );
   }
 }
+

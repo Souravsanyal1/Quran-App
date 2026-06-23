@@ -11,7 +11,7 @@ class QuranView extends GetView<QuranController> {
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
-    
+
     // Refresh bookmarks and last read when view is shown
     controller.loadBookmarksAndLastRead();
 
@@ -38,7 +38,10 @@ class QuranView extends GetView<QuranController> {
               indicatorColor: AppColors.primary,
               labelColor: AppColors.primary,
               unselectedLabelColor: AppColors.textGrey,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
               tabs: [
                 Tab(text: bn ? 'সূরা' : 'Surah'),
                 Tab(text: bn ? 'পারা' : 'Juz / Para'),
@@ -63,21 +66,73 @@ class QuranView extends GetView<QuranController> {
       children: [
         // Search Bar
         Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            onChanged: (val) => controller.searchSurah(val),
-            style: TextStyle(color: settings.isDark ? AppColors.textWhite : AppColors.textDark),
-            decoration: InputDecoration(
-              hintText: settings.isBangla ? 'সূরা খুঁজুন...' : 'Search Surah...',
-              hintStyle: const TextStyle(color: AppColors.textGrey),
-              prefixIcon: const Icon(Icons.search, color: AppColors.textGrey),
-              filled: true,
-              fillColor: settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide.none,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Obx(() {
+            final query = controller.searchQuery.value;
+            final isDark = settings.isDark;
+            return TextField(
+              controller: controller.searchTextController,
+              onChanged: (val) => controller.searchSurah(val),
+              style: TextStyle(
+                color: isDark ? AppColors.textWhite : AppColors.textDark,
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              decoration: InputDecoration(
+                hintText: settings.isBangla
+                    ? 'সূরা খুঁজুন...'
+                    : 'Search Surah...',
+                hintStyle: const TextStyle(color: AppColors.textGrey),
+                prefixIcon: const Icon(Icons.search, color: AppColors.textGrey),
+                suffixIcon: query.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear_rounded,
+                          color: AppColors.textGrey,
+                        ),
+                        onPressed: () => controller.clearSearch(),
+                      )
+                    : null,
+                filled: true,
+                fillColor: isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 16,
+                ),
+              ),
+            );
+          }),
+        ),
+
+        // Filter Chips Row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildFilterChip(
+                  'All',
+                  settings.isBangla ? 'সব সূরা' : 'All Surahs',
+                  settings,
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  'Mecca',
+                  settings.isBangla ? 'মক্কা' : 'Mecca',
+                  settings,
+                ),
+                const SizedBox(width: 8),
+                _buildFilterChip(
+                  'Medinan',
+                  settings.isBangla ? 'মদিনা' : 'Medinan',
+                  settings,
+                ),
+              ],
             ),
           ),
         ),
@@ -126,7 +181,11 @@ class QuranView extends GetView<QuranController> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.menu_book, color: Colors.white, size: 20),
+                          const Icon(
+                            Icons.menu_book,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             settings.isBangla ? 'সর্বশেষ পঠিত' : 'Last Read',
@@ -172,10 +231,15 @@ class QuranView extends GetView<QuranController> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                         ),
                         child: Text(
-                          settings.isBangla ? 'পড়া চালিয়ে যান' : 'Resume Reading',
+                          settings.isBangla
+                              ? 'পড়া চালিয়ে যান'
+                              : 'Resume Reading',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -191,12 +255,16 @@ class QuranView extends GetView<QuranController> {
         Expanded(
           child: Obx(() {
             if (controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
             if (controller.filteredSurahList.isEmpty) {
               return Center(
                 child: Text(
-                  settings.isBangla ? 'কোনো সূরা পাওয়া যায়নি' : 'No Surah found',
+                  settings.isBangla
+                      ? 'কোনো সূরা পাওয়া যায়নি'
+                      : 'No Surah found',
                   style: const TextStyle(color: AppColors.textGrey),
                 ),
               );
@@ -205,7 +273,9 @@ class QuranView extends GetView<QuranController> {
               padding: const EdgeInsets.all(16),
               itemCount: controller.filteredSurahList.length,
               separatorBuilder: (context, index) => Divider(
-                color: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
+                color: settings.isDark
+                    ? AppColors.borderDark
+                    : AppColors.borderLight,
               ),
               itemBuilder: (context, index) {
                 final surah = controller.filteredSurahList[index];
@@ -216,7 +286,9 @@ class QuranView extends GetView<QuranController> {
                     height: 40,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                      color: settings.isDark
+                          ? AppColors.surfaceDark
+                          : AppColors.surfaceLight,
                       shape: BoxShape.circle,
                       border: Border.all(color: AppColors.primary, width: 1.5),
                     ),
@@ -233,12 +305,17 @@ class QuranView extends GetView<QuranController> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: settings.isDark ? AppColors.textWhite : AppColors.textDark,
+                      color: settings.isDark
+                          ? AppColors.textWhite
+                          : AppColors.textDark,
                     ),
                   ),
                   subtitle: Text(
-                    '${surah.revelationType} • ${surah.numberOfAyahs} ${settings.isBangla ? "আয়াত" : "Ayahs"}',
-                    style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
+                    '${settings.isBangla ? (surah.revelationType.toLowerCase().contains("meccan") ? "মক্কা" : "মদিনা") : surah.revelationType} • ${surah.numberOfAyahs} ${settings.isBangla ? "আয়াত" : "Ayahs"}',
+                    style: const TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 13,
+                    ),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -251,7 +328,10 @@ class QuranView extends GetView<QuranController> {
                           color: AppColors.primary,
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: AppColors.textGrey),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: AppColors.textGrey,
+                      ),
                     ],
                   ),
                   onTap: () => Get.toNamed(
@@ -286,7 +366,9 @@ class QuranView extends GetView<QuranController> {
             height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              color: settings.isDark
+                  ? AppColors.surfaceDark
+                  : AppColors.surfaceLight,
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primary, width: 1.5),
             ),
@@ -343,7 +425,11 @@ class QuranView extends GetView<QuranController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.bookmark_outline, size: 64, color: AppColors.textGrey),
+              const Icon(
+                Icons.bookmark_outline,
+                size: 64,
+                color: AppColors.textGrey,
+              ),
               const SizedBox(height: 16),
               Text(
                 settings.isBangla
@@ -373,12 +459,20 @@ class QuranView extends GetView<QuranController> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: settings.isDark ? AppColors.textWhite : AppColors.textDark,
+                    color: settings.isDark
+                        ? AppColors.textWhite
+                        : AppColors.textDark,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                  onPressed: () => controller.removeBookmark(bookmark.surahNumber, bookmark.ayahNumber),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
+                  ),
+                  onPressed: () => controller.removeBookmark(
+                    bookmark.surahNumber,
+                    bookmark.ayahNumber,
+                  ),
                 ),
               ],
             ),
@@ -386,7 +480,9 @@ class QuranView extends GetView<QuranController> {
               margin: const EdgeInsets.only(top: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                color: settings.isDark
+                    ? AppColors.surfaceDark
+                    : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -409,6 +505,43 @@ class QuranView extends GetView<QuranController> {
             ),
           );
         },
+      );
+    });
+  }
+
+  Widget _buildFilterChip(
+    String filterType,
+    String label,
+    SettingsController settings,
+  ) {
+    return Obx(() {
+      final isSelected = controller.selectedTypeFilter.value == filterType;
+      final isDark = settings.isDark;
+      return ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => controller.setTypeFilter(filterType),
+        labelStyle: TextStyle(
+          color: isSelected
+              ? Colors.black
+              : (isDark ? AppColors.textGrey : AppColors.textDark),
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        selectedColor: AppColors.primary,
+        backgroundColor: isDark
+            ? AppColors.surfaceDark
+            : AppColors.surfaceLight,
+        checkmarkColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
+            width: 0.5,
+          ),
+        ),
       );
     });
   }

@@ -27,6 +27,17 @@ class HomeView extends GetView<HomeController> {
               isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           elevation: 0,
           scrolledUnderElevation: 0,
+          leading: Builder(
+            builder: (ctx) => IconButton(
+              icon: Icon(
+                Icons.menu_rounded,
+                color: isDark ? AppColors.textWhite : AppColors.textDark,
+                size: 24,
+              ),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+              tooltip: bn ? 'মেনু' : 'Menu',
+            ),
+          ),
           title: Row(
             children: [
               Container(
