@@ -147,7 +147,7 @@ class HomeView extends GetView<HomeController> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: isDark ? AppColors.textMuted : AppColors.textDark.withOpacity(0.4),
+        unselectedItemColor: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         selectedFontSize: 11,
         unselectedFontSize: 10,

@@ -25,9 +25,12 @@ class SplashController extends GetxController {
       // Step 1: Firebase Configuration (0% -> 25%)
       statusMessage.value = 'Connecting to Firebase...';
       progress.value = 0.10;
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+      // Guard: only initialize if not already done (e.g. when woken by FCM background isolate)
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
       progress.value = 0.30;
       await Future.delayed(const Duration(milliseconds: 60));
 
