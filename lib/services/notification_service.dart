@@ -1,6 +1,8 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import '../modules/settings/settings_controller.dart';
 
 class NotificationService {
   NotificationService._();
@@ -76,6 +78,14 @@ class NotificationService {
       _logger.i('FCM Token: $token');
     } catch (e) {
       _logger.e('Error getting FCM token: $e');
+    }
+
+    // 6. Sync topic subscriptions based on user settings
+    try {
+      final settings = Get.find<SettingsController>();
+      await toggleFCM(settings.notificationsEnabled.value);
+    } catch (e) {
+      _logger.e('Error syncing FCM topic subscriptions on startup: $e');
     }
 
     _initialized = true;

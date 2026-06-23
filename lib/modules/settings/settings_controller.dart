@@ -36,9 +36,6 @@ class SettingsController extends GetxController {
     notificationsEnabled.value = _prefs?.getBool(_keyNotifications) ?? true;
     selectedQari.value = _prefs?.getString(_keyQari) ?? 'ar.alafasy';
     _applyTheme();
-    
-    // Sync FCM state on startup
-    await NotificationService.instance.toggleFCM(notificationsEnabled.value);
   }
 
   void _applyTheme() {

@@ -122,17 +122,63 @@ class SplashView extends GetView<SplashController> {
                       .animate(delay: 800.ms)
                       .fadeIn(duration: 500.ms),
 
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 50),
 
-                  // Loading indicator
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary.withValues(alpha: 0.7),
-                    ),
-                  ).animate(delay: const Duration(seconds: 1)).fadeIn(duration: const Duration(milliseconds: 400)),
+                  // Progress & Status section
+                  Obx(() {
+                    final percentage = (controller.progress.value * 100).toInt();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                      child: Column(
+                        children: [
+                          // Progress Bar
+                          Container(
+                            height: 6,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: controller.progress.value,
+                                backgroundColor: AppColors.borderDark.withOpacity(0.5),
+                                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          // Status & Percentage Text
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  controller.statusMessage.value,
+                                  style: const TextStyle(
+                                    color: AppColors.textGrey,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                '$percentage%',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }).animate(delay: const Duration(milliseconds: 200)).fadeIn(duration: 400.ms),
                 ],
               ),
             ),
