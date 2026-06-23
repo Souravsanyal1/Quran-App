@@ -31,9 +31,15 @@ class QuranApiProvider {
     return await _dio.get(url);
   }
 
-  /// Fetch a Para (Juz) with Arabic + Bangla translation
-  Future<Response> fetchPara(int number) async {
-    final url = AppUrls.quranPara.replaceFirst('{number}', number.toString());
+  /// Fetch a Para (Juz) Arabic text (quran-uthmani)
+  Future<Response> fetchParaArabic(int number) async {
+    final url = AppUrls.quranParaArabic.replaceFirst('{number}', number.toString());
+    return await _dio.get(url);
+  }
+
+  /// Fetch a Para (Juz) Bangla translation
+  Future<Response> fetchParaBangla(int number) async {
+    final url = AppUrls.quranParaBangla.replaceFirst('{number}', number.toString());
     return await _dio.get(url);
   }
 

@@ -24,9 +24,9 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                     style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
                   ),
                   Switch(
-                    value: controller.autoPlayNext.value,
-                    onChanged: (val) => controller.autoPlayNext.value = val,
-                    activeColor: AppColors.primary,
+                    value: controller.autoPlayNextToggle.value,
+                    onChanged: (val) => controller.setAutoPlay(val),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               )),
@@ -82,7 +82,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isCurrentPlaying
-                            ? AppColors.primary.withOpacity(0.08)
+                            ? AppColors.primary.withValues(alpha: 0.08)
                             : (settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
@@ -102,7 +102,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -181,7 +181,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                                 : (ayah.textEnglish ?? ''),
                             style: TextStyle(
                               fontSize: settings.translationFontSize.value,
-                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
                               height: 1.5,
                             ),
                           ),

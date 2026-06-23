@@ -1,33 +1,29 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
-import 'package:audio_service/audio_service.dart';
+import 'package:flutter/material.dart';
 import '../../data/models/ayah_model.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/models/surah_model.dart';
 import '../../data/repositories/quran_repository.dart';
 import '../../modules/settings/settings_controller.dart';
-import '../../data/providers/quran_api_provider.dart';
-import '../../core/constants/app_urls.dart';
+import '../../services/audio_player_service.dart';
 
 class ParaDetailsController extends GetxController {
   final QuranRepository _repository = Get.find<QuranRepository>();
   final SettingsController _settings = Get.find<SettingsController>();
-  final QuranApiProvider _api = Get.find<QuranApiProvider>();
+  final AudioPlayerService _audio = Get.find<AudioPlayerService>();
 
-  late final AudioPlayer audioPlayer;
-  
   final RxBool isLoading = true.obs;
   final RxList<AyahModel> ayahs = <AyahModel>[].obs;
   final List<SurahModel> _surahs = [];
-  
+
   late final int paraNumber;
   late final String paraName;
 
-  final RxnInt playingAyahNumber = RxnInt(); // Global ayah number
-  final RxBool isPlaying = false.obs;
-  final RxBool isPlayerLoading = false.obs;
+  /// Delegates to the shared audio service
+  RxnInt get playingAyahNumber => _audio.playingAyahNumber;
+  RxBool get isPlaying => _audio.isPlaying;
+  RxBool get isPlayerLoading => _audio.isPlayerLoading;
+
   final RxBool autoPlayNext = true.obs;
 
   final ScrollController scrollController = ScrollController();
@@ -35,14 +31,12 @@ class ParaDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    audioPlayer = AudioPlayer();
 
     final args = Get.arguments as Map<String, dynamic>? ?? {};
     paraNumber = args['paraNumber'] ?? 1;
     paraName = args['paraName'] ?? 'Alif Lam Meem';
 
     _loadAyahsAndSurahs();
-    _setupAudioListeners();
   }
 
   Future<void> _loadAyahsAndSurahs() async {
@@ -53,6 +47,13 @@ class ParaDetailsController extends GetxController {
 
       final list = await _repository.getParaAyahs(paraNumber);
       ayahs.assignAll(list);
+
+      // Tell audio service about this playlist
+      _audio.setPlaylist(
+        ayahs: list,
+        contextLabel: 'Juz $paraNumber - $paraName',
+        autoPlayNext: autoPlayNext.value,
+      );
     } catch (e) {
       Get.log('Error loading para data: $e');
     } finally {
@@ -60,114 +61,37 @@ class ParaDetailsController extends GetxController {
     }
   }
 
-  void _setupAudioListeners() {
-    audioPlayer.playerStateStream.listen((state) {
-      isPlaying.value = state.playing;
-      if (state.processingState == ProcessingState.completed) {
-        _onAudioCompleted();
-      }
-    });
+  Future<void> retryLoadData() async {
+    await _loadAyahsAndSurahs();
+  }
+
+  void setAutoPlay(bool value) {
+    autoPlayNext.value = value;
+    _audio.setAutoPlayNext(value);
   }
 
   void scrollToAyah(int globalAyahNum) {
-    final index = ayahs.indexWhere((element) => element.number == globalAyahNum);
-    if (index != -1) {
-      final targetOffset = index * 220.0;
-      if (scrollController.hasClients) {
-        scrollController.animateTo(
-          targetOffset,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
-  }
-
-  Future<void> playAyah(AyahModel ayah) async {
-    if (playingAyahNumber.value == ayah.number && isPlaying.value) {
-      await audioPlayer.pause();
-      return;
-    }
-
-    if (playingAyahNumber.value == ayah.number) {
-      await audioPlayer.play();
-      return;
-    }
-
-    try {
-      isPlayerLoading.value = true;
-      playingAyahNumber.value = ayah.number;
-      
-      final qariId = _settings.selectedQari.value;
-      final hasLocal = await _repository.isAyahAudioDownloaded(ayah.number, qariId);
-      final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);
-      
-      final qariName = AppUrls.qariList.firstWhere(
-        (element) => element['id'] == qariId,
-        orElse: () => {'id': qariId, 'name': 'Reciter'},
-      )['name'] ?? 'Reciter';
-      
-      final surahName = getSurahNameForAyah(ayah);
-
-      final AudioSource source;
-      if (hasLocal) {
-        source = AudioSource.file(
-          localPath,
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: surahName,
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
-        );
-      } else {
-        final url = _api.getAyahAudioUrl(ayah.number, qariId: qariId);
-        source = AudioSource.uri(
-          Uri.parse(url),
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: surahName,
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
-        );
-      }
-
-      await audioPlayer.setAudioSource(source);
-      isPlayerLoading.value = false;
-      await audioPlayer.play();
-    } catch (e) {
-      isPlayerLoading.value = false;
-      Get.log('Error playing para ayah: $e');
-      Get.snackbar(
-        'Audio Error',
-        'Could not load audio recitation. Please check your internet connection.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
+    final index = ayahs.indexWhere((a) => a.number == globalAyahNum);
+    if (index != -1 && scrollController.hasClients) {
+      scrollController.animateTo(
+        index * 220.0,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
       );
     }
   }
 
-  Future<void> stopAudio() async {
-    await audioPlayer.stop();
-    playingAyahNumber.value = null;
+  Future<void> playAyah(AyahModel ayah) async {
+    await _audio.playAyah(
+      ayah,
+      qariId: _settings.selectedQari.value,
+    );
   }
 
-  void _onAudioCompleted() {
-    if (!autoPlayNext.value || playingAyahNumber.value == null) return;
+  Future<void> stopAudio() => _audio.stopAudio();
 
-    final currentIndex = ayahs.indexWhere((element) => element.number == playingAyahNumber.value);
-    if (currentIndex != -1 && currentIndex < ayahs.length - 1) {
-      final nextAyah = ayahs[currentIndex + 1];
-      scrollToAyah(nextAyah.number);
-      playAyah(nextAyah);
-    } else {
-      playingAyahNumber.value = null;
-    }
-  }
+  // ── Bookmarks ─────────────────────────────────────────────────────────────
 
-  // Bookmarks
   bool isBookmarked(AyahModel ayah) {
     if (ayah.surahNumber == null) return false;
     return _repository.isBookmarked(ayah.surahNumber!, ayah.numberInSurah);
@@ -179,10 +103,9 @@ class ParaDetailsController extends GetxController {
     if (isBookmarked(ayah)) {
       await _repository.removeBookmark(ayah.surahNumber!, ayah.numberInSurah);
     } else {
-      // Find surah name
       final surah = _surahs.firstWhereOrNull((s) => s.number == ayah.surahNumber);
       final sName = surah?.englishName ?? 'Surah ${ayah.surahNumber}';
-      
+
       final bookmark = BookmarkModel(
         surahNumber: ayah.surahNumber!,
         ayahNumber: ayah.numberInSurah,
@@ -203,7 +126,7 @@ class ParaDetailsController extends GetxController {
 
   @override
   void onClose() {
-    audioPlayer.dispose();
+    // Do NOT dispose audio player — it lives in AudioPlayerService
     scrollController.dispose();
     super.onClose();
   }

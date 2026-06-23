@@ -120,16 +120,35 @@ class QuranRepository {
   Future<List<AyahModel>> getParaAyahs(int paraNumber) async {
     await init();
     try {
-      final cacheKey = 'para_$paraNumber';
+      // Use v3 cache key — previous versions stored broken 404 responses
+      final cacheKey = 'para_v3_$paraNumber';
       final cached = _paraDataCache.get(cacheKey);
       if (cached != null) {
-        return _parseParaAyahs(jsonDecode(cached as String));
+        final decoded = jsonDecode(cached as String) as Map<String, dynamic>;
+        return _parseParaAyahsMerged(
+          decoded['arabic'] as Map<String, dynamic>,
+          decoded['bangla']  as Map<String, dynamic>,
+        );
       }
-      final response = await _api.fetchPara(paraNumber);
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        await _paraDataCache.put(cacheKey, jsonEncode(data));
-        return _parseParaAyahs(data);
+
+      // Fetch Arabic and Bangla in parallel
+      final results = await Future.wait([
+        _api.fetchParaArabic(paraNumber),
+        _api.fetchParaBangla(paraNumber),
+      ]);
+
+      final arabicResp = results[0];
+      final banglaResp = results[1];
+
+      if (arabicResp.statusCode == 200 && banglaResp.statusCode == 200) {
+        final arabicData = arabicResp.data as Map<String, dynamic>;
+        final banglaData  = banglaResp.data  as Map<String, dynamic>;
+        // Cache both together
+        await _paraDataCache.put(
+          cacheKey,
+          jsonEncode({'arabic': arabicData, 'bangla': banglaData}),
+        );
+        return _parseParaAyahsMerged(arabicData, banglaData);
       }
     } catch (e) {
       _logger.e('getParaAyahs($paraNumber): $e');
@@ -137,27 +156,40 @@ class QuranRepository {
     return [];
   }
 
-  List<AyahModel> _parseParaAyahs(Map<String, dynamic> data) {
-    final List<dynamic> editions = data['data'] ?? [];
-    if (editions.isEmpty) return [];
+  List<AyahModel> _parseParaAyahsMerged(
+    Map<String, dynamic> arabicData,
+    Map<String, dynamic> banglaData,
+  ) {
+    // Each single-edition response has shape: {data: {ayahs: [...], edition: {...}, surahs: {...}}}
+    final arabicWrapper = arabicData['data'];
+    final banglaWrapper  = banglaData['data'];
 
-    final arabicAyahs = List<Map<String, dynamic>>.from(editions[0]['ayahs'] ?? []);
-    final banglaAyahs = editions.length > 1
-        ? List<Map<String, dynamic>>.from(editions[1]['ayahs'] ?? [])
+    final arabicAyahs = arabicWrapper is Map
+        ? List<Map<String, dynamic>>.from((arabicWrapper['ayahs'] as List?) ?? [])
+        : <Map<String, dynamic>>[];
+    final banglaAyahs  = banglaWrapper  is Map
+        ? List<Map<String, dynamic>>.from((banglaWrapper['ayahs']  as List?) ?? [])
         : <Map<String, dynamic>>[];
 
-    return arabicAyahs.asMap().entries.map((entry) {
-      final i = entry.key;
-      final arabic = entry.value;
-      final surahNum = arabic['surah'] != null ? (arabic['surah']['number'] as int?) : null;
+    // Build a fast lookup: global ayah number -> bangla text
+    final banglaMap = <int, String>{
+      for (final b in banglaAyahs)
+        if (b['number'] != null) (b['number'] as int): (b['text'] as String? ?? '')
+    };
+
+    return arabicAyahs.map((arabic) {
+      final num = arabic['number'] as int? ?? 0;
+      final surahNum = arabic['surah'] is Map
+          ? (arabic['surah']['number'] as int?)
+          : null;
       return AyahModel(
-        number: arabic['number'] ?? 0,
-        numberInSurah: arabic['numberInSurah'] ?? i + 1,
+        number: num,
+        numberInSurah: arabic['numberInSurah'] as int? ?? 0,
         surahNumber: surahNum,
-        text: arabic['text'] ?? '',
-        textBangla: i < banglaAyahs.length ? banglaAyahs[i]['text'] : null,
-        page: arabic['page'] ?? 0,
-        juz: arabic['juz'] ?? 0,
+        text: arabic['text'] as String? ?? '',
+        textBangla: banglaMap[num],
+        page: arabic['page'] as int? ?? 0,
+        juz: arabic['juz'] as int? ?? 0,
       );
     }).toList();
   }
@@ -210,7 +242,7 @@ class QuranRepository {
 
   bool isParaCached(int paraNumber) {
     if (!_initialized) return false;
-    return _paraDataCache.containsKey('para_$paraNumber');
+    return _paraDataCache.containsKey('para_v3_$paraNumber');
   }
 
   Future<String> getLocalAudioPath(int globalAyahNumber, String qariId) async {

@@ -149,7 +149,7 @@ class QuranView extends GetView<QuranController> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -351,72 +351,149 @@ class QuranView extends GetView<QuranController> {
   }
 
   Widget _buildParaTab(BuildContext context, SettingsController settings) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: controller.paraList.length,
-      separatorBuilder: (context, index) => Divider(
-        color: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
-      ),
-      itemBuilder: (context, index) {
-        final para = controller.paraList[index];
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
+    final bn = settings.isBangla;
+
+    return Column(
+      children: [
+        // Information Banner Card
+        GestureDetector(
+          onTap: () => _showJuzInfoDialog(context, settings),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: settings.isDark
-                  ? AppColors.surfaceDark
-                  : AppColors.surfaceLight,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 1.5),
-            ),
-            child: Text(
-              para.number.toString(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          title: Text(
-            para.nameMeaning,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: settings.isDark ? AppColors.textWhite : AppColors.textDark,
-            ),
-          ),
-          subtitle: Text(
-            '${settings.isBangla ? "শুরু" : "Starts at"} ${settings.isBangla ? "সূরা" : "Surah"} ${para.startSurah}:${para.startAyah}',
-            style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                para.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+              gradient: AppColors.islamicGradient,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.islamic.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-              const Icon(Icons.chevron_right, color: AppColors.textGrey),
-            ],
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bn ? 'পারা বা জুজ (Juz) কী?' : 'What is Juz / Para?',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        bn
+                            ? 'বিস্তারিত জানতে এখানে স্পর্শ করুন'
+                            : 'Tap here to learn details',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.white70,
+                  size: 14,
+                ),
+              ],
+            ),
           ),
-          onTap: () => Get.toNamed(
-            AppRoutes.paraDetails,
-            arguments: {
-              'paraNumber': para.number,
-              'paraName': para.nameMeaning,
+        ),
+
+        // Para List
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            itemCount: controller.paraList.length,
+            separatorBuilder: (context, index) => Divider(
+              color: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
+            ),
+            itemBuilder: (context, index) {
+              final para = controller.paraList[index];
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: settings.isDark
+                        ? AppColors.surfaceDark
+                        : AppColors.surfaceLight,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 1.5),
+                  ),
+                  child: Text(
+                    para.number.toString(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                title: Text(
+                  para.nameMeaning,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: settings.isDark ? AppColors.textWhite : AppColors.textDark,
+                  ),
+                ),
+                subtitle: Text(
+                  '${settings.isBangla ? "শুরু" : "Starts at"} ${settings.isBangla ? "সূরা" : "Surah"} ${para.startSurah}:${para.startAyah}',
+                  style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      para.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: AppColors.textGrey),
+                  ],
+                ),
+                onTap: () => Get.toNamed(
+                  AppRoutes.paraDetails,
+                  arguments: {
+                    'paraNumber': para.number,
+                    'paraName': para.nameMeaning,
+                  },
+                ),
+              );
             },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
+
 
   Widget _buildBookmarksTab(BuildContext context, SettingsController settings) {
     return Obx(() {
@@ -544,5 +621,89 @@ class QuranView extends GetView<QuranController> {
         ),
       );
     });
+  }
+
+  void _showJuzInfoDialog(BuildContext context, SettingsController settings) {
+    final bn = settings.isBangla;
+    final isDark = settings.isDark;
+
+    Get.dialog(
+      Dialog(
+        backgroundColor: isDark ? AppColors.cardDark : AppColors.surfaceLight,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 0.5,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.menu_book_rounded,
+                      color: AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      bn ? 'পারা বা জুজ (Juz) কী?' : 'What is Juz / Para?',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textWhite : AppColors.textDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                bn
+                    ? "আরবি শব্দ 'জুজ' (جُزْء, বহুবচনে Ajza)-এর অর্থ হলো 'অংশ' বা 'ভাগ'। অন্যদিকে ফারসি ও উর্দুতে একে 'পারা' বলা হয়।\n\nপবিত্র কুরআনকে পড়ার সুবিধার্থে ৩০টি সমদৈর্ঘ্যের অংশে ভাগ করা হয়েছে। প্রতিটি অংশকে একেকটি পারা বা জুজ বলা হয়। এই বিভাজনের মূল উদ্দেশ্য হলো যাতে একজন পাঠক ৩০ দিনে (যেমন পবিত্র রমজান মাসে প্রতিদিন ১ পারা করে) খুব সহজে পুরো কুরআন তিলাওয়াত সম্পন্ন করতে পারেন।"
+                    : "The Arabic word 'Juz' (جُزْء, plural 'Ajza') literally means 'part' or 'portion'. In South Asia, it is commonly referred to as 'Para'.\n\nThe Holy Quran is divided into 30 parts of roughly equal length. Each part is called a Juz or Para. This division was created to facilitate systematic reading and recitation, allowing a reader to easily complete the entire Quran in 30 days (such as reciting one Juz daily during the holy month of Ramadan).",
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Get.back(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    bn ? 'ঠিক আছে' : 'Got it',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

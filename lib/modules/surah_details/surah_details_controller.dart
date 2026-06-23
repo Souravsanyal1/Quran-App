@@ -1,41 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
-import 'package:audio_service/audio_service.dart';
 import '../../data/models/ayah_model.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/models/last_read_model.dart';
 import '../../data/repositories/quran_repository.dart';
 import '../../modules/settings/settings_controller.dart';
-import '../../data/providers/quran_api_provider.dart';
-import '../../core/constants/app_urls.dart';
+import '../../services/audio_player_service.dart';
 
 class SurahDetailsController extends GetxController {
   final QuranRepository _repository = Get.find<QuranRepository>();
   final SettingsController _settings = Get.find<SettingsController>();
-  final QuranApiProvider _api = Get.find<QuranApiProvider>();
+  final AudioPlayerService _audio = Get.find<AudioPlayerService>();
 
-  late final AudioPlayer audioPlayer;
-  
   final RxBool isLoading = true.obs;
   final RxList<AyahModel> ayahs = <AyahModel>[].obs;
-  
+
   late final int surahNumber;
   late final String surahName;
   int? initialAyah;
 
-  final RxnInt playingAyahNumber = RxnInt(); // Global ayah number
-  final RxBool isPlaying = false.obs;
-  final RxBool isPlayerLoading = false.obs;
-  final RxBool autoPlayNext = true.obs;
+  /// Expose audio state from the service (read-only delegates)
+  RxnInt get playingAyahNumber => _audio.playingAyahNumber;
+  RxBool get isPlaying => _audio.isPlaying;
+  RxBool get isPlayerLoading => _audio.isPlayerLoading;
+  RxBool get autoPlayNext => _audio.isPlaying; // kept for Switch binding
+
+  /// Separate observable for the auto-play toggle
+  final RxBool autoPlayNextToggle = true.obs;
 
   final ScrollController scrollController = ScrollController();
 
   @override
   void onInit() {
     super.onInit();
-    audioPlayer = AudioPlayer();
 
     final args = Get.arguments as Map<String, dynamic>? ?? {};
     surahNumber = args['surahNumber'] ?? 1;
@@ -43,7 +40,6 @@ class SurahDetailsController extends GetxController {
     initialAyah = args['initialAyah'];
 
     _loadAyahs();
-    _setupAudioListeners();
   }
 
   Future<void> _loadAyahs() async {
@@ -51,11 +47,18 @@ class SurahDetailsController extends GetxController {
     try {
       final list = await _repository.getSurahAyahs(surahNumber);
       ayahs.assignAll(list);
-      
-      // Save last read initially for this surah
+
+      // Tell the audio service about this playlist
+      _audio.setPlaylist(
+        ayahs: list,
+        contextLabel: 'Surah $surahName',
+        autoPlayNext: autoPlayNextToggle.value,
+      );
+
+      // Save last read for this surah
       saveLastRead(initialAyah ?? 1);
 
-      // If initialAyah is provided, scroll to it after rendering
+      // Scroll to initialAyah if provided
       if (initialAyah != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           scrollToAyah(initialAyah!);
@@ -68,122 +71,37 @@ class SurahDetailsController extends GetxController {
     }
   }
 
-  void _setupAudioListeners() {
-    audioPlayer.playerStateStream.listen((state) {
-      isPlaying.value = state.playing;
-      if (state.processingState == ProcessingState.completed) {
-        _onAudioCompleted();
-      }
-    });
+  void setAutoPlay(bool value) {
+    autoPlayNextToggle.value = value;
+    _audio.setAutoPlayNext(value);
   }
 
   void scrollToAyah(int ayahNumInSurah) {
-    final index = ayahs.indexWhere((element) => element.numberInSurah == ayahNumInSurah);
-    if (index != -1) {
-      // Estimate height of each card: ~220px
-      final targetOffset = index * 220.0;
-      if (scrollController.hasClients) {
-        scrollController.animateTo(
-          targetOffset,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
-  }
-
-  Future<void> playAyah(AyahModel ayah) async {
-    // If it's already playing, pause it
-    if (playingAyahNumber.value == ayah.number && isPlaying.value) {
-      await audioPlayer.pause();
-      return;
-    }
-
-    // If it's paused, resume
-    if (playingAyahNumber.value == ayah.number) {
-      await audioPlayer.play();
-      return;
-    }
-
-    // Load and play new ayah audio
-    try {
-      isPlayerLoading.value = true;
-      playingAyahNumber.value = ayah.number;
-      
-      final qariId = _settings.selectedQari.value;
-      final hasLocal = await _repository.isAyahAudioDownloaded(ayah.number, qariId);
-      final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);
-      
-      final qariName = AppUrls.qariList.firstWhere(
-        (element) => element['id'] == qariId,
-        orElse: () => {'id': qariId, 'name': 'Reciter'},
-      )['name'] ?? 'Reciter';
-
-      final AudioSource source;
-      if (hasLocal) {
-        source = AudioSource.file(
-          localPath,
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: 'Surah $surahName',
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
-        );
-      } else {
-        final url = _api.getAyahAudioUrl(ayah.number, qariId: qariId);
-        source = AudioSource.uri(
-          Uri.parse(url),
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: 'Surah $surahName',
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
-        );
-      }
-
-      await audioPlayer.setAudioSource(source);
-      isPlayerLoading.value = false;
-      await audioPlayer.play();
-      
-      // Update last read when playing
-      saveLastRead(ayah.numberInSurah);
-    } catch (e) {
-      isPlayerLoading.value = false;
-      Get.log('Error playing ayah: $e');
-      Get.snackbar(
-        'Audio Error',
-        'Could not load audio recitation. Please check your internet connection.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
+    final index =
+        ayahs.indexWhere((a) => a.numberInSurah == ayahNumInSurah);
+    if (index != -1 && scrollController.hasClients) {
+      scrollController.animateTo(
+        index * 220.0,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
       );
     }
   }
 
-  Future<void> stopAudio() async {
-    await audioPlayer.stop();
-    playingAyahNumber.value = null;
+  Future<void> playAyah(AyahModel ayah) async {
+    await _audio.playAyah(
+      ayah,
+      qariId: _settings.selectedQari.value,
+    );
+    saveLastRead(ayah.numberInSurah);
   }
 
-  void _onAudioCompleted() {
-    if (!autoPlayNext.value || playingAyahNumber.value == null) return;
+  Future<void> stopAudio() => _audio.stopAudio();
 
-    final currentIndex = ayahs.indexWhere((element) => element.number == playingAyahNumber.value);
-    if (currentIndex != -1 && currentIndex < ayahs.length - 1) {
-      final nextAyah = ayahs[currentIndex + 1];
-      scrollToAyah(nextAyah.numberInSurah);
-      playAyah(nextAyah);
-    } else {
-      playingAyahNumber.value = null;
-    }
-  }
+  // ── Bookmarks ─────────────────────────────────────────────────────────────
 
-  // Bookmarks
-  bool isBookmarked(AyahModel ayah) {
-    return _repository.isBookmarked(surahNumber, ayah.numberInSurah);
-  }
+  bool isBookmarked(AyahModel ayah) =>
+      _repository.isBookmarked(surahNumber, ayah.numberInSurah);
 
   Future<void> toggleBookmark(AyahModel ayah) async {
     if (isBookmarked(ayah)) {
@@ -198,10 +116,11 @@ class SurahDetailsController extends GetxController {
       );
       await _repository.addBookmark(bookmark);
     }
-    ayahs.refresh(); // Triggers rebuild of ayah list items
+    ayahs.refresh();
   }
 
-  // Last Read
+  // ── Last Read ─────────────────────────────────────────────────────────────
+
   Future<void> saveLastRead(int ayahNumInSurah) async {
     final lastRead = LastReadModel(
       surahNumber: surahNumber,
@@ -214,7 +133,8 @@ class SurahDetailsController extends GetxController {
 
   @override
   void onClose() {
-    audioPlayer.dispose();
+    // Do NOT dispose the audio player — it lives in AudioPlayerService
+    // Only clean up UI-only resources
     scrollController.dispose();
     super.onClose();
   }

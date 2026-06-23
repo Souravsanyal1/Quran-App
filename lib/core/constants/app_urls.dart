@@ -6,7 +6,9 @@ class AppUrls {
   static const String quranBase = 'https://api.alquran.cloud/v1';
   static const String quranSurahList = '$quranBase/surah';
   static const String quranSurah = '$quranBase/surah/{number}/editions/quran-uthmani,bn.bengali,en.asad';
-  static const String quranPara = '$quranBase/juz/{number}/editions/quran-uthmani,bn.bengali';
+  // Note: juz/editions endpoint returns 404; use two separate calls
+  static const String quranParaArabic = '$quranBase/juz/{number}/quran-uthmani';
+  static const String quranParaBangla = '$quranBase/juz/{number}/bn.bengali';
 
   // ── Audio CDN ────────────────────────────────────────────────────────────
   // Base URL: https://cdn.islamic.network/quran/audio-surah/128/{identifier}/{surah}.mp3

@@ -25,8 +25,8 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                   ),
                   Switch(
                     value: controller.autoPlayNext.value,
-                    onChanged: (val) => controller.autoPlayNext.value = val,
-                    activeColor: AppColors.primary,
+                    onChanged: (val) => controller.setAutoPlay(val),
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               )),
@@ -38,10 +38,67 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
         }
 
         if (controller.ayahs.isEmpty) {
+          final isDark = settings.isDark;
           return Center(
-            child: Text(
-              settings.isBangla ? 'কোনো আয়াত পাওয়া যায়নি' : 'No Ayahs found',
-              style: const TextStyle(color: AppColors.textGrey),
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.cloud_off_rounded,
+                      color: AppColors.error,
+                      size: 48,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    settings.isBangla
+                        ? 'কোনো আয়াত পাওয়া যায়নি'
+                        : 'No Ayahs found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.textWhite : AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    settings.isBangla
+                        ? 'পারার আয়াতগুলো লোড করা যায়নি। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন।'
+                        : 'Could not load the Juz/Para ayahs. Please check your internet connection and try again.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textGrey,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => controller.retryLoadData(),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: Text(
+                      settings.isBangla ? 'আবার চেষ্টা করুন' : 'Retry',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
@@ -71,7 +128,7 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isCurrentPlaying
-                            ? AppColors.primary.withOpacity(0.08)
+                            ? AppColors.primary.withValues(alpha: 0.08)
                             : (settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
@@ -91,7 +148,7 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -168,7 +225,7 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                             ayah.textBangla ?? '',
                             style: TextStyle(
                               fontSize: settings.translationFontSize.value,
-                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
                               height: 1.5,
                             ),
                           ),
