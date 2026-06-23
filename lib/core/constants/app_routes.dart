@@ -33,6 +33,9 @@ class AppRoutes {
   static const String donation = '/donation';
   static const String support = '/support';
 
+  // Notifications
+  static const String notifications = '/notifications';
+
   // Settings
   static const String settings = '/settings';
 }

@@ -33,6 +33,8 @@ import '../modules/support/support_view.dart';
 import '../modules/support/support_controller.dart';
 import '../modules/settings/settings_view.dart';
 import '../modules/settings/settings_controller.dart';
+import '../modules/notifications/notifications_view.dart';
+import '../modules/notifications/notifications_controller.dart';
 import '../core/constants/app_routes.dart';
 
 class AppPages {
@@ -139,6 +141,12 @@ class AppPages {
       name: AppRoutes.settings,
       page: () => const SettingsView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => SettingsController())),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.notifications,
+      page: () => const NotificationsView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => NotificationsController())),
       transition: Transition.rightToLeft,
     ),
   ];

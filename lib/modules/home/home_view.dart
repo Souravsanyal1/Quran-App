@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../modules/notifications/notifications_controller.dart';
+import '../../core/constants/app_routes.dart';
 import 'home_controller.dart';
 import 'widgets/home_dashboard.dart';
 import 'widgets/app_drawer.dart';
@@ -48,17 +50,58 @@ class HomeView extends GetView<HomeController> {
         IconButton(
           icon: Icon(
             isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
+            color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.7),
           ),
           onPressed: settings.toggleTheme,
         ),
-        IconButton(
-          icon: Icon(
-            Icons.notifications_outlined,
-            color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
-          ),
-          onPressed: () {},
-        ),
+        // Notification bell with unread badge
+        Obx(() {
+          final notifCtrl = Get.isRegistered<NotificationsController>()
+              ? Get.find<NotificationsController>()
+              : null;
+          final unread = notifCtrl?.unreadCount.value ?? 0;
+          return Stack(
+            children: [
+              IconButton(
+                icon: Icon(
+                  unread > 0
+                      ? Icons.notifications_rounded
+                      : Icons.notifications_outlined,
+                  color: unread > 0
+                      ? AppColors.primary
+                      : (isDark
+                          ? AppColors.textGrey
+                          : AppColors.textDark.withValues(alpha: 0.7)),
+                ),
+                onPressed: () => Get.toNamed(AppRoutes.notifications),
+              ),
+              if (unread > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      unread > 9 ? '9+' : '$unread',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }),
+        const SizedBox(width: 4),
       ],
     );
   }
