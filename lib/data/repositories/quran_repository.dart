@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import '../providers/quran_api_provider.dart';
 import '../models/surah_model.dart';
 import '../models/ayah_model.dart';
@@ -209,6 +211,27 @@ class QuranRepository {
   bool isParaCached(int paraNumber) {
     if (!_initialized) return false;
     return _paraDataCache.containsKey('para_$paraNumber');
+  }
+
+  Future<String> getLocalAudioPath(int globalAyahNumber, String qariId) async {
+    final docDir = await getApplicationDocumentsDirectory();
+    return '${docDir.path}/audio/$qariId/$globalAyahNumber.mp3';
+  }
+
+  Future<bool> isAyahAudioDownloaded(int globalAyahNumber, String qariId) async {
+    final path = await getLocalAudioPath(globalAyahNumber, qariId);
+    return await File(path).exists();
+  }
+
+  Future<bool> isSurahAudioDownloaded(int surahNumber, String qariId) async {
+    final ayahs = await getSurahAyahs(surahNumber);
+    if (ayahs.isEmpty) return false;
+    for (var ayah in ayahs) {
+      if (!await isAyahAudioDownloaded(ayah.number, qariId)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<void> clearCache() async {

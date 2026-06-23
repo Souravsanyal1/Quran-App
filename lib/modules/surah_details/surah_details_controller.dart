@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_service/audio_service.dart';
 import '../../data/models/ayah_model.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/models/last_read_model.dart';
 import '../../data/repositories/quran_repository.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../data/providers/quran_api_provider.dart';
+import '../../core/constants/app_urls.dart';
 
 class SurahDetailsController extends GetxController {
   final QuranRepository _repository = Get.find<QuranRepository>();
@@ -107,8 +110,40 @@ class SurahDetailsController extends GetxController {
       isPlayerLoading.value = true;
       playingAyahNumber.value = ayah.number;
       
-      final url = _api.getAyahAudioUrl(ayah.number, qariId: _settings.selectedQari.value);
-      await audioPlayer.setUrl(url);
+      final qariId = _settings.selectedQari.value;
+      final hasLocal = await _repository.isAyahAudioDownloaded(ayah.number, qariId);
+      final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);
+      
+      final qariName = AppUrls.qariList.firstWhere(
+        (element) => element['id'] == qariId,
+        orElse: () => {'id': qariId, 'name': 'Reciter'},
+      )['name'] ?? 'Reciter';
+
+      final AudioSource source;
+      if (hasLocal) {
+        source = AudioSource.file(
+          localPath,
+          tag: MediaItem(
+            id: 'ayah_${ayah.number}',
+            album: 'Surah $surahName',
+            title: 'Ayah ${ayah.numberInSurah}',
+            artist: qariName,
+          ),
+        );
+      } else {
+        final url = _api.getAyahAudioUrl(ayah.number, qariId: qariId);
+        source = AudioSource.uri(
+          Uri.parse(url),
+          tag: MediaItem(
+            id: 'ayah_${ayah.number}',
+            album: 'Surah $surahName',
+            title: 'Ayah ${ayah.numberInSurah}',
+            artist: qariName,
+          ),
+        );
+      }
+
+      await audioPlayer.setAudioSource(source);
       isPlayerLoading.value = false;
       await audioPlayer.play();
       

@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:get/get.dart';
+import 'package:dio/dio.dart';
 import '../../data/models/surah_model.dart';
 import '../../data/repositories/quran_repository.dart';
+import '../../data/providers/quran_api_provider.dart';
+import '../../modules/settings/settings_controller.dart';
 
 class QuranDownloadController extends GetxController {
   final QuranRepository _repository = Get.find<QuranRepository>();
@@ -23,7 +27,7 @@ class QuranDownloadController extends GetxController {
     try {
       final list = await _repository.getSurahList();
       surahs.assignAll(list);
-      _checkCachedStatuses();
+      await _checkCachedStatuses();
     } catch (e) {
       Get.log('Error loading download surah list: $e');
     } finally {
@@ -31,10 +35,16 @@ class QuranDownloadController extends GetxController {
     }
   }
 
-  void _checkCachedStatuses() {
+  Future<void> _checkCachedStatuses() async {
+    final qariId = Get.find<SettingsController>().selectedQari.value;
     for (var surah in surahs) {
       final isCached = _repository.isSurahCached(surah.number);
-      downloadStates[surah.number] = isCached ? 2 : 0;
+      if (isCached) {
+        final isAudioDownloaded = await _repository.isSurahAudioDownloaded(surah.number, qariId);
+        downloadStates[surah.number] = isAudioDownloaded ? 2 : 0;
+      } else {
+        downloadStates[surah.number] = 0;
+      }
     }
   }
 
@@ -42,34 +52,70 @@ class QuranDownloadController extends GetxController {
     if (downloadStates[surahNumber] == 2 || downloadStates[surahNumber] == 1) return;
 
     downloadStates[surahNumber] = 1; // Downloading
-    downloadProgress[surahNumber] = 0.1;
+    downloadProgress[surahNumber] = 0.05;
 
     try {
-      // Fetching actually runs the API request and caches the JSON automatically
-      downloadProgress[surahNumber] = 0.5;
-      await _repository.getSurahAyahs(surahNumber);
-      downloadProgress[surahNumber] = 1.0;
+      // 1. Download metadata text
+      downloadProgress[surahNumber] = 0.10;
+      final ayahs = await _repository.getSurahAyahs(surahNumber);
+      
+      if (ayahs.isEmpty) {
+        throw Exception("Failed to fetch Ayahs for Surah $surahNumber");
+      }
+
+      // 2. Download audio files for each Ayah in the Surah
+      final qariId = Get.find<SettingsController>().selectedQari.value;
+      final totalAyahs = ayahs.length;
+      int downloadedCount = 0;
+
+      final dio = Dio();
+      
+      for (var ayah in ayahs) {
+        final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);
+        final file = File(localPath);
+        
+        // Ensure parent directory exists
+        await file.parent.create(recursive: true);
+
+        if (!await file.exists()) {
+          final audioUrl = Get.find<QuranApiProvider>().getAyahAudioUrl(ayah.number, qariId: qariId);
+          await dio.download(audioUrl, localPath);
+        }
+        
+        downloadedCount++;
+        // Progress goes from 0.10 to 1.0 based on downloaded count
+        downloadProgress[surahNumber] = 0.10 + (0.90 * (downloadedCount / totalAyahs));
+      }
+
       downloadStates[surahNumber] = 2; // Completed
     } catch (e) {
       downloadStates[surahNumber] = 0; // Failed
-      Get.snackbar('Error', 'Failed to download Surah $surahNumber. Please try again.');
+      Get.log('Download error: $e');
+      Get.snackbar('Error', 'Failed to download Surah $surahNumber: $e', 
+        snackPosition: SnackPosition.BOTTOM);
     } finally {
       downloadProgress.remove(surahNumber);
     }
   }
 
   Future<void> deleteDownloadedSurah(int surahNumber) async {
-    // Delete from cache is not directly implemented, but we can clear the single key if we want.
-    // Or we can ignore/disable delete for simplicity, or we can just implement cache deletion.
-    // In our QuranRepository, _surahDataCache.delete('surah_$surahNumber') deletes it.
-    // Let's implement delete! That's very clean.
-    // Wait, let's open repository and add cache deletion or just let repository expose a method.
-    // Wait! Let's see: we can open the box directly or call _repository.clearCache().
-    // Wait, let's just make it simple: delete the key from _repository._surahDataCache!
-    // Since we don't have public access, we can add a method `deleteSurahFromCache(int number)` to repository.
-    // But actually, we don't need to overcomplicate. Let's just create a delete method in repo if needed.
-    // Wait, let's look at isSurahCached in repo:
-    // `bool isSurahCached(int surahNumber) { return _surahDataCache.containsKey('surah_$surahNumber'); }`
-    // Let's add `removeSurahFromCache` to repo or do it later. For now let's just focus on downloading!
+    // Delete local files
+    try {
+      final qariId = Get.find<SettingsController>().selectedQari.value;
+      final ayahs = await _repository.getSurahAyahs(surahNumber);
+      for (var ayah in ayahs) {
+        final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);
+        final file = File(localPath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      downloadStates[surahNumber] = 0;
+      Get.snackbar('Success', 'Deleted Surah $surahNumber audio files from device.',
+        snackPosition: SnackPosition.BOTTOM);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete Surah $surahNumber: $e',
+        snackPosition: SnackPosition.BOTTOM);
+    }
   }
 }
