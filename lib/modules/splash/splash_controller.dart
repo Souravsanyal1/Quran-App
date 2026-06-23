@@ -16,8 +16,8 @@ class SplashController extends GetxController {
   final RxString statusMessage = 'Starting...'.obs;
 
   @override
-  void onReady() {
-    super.onReady();
+  void onInit() {
+    super.onInit();
     _initializeAndNavigate();
   }
 
@@ -30,26 +30,26 @@ class SplashController extends GetxController {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       progress.value = 0.30;
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 60));
 
       // Step 2: Hive Local Storage (25% -> 50%)
       statusMessage.value = 'Preparing local storage...';
       final appDocDir = await getApplicationDocumentsDirectory();
       await Hive.initFlutter(appDocDir.path);
       progress.value = 0.55;
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 60));
 
       // Step 3: SharedPreferences & Notifications (50% -> 80%)
       statusMessage.value = 'Setting up services...';
       final prefs = await SharedPreferences.getInstance();
       await NotificationService.instance.init();
       progress.value = 0.85;
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 60));
 
       // Step 4: Loading complete (80% -> 100%)
       statusMessage.value = 'Ready!';
       progress.value = 1.0;
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       final onboardingDone = prefs.getBool(_onboardingKey) ?? false;
       if (onboardingDone) {

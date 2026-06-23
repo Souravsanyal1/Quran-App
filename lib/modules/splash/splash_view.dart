@@ -4,11 +4,12 @@ import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import 'splash_controller.dart';
 
-class SplashView extends GetView<SplashController> {
+class SplashView extends StatelessWidget {
   const SplashView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(SplashController());
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.nightGradient),
