@@ -47,7 +47,11 @@ class DonationView extends StatelessWidget {
                         ? '“কে সেই যে আল্লাহকে করজে হাসানা (উত্তম ঋণ) দেবে? ফলে তিনি তার জন্য তা বহু গুণ বাড়িয়ে দেবেন।” (সূরা আল-বাকারাহ: ২৪৫)'
                         : '“Who is it that would loan Allah a goodly loan so He may multiply it for him many times over?” (Surah Al-Baqarah: 245)',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),
@@ -63,11 +67,15 @@ class DonationView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      settings.isBangla ? 'সদকায়ে জারিয়া হিসেবে অংশ নিন' : 'Sadakah Jariyah (Ongoing Charity)',
+                      settings.isBangla
+                          ? 'সদকায়ে জারিয়া হিসেবে অংশ নিন'
+                          : 'Sadakah Jariyah (Ongoing Charity)',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: isDark ? AppColors.textWhite : AppColors.textDark,
+                        color: isDark
+                            ? AppColors.textWhite
+                            : AppColors.textDark,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -75,7 +83,11 @@ class DonationView extends StatelessWidget {
                       settings.isBangla
                           ? 'এই অ্যাপটি সম্পূর্ণ বিজ্ঞাপনমুক্ত এবং বিনামূল্যে কুরআন শিক্ষার উদ্দেশ্যে তৈরি। অ্যাপটির উন্নয়ন ও সার্ভার মেইনটেন্যান্স সচল রাখতে আপনার সদকা দিয়ে সাহায্য করতে পারেন।'
                           : 'This application is entirely ad-free and free for teaching Al-Quran. To keep updates, feature developments and server maintenance running, you can contribute your Sadakah.',
-                      style: const TextStyle(color: AppColors.textGrey, fontSize: 13, height: 1.4),
+                      style: const TextStyle(
+                        color: AppColors.textGrey,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -85,7 +97,9 @@ class DonationView extends StatelessWidget {
 
             // Payment Methods Title
             Text(
-              settings.isBangla ? 'মোবাইল ও ব্যাংক অ্যাকাউন্ট' : 'Payment Accounts',
+              settings.isBangla
+                  ? 'মোবাইল ও ব্যাংক অ্যাকাউন্ট'
+                  : 'Payment Accounts',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -95,7 +109,7 @@ class DonationView extends StatelessWidget {
               context,
               settings,
               'bKash / Nagad (Personal)',
-              '+880 1712 345678',
+              '+880 13074 60389',
               Icons.phone_android,
             ),
             const SizedBox(height: 12),
@@ -104,8 +118,8 @@ class DonationView extends StatelessWidget {
             _buildDonationMethod(
               context,
               settings,
-              'Islamic Bank Bangladesh',
-              'A/C No: 2050 1234 5678 9012\nName: Quran App Project',
+              'Islami Bank Bangladesh Ltd',
+              'A/C No: 2050 356 67 00160203\nName: Quran App Project',
               Icons.account_balance,
             ),
           ],
@@ -114,7 +128,13 @@ class DonationView extends StatelessWidget {
     );
   }
 
-  Widget _buildDonationMethod(BuildContext context, SettingsController settings, String method, String details, IconData icon) {
+  Widget _buildDonationMethod(
+    BuildContext context,
+    SettingsController settings,
+    String method,
+    String details,
+    IconData icon,
+  ) {
     final isDark = settings.isDark;
     return Card(
       color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
@@ -131,7 +151,11 @@ class DonationView extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4.0),
           child: Text(
             details,
-            style: const TextStyle(color: AppColors.textGrey, fontSize: 12, height: 1.3),
+            style: const TextStyle(
+              color: AppColors.textGrey,
+              fontSize: 12,
+              height: 1.3,
+            ),
           ),
         ),
         trailing: IconButton(
@@ -139,10 +163,14 @@ class DonationView extends StatelessWidget {
           onPressed: () {
             // Remove text formatting to copy raw number
             final cleanNum = details.replaceAll(RegExp(r'[^0-9+]'), '');
-            Clipboard.setData(ClipboardData(text: cleanNum.isNotEmpty ? cleanNum : details));
+            Clipboard.setData(
+              ClipboardData(text: cleanNum.isNotEmpty ? cleanNum : details),
+            );
             Get.snackbar(
               settings.isBangla ? 'অনুলিপি করা হয়েছে' : 'Copied',
-              settings.isBangla ? 'অ্যাকাউন্ট নম্বরটি কপি করা হয়েছে!' : 'Account details copied to clipboard!',
+              settings.isBangla
+                  ? 'অ্যাকাউন্ট নম্বরটি কপি করা হয়েছে!'
+                  : 'Account details copied to clipboard!',
               snackPosition: SnackPosition.BOTTOM,
             );
           },
