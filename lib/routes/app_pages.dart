@@ -42,18 +42,18 @@ class AppPages {
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashView(),
-      binding: BindingsBuilder<SplashController>(() => Get.put(SplashController())),
+      binding: BindingsBuilder(() => Get.lazyPut(() => SplashController())),
     ),
     GetPage(
       name: AppRoutes.onboarding,
       page: () => const OnboardingView(),
-      binding: BindingsBuilder<OnboardingController>(() => Get.put(OnboardingController())),
+      binding: BindingsBuilder(() => Get.lazyPut(() => OnboardingController())),
       transition: Transition.rightToLeft,
     ),
     GetPage(
       name: AppRoutes.home,
       page: () => const HomeView(),
-      binding: BindingsBuilder<HomeController>(() => Get.put(HomeController())),
+      binding: BindingsBuilder(() => Get.lazyPut(() => HomeController())),
       transition: Transition.fadeIn,
     ),
     GetPage(
