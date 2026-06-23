@@ -42,7 +42,9 @@ class AppPages {
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashView(),
-      binding: BindingsBuilder(() => Get.put(SplashController())),
+      binding: BindingsBuilder(() {
+        Get.put(SplashController());
+      }),
     ),
     GetPage(
       name: AppRoutes.onboarding,

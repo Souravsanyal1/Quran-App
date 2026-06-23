@@ -45,9 +45,8 @@ class NotificationService {
       // 3. Handle foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         final notification = message.notification;
-        final android = message.notification?.android;
 
-        if (notification != null && android != null) {
+        if (notification != null) {
           _localNotifications.show(
             id: notification.hashCode,
             title: notification.title,
@@ -58,6 +57,11 @@ class NotificationService {
                 channel.name,
                 channelDescription: channel.description,
                 icon: '@mipmap/ic_launcher',
+              ),
+              iOS: const DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
               ),
             ),
           );

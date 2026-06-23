@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'quran-205d8',
     storageBucket: 'quran-205d8.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAbe88IT92heAwimvA0_nMtbtnD2vkZhSU',
     appId: '1:622185595584:ios:85cee353fbe93dfdc52325',
