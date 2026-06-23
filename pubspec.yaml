@@ -1,0 +1,101 @@
+name: quran_app
+description: "A modern Islamic Quran App built with Flutter, GetX & Firebase."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # ── Firebase ──────────────────────────────────────────────────────────────
+  firebase_core: ^3.13.1
+  firebase_messaging: ^15.2.5
+  cloud_firestore: ^5.6.9
+
+  # ── State Management ──────────────────────────────────────────────────────
+  get: ^4.6.6
+
+  # ── Local Database ────────────────────────────────────────────────────────
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  sqflite: ^2.4.2
+  path: ^1.9.1
+
+  # ── Network ───────────────────────────────────────────────────────────────
+  dio: ^5.8.0
+  connectivity_plus: ^6.1.4
+  http: ^1.2.2
+
+  # ── Audio ─────────────────────────────────────────────────────────────────
+  just_audio: ^0.9.46
+  audio_service: ^0.18.16
+  audio_session: ^0.1.21
+
+  # ── Location & Sensors ───────────────────────────────────────────────────
+  geolocator: ^14.0.2
+  geocoding: ^3.0.0
+  flutter_qiblah: ^3.1.1
+  flutter_compass: ^0.8.0
+
+  # ── Notifications ─────────────────────────────────────────────────────────
+  flutter_local_notifications: ^22.0.1
+  timezone: ^0.11.0
+  workmanager: ^0.5.2
+
+  # ── Storage ───────────────────────────────────────────────────────────────
+  shared_preferences: ^2.5.3
+  path_provider: ^2.1.5
+
+  # ── Image ─────────────────────────────────────────────────────────────────
+  cached_network_image: ^3.4.1
+
+  # ── UI ────────────────────────────────────────────────────────────────────
+  flutter_svg: ^2.0.17
+  shimmer: ^3.0.0
+  lottie: ^3.3.1
+  google_fonts: ^6.2.1
+  fl_chart: ^0.70.2
+  percent_indicator: ^4.2.3
+  smooth_page_indicator: ^1.2.0+3
+  flutter_animate: ^4.5.2
+
+  # ── Utilities ─────────────────────────────────────────────────────────────
+  intl: ^0.20.2
+  rxdart: ^0.28.0
+  logger: ^2.5.0
+  permission_handler: ^11.4.0
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
+  vibration: ^2.0.1
+  wakelock_plus: ^1.2.10
+  in_app_review: ^2.0.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.12
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+    - assets/audio/
+    - assets/data/
+
+  fonts:
+    - family: Uthmanic
+      fonts:
+        - asset: assets/fonts/UthmanicHafs.ttf
