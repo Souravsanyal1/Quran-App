@@ -11,109 +11,113 @@ class HomeDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
-    final bool bn = settings.isBangla;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Greeting card
-          _GreetingCard(isBangla: bn).animate().fadeIn(duration: 400.ms),
+    return Obx(() {
+      final bool bn = settings.isBangla;
+      final isDark = settings.isDark;
 
-          const SizedBox(height: 20),
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Greeting card
+            _GreetingCard(isBangla: bn).animate().fadeIn(duration: 400.ms),
 
-          // Quick actions
-          Text(
-            bn ? 'দ্রুত অ্যাক্সেস' : 'Quick Access',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textWhite,
+            const SizedBox(height: 20),
+
+            // Quick actions
+            Text(
+              bn ? 'দ্রুত অ্যাক্সেস' : 'Quick Access',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.textWhite : AppColors.textDark,
+              ),
+            ).animate(delay: 100.ms).fadeIn(),
+
+            const SizedBox(height: 12),
+
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.0,
+              children: [
+                _QuickActionCard(
+                  icon: Icons.menu_book_rounded,
+                  label: bn ? 'কুরআন' : 'Quran',
+                  color: AppColors.primary,
+                  route: AppRoutes.quran,
+                ),
+                _QuickActionCard(
+                  icon: Icons.access_time_rounded,
+                  label: bn ? 'নামাজ' : 'Prayer',
+                  color: AppColors.fajr,
+                  route: AppRoutes.prayerTime,
+                ),
+                _QuickActionCard(
+                  icon: Icons.explore_rounded,
+                  label: bn ? 'কিবলা' : 'Qibla',
+                  color: AppColors.islamic,
+                  route: AppRoutes.qibla,
+                ),
+                _QuickActionCard(
+                  icon: Icons.self_improvement_rounded,
+                  label: bn ? 'নামাজ গাইড' : 'Salah',
+                  color: AppColors.emerald,
+                  route: AppRoutes.salahGuide,
+                ),
+                _QuickActionCard(
+                  icon: Icons.volunteer_activism_rounded,
+                  label: bn ? 'দোয়া' : "Du'a",
+                  color: AppColors.dhuhr,
+                  route: AppRoutes.duas,
+                ),
+                _QuickActionCard(
+                  icon: Icons.radio_button_checked_rounded,
+                  label: bn ? 'তাসবীহ' : 'Tasbih',
+                  color: AppColors.goldDark,
+                  route: AppRoutes.tasbih,
+                ),
+                _QuickActionCard(
+                  icon: Icons.track_changes_rounded,
+                  label: bn ? 'ট্র্যাকার' : 'Tracker',
+                  color: AppColors.islamicLight,
+                  route: AppRoutes.tracker,
+                ),
+                _QuickActionCard(
+                  icon: Icons.school_rounded,
+                  label: bn ? 'নতুন মুসলিম' : 'New Muslim',
+                  color: AppColors.info,
+                  route: AppRoutes.newMuslimGuide,
+                ),
+                _QuickActionCard(
+                  icon: Icons.settings_rounded,
+                  label: bn ? 'সেটিংস' : 'Settings',
+                  color: AppColors.textMuted,
+                  route: AppRoutes.settings,
+                ),
+              ].asMap().entries.map((entry) {
+                return entry.value
+                    .animate(delay: (150 + entry.key * 60).ms)
+                    .fadeIn()
+                    .scale(begin: const Offset(0.8, 0.8));
+              }).toList(),
             ),
-          ).animate(delay: 100.ms).fadeIn(),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 24),
 
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 3,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.0,
-            children: [
-              _QuickActionCard(
-                icon: Icons.menu_book_rounded,
-                label: bn ? 'কুরআন' : 'Quran',
-                color: AppColors.primary,
-                route: AppRoutes.quran,
-              ),
-              _QuickActionCard(
-                icon: Icons.access_time_rounded,
-                label: bn ? 'নামাজ' : 'Prayer',
-                color: AppColors.fajr,
-                route: AppRoutes.prayerTime,
-              ),
-              _QuickActionCard(
-                icon: Icons.explore_rounded,
-                label: bn ? 'কিবলা' : 'Qibla',
-                color: AppColors.islamic,
-                route: AppRoutes.qibla,
-              ),
-              _QuickActionCard(
-                icon: Icons.self_improvement_rounded,
-                label: bn ? 'নামাজ গাইড' : 'Salah',
-                color: AppColors.emerald,
-                route: AppRoutes.salahGuide,
-              ),
-              _QuickActionCard(
-                icon: Icons.volunteer_activism_rounded,
-                label: bn ? 'দোয়া' : "Du'a",
-                color: AppColors.dhuhr,
-                route: AppRoutes.duas,
-              ),
-              _QuickActionCard(
-                icon: Icons.radio_button_checked_rounded,
-                label: bn ? 'তাসবীহ' : 'Tasbih',
-                color: AppColors.goldDark,
-                route: AppRoutes.tasbih,
-              ),
-              _QuickActionCard(
-                icon: Icons.track_changes_rounded,
-                label: bn ? 'ট্র্যাকার' : 'Tracker',
-                color: AppColors.islamicLight,
-                route: AppRoutes.tracker,
-              ),
-              _QuickActionCard(
-                icon: Icons.school_rounded,
-                label: bn ? 'নতুন মুসলিম' : 'New Muslim',
-                color: AppColors.info,
-                route: AppRoutes.newMuslimGuide,
-              ),
-              _QuickActionCard(
-                icon: Icons.settings_rounded,
-                label: bn ? 'সেটিংস' : 'Settings',
-                color: AppColors.textMuted,
-                route: AppRoutes.settings,
-              ),
-            ].asMap().entries.map((entry) {
-              return entry.value
-                  .animate(delay: (150 + entry.key * 60).ms)
-                  .fadeIn()
-                  .scale(begin: const Offset(0.8, 0.8));
-            }).toList(),
-          ),
+            // Daily Verse card
+            _DailyVerseCard(isBangla: bn).animate(delay: 600.ms).fadeIn(),
 
-          const SizedBox(height: 24),
-
-          // Daily Verse card
-          _DailyVerseCard(isBangla: bn).animate(delay: 600.ms).fadeIn(),
-
-          const SizedBox(height: 80), // FAB space
-        ],
-      ),
-    );
+            const SizedBox(height: 80), // FAB space
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -215,13 +219,18 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Get.find<SettingsController>();
+    final isDark = settings.isDark;
     return GestureDetector(
       onTap: () => Get.toNamed(route),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.cardDark,
+          color: isDark ? AppColors.cardDark : AppColors.cardLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.borderDark, width: 0.5),
+          border: Border.all(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 0.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -238,10 +247,10 @@ class _QuickActionCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textGrey,
+                color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -261,13 +270,18 @@ class _DailyVerseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Get.find<SettingsController>();
+    final isDark = settings.isDark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: isDark ? AppColors.cardDark : AppColors.cardLight,
         borderRadius: BorderRadius.circular(20),
-        border: const Border.fromBorderSide(
-          BorderSide(color: AppColors.borderDark, width: 0.5),
+        border: Border.fromBorderSide(
+          BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 0.5,
+          ),
         ),
       ),
       child: Column(
@@ -294,7 +308,7 @@ class _DailyVerseCard extends StatelessWidget {
               Icon(
                 Icons.share_outlined,
                 size: 18,
-                color: AppColors.textMuted,
+                color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -315,18 +329,18 @@ class _DailyVerseCard extends StatelessWidget {
             isBangla
                 ? 'যে আল্লাহকে ভয় করে, তিনি তার জন্য পথ করে দেন।'
                 : 'And whoever fears Allah — He will make for him a way out.',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.textGrey,
+              color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
               height: 1.6,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             isBangla ? '— সূরা আত-তালাক (৬৫:২)' : '— Surah At-Talaq (65:2)',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textMuted,
+              color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
               fontStyle: FontStyle.italic,
             ),
           ),

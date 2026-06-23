@@ -12,47 +12,51 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      drawer: const AppDrawer(),
-      floatingActionButton: const FloatingSupportButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: Obx(() => _buildBody(controller.currentIndex.value)),
-      bottomNavigationBar: _buildBottomNav(),
-    );
+    final settings = Get.find<SettingsController>();
+    return Obx(() {
+      return Scaffold(
+        backgroundColor: context.theme.scaffoldBackgroundColor,
+        appBar: _buildAppBar(context, settings),
+        drawer: const AppDrawer(),
+        floatingActionButton: const FloatingSupportButton(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: _buildBody(controller.currentIndex.value),
+        bottomNavigationBar: _buildBottomNav(context, settings),
+      );
+    });
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    final settings = Get.find<SettingsController>();
+  PreferredSizeWidget _buildAppBar(BuildContext context, SettingsController settings) {
+    final isDark = settings.isDark;
     return AppBar(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: isDark ? AppColors.bgDark : AppColors.bgLight,
       leading: Builder(
         builder: (context) => IconButton(
-          icon: const Icon(Icons.menu_rounded, color: AppColors.textWhite),
+          icon: Icon(Icons.menu_rounded, color: isDark ? AppColors.textWhite : AppColors.textDark),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
-      title: Obx(() => Text(
-            settings.isBangla ? 'কুরআন অ্যাপ' : 'Quran App',
-            style: const TextStyle(
-              color: AppColors.textWhite,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-            ),
-          )),
+      title: Text(
+        settings.isBangla ? 'কুরআন অ্যাপ' : 'Quran App',
+        style: TextStyle(
+          color: isDark ? AppColors.textWhite : AppColors.textDark,
+          fontWeight: FontWeight.w700,
+          fontSize: 20,
+        ),
+      ),
       actions: [
-        Obx(() {
-          final settings = Get.find<SettingsController>();
-          return IconButton(
-            icon: Icon(
-              settings.isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-              color: AppColors.textGrey,
-            ),
-            onPressed: settings.toggleTheme,
-          );
-        }),
         IconButton(
-          icon: const Icon(Icons.notifications_outlined, color: AppColors.textGrey),
+          icon: Icon(
+            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
+          ),
+          onPressed: settings.toggleTheme,
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.notifications_outlined,
+            color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
+          ),
           onPressed: () {},
         ),
       ],
@@ -75,56 +79,57 @@ class HomeView extends GetView<HomeController> {
     }
   }
 
-  Widget _buildBottomNav() {
-    final settings = Get.find<SettingsController>();
+  Widget _buildBottomNav(BuildContext context, SettingsController settings) {
+    final isDark = settings.isDark;
     final bool bn = settings.isBangla;
 
-    return Obx(
-      () => Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surfaceDark,
-          border: Border(
-            top: BorderSide(color: AppColors.borderDark, width: 0.5),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 0.5,
           ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: controller.currentIndex.value,
-          onTap: (i) {
-            controller.onNavTap(i);
-            if (i == 1) controller.goToQuran();
-            if (i == 2) controller.goToPrayerTime();
-            if (i == 3) controller.goToDuas();
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMuted,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 11,
-          unselectedFontSize: 10,
-          items: [
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.home_rounded),
-              label: bn ? 'হোম' : 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.menu_book_rounded),
-              label: bn ? 'কুরআন' : 'Quran',
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.access_time_rounded),
-              label: bn ? 'নামাজ' : 'Prayer',
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.volunteer_activism_rounded),
-              label: bn ? 'দোয়া' : "Du'a",
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.grid_view_rounded),
-              label: bn ? 'আরো' : 'More',
-            ),
-          ],
-        ),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: controller.currentIndex.value,
+        onTap: (i) {
+          controller.onNavTap(i);
+          if (i == 1) controller.goToQuran();
+          if (i == 2) controller.goToPrayerTime();
+          if (i == 3) controller.goToDuas();
+        },
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: isDark ? AppColors.textMuted : AppColors.textDark.withOpacity(0.4),
+        type: BottomNavigationBarType.fixed,
+        selectedFontSize: 11,
+        unselectedFontSize: 10,
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home_rounded),
+            label: bn ? 'হোম' : 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.menu_book_rounded),
+            label: bn ? 'কুরআন' : 'Quran',
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.access_time_rounded),
+            label: bn ? 'নামাজ' : 'Prayer',
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.volunteer_activism_rounded),
+            label: bn ? 'দোয়া' : "Du'a",
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.grid_view_rounded),
+            label: bn ? 'আরো' : 'More',
+          ),
+        ],
       ),
     );
   }

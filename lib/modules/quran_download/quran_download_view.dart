@@ -103,13 +103,28 @@ class QuranDownloadView extends GetView<QuranDownloadController> {
                           if (state == 2)
                             const Icon(Icons.check_circle, color: AppColors.success)
                           else if (state == 1)
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.primary,
-                              ),
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                    value: controller.downloadProgress[surah.number],
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                    backgroundColor: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
+                                  ),
+                                ),
+                                Text(
+                                  '${((controller.downloadProgress[surah.number] ?? 0.0) * 100).toInt()}%',
+                                  style: const TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
                             )
                           else
                             IconButton(

@@ -220,7 +220,8 @@ class QuranRepository {
 
   Future<bool> isAyahAudioDownloaded(int globalAyahNumber, String qariId) async {
     final path = await getLocalAudioPath(globalAyahNumber, qariId);
-    return await File(path).exists();
+    final file = File(path);
+    return await file.exists() && await file.length() > 0;
   }
 
   Future<bool> isSurahAudioDownloaded(int surahNumber, String qariId) async {

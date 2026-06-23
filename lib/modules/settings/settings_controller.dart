@@ -36,6 +36,7 @@ class SettingsController extends GetxController {
     notificationsEnabled.value = _prefs?.getBool(_keyNotifications) ?? true;
     selectedQari.value = _prefs?.getString(_keyQari) ?? 'ar.alafasy';
     _applyTheme();
+    Get.updateLocale(Locale(language.value));
   }
 
   void _applyTheme() {
@@ -60,6 +61,7 @@ class SettingsController extends GetxController {
   Future<void> setLanguage(String lang) async {
     language.value = lang;
     await _prefs?.setString(_keyLanguage, lang);
+    Get.updateLocale(Locale(lang));
   }
 
   Future<void> setArabicFontSize(double size) async {

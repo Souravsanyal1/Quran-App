@@ -15,44 +15,47 @@ class QuranView extends GetView<QuranController> {
     // Refresh bookmarks and last read when view is shown
     controller.loadBookmarksAndLastRead();
 
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: context.theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          title: Obx(() => Text(
-                settings.isBangla ? 'আল-কুরআন' : 'Al-Quran',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-              )),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.download_for_offline_outlined),
-              onPressed: () => Get.toNamed(AppRoutes.quranDownload),
+    return Obx(() {
+      final bn = settings.isBangla;
+      return DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          backgroundColor: context.theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            title: Text(
+              bn ? 'আল-কুরআন' : 'Al-Quran',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
             ),
-          ],
-          bottom: TabBar(
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textGrey,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            tabs: [
-              Tab(text: settings.isBangla ? 'সূরা' : 'Surah'),
-              Tab(text: settings.isBangla ? 'পারা' : 'Juz / Para'),
-              Tab(text: settings.isBangla ? 'বুকমার্ক' : 'Bookmarks'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.download_for_offline_outlined),
+                onPressed: () => Get.toNamed(AppRoutes.quranDownload),
+              ),
+            ],
+            bottom: TabBar(
+              indicatorColor: AppColors.primary,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textGrey,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              tabs: [
+                Tab(text: bn ? 'সূরা' : 'Surah'),
+                Tab(text: bn ? 'পারা' : 'Juz / Para'),
+                Tab(text: bn ? 'বুকমার্ক' : 'Bookmarks'),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              _buildSurahTab(context, settings),
+              _buildParaTab(context, settings),
+              _buildBookmarksTab(context, settings),
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildSurahTab(context, settings),
-            _buildParaTab(context, settings),
-            _buildBookmarksTab(context, settings),
-          ],
-        ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildSurahTab(BuildContext context, SettingsController settings) {
