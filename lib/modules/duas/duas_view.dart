@@ -179,7 +179,7 @@ class DuasView extends GetView<DuasController> {
                             settings.isBangla ? dua.translationBn : dua.translationEn,
                             style: TextStyle(
                               fontSize: 13,
-                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                              color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
                               height: 1.4,
                             ),
                           ),

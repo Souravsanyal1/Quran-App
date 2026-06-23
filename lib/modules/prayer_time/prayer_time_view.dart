@@ -87,7 +87,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -120,7 +120,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Obx(() => Text(
@@ -182,7 +182,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: isNext
-            ? prayerColor.withOpacity(0.12)
+            ? prayerColor.withValues(alpha: 0.12)
             : (isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(

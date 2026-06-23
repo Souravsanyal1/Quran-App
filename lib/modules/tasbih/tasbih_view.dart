@@ -59,7 +59,7 @@ class TasbihView extends GetView<TasbihController> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.15),
+                      color: AppColors.primary.withValues(alpha: 0.15),
                       blurRadius: 30,
                       spreadRadius: 5,
                     ),
@@ -110,7 +110,7 @@ class TasbihView extends GetView<TasbihController> {
                   icon: const Icon(Icons.refresh, color: AppColors.error),
                   onPressed: () => controller.reset(),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.error.withOpacity(0.1),
+                    backgroundColor: AppColors.error.withValues(alpha: 0.1),
                     padding: const EdgeInsets.all(12),
                   ),
                 ),
@@ -154,7 +154,7 @@ class TasbihView extends GetView<TasbihController> {
           color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.textGrey.withOpacity(0.3),
+            color: isSelected ? AppColors.primary : AppColors.textGrey.withValues(alpha: 0.3),
             width: 1,
           ),
         ),

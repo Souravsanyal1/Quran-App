@@ -56,7 +56,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -186,7 +186,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                   height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.primary, width: 1.5),
                   ),
@@ -218,7 +218,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                         settings.isBangla ? step.descBn : step.descEn,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
+                          color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.7),
                           height: 1.4,
                         ),
                       ),

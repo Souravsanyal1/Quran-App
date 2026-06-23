@@ -39,8 +39,10 @@ class PrayerTimeController extends GetxController {
 
         if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
           final position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low,
-            timeLimit: const Duration(seconds: 5),
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.low,
+              timeLimit: Duration(seconds: 5),
+            ),
           );
           _latitude = position.latitude;
           _longitude = position.longitude;
@@ -130,12 +132,10 @@ class PrayerTimeController extends GetxController {
         }
       }
 
-      if (next == null) {
-        next = MapEntry(
-          'Fajr',
-          list.first.value.add(const Duration(days: 1)),
-        );
-      }
+      next ??= MapEntry(
+        'Fajr',
+        list.first.value.add(const Duration(days: 1)),
+      );
 
       nextPrayerName.value = next.key;
       final diff = next.value.difference(currentTime);

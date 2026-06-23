@@ -89,10 +89,10 @@ class QiblaView extends GetView<QiblaController> {
                               height: 260,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: AppColors.emerald.withOpacity(0.08),
+                                color: AppColors.emerald.withValues(alpha: 0.08),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.emerald.withOpacity(0.2),
+                                    color: AppColors.emerald.withValues(alpha: 0.2),
                                     blurRadius: 30,
                                     spreadRadius: 5,
                                   ),
@@ -137,7 +137,7 @@ class QiblaView extends GetView<QiblaController> {
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       decoration: BoxDecoration(
                         color: isAligned
-                            ? AppColors.emerald.withOpacity(0.1)
+                            ? AppColors.emerald.withValues(alpha: 0.1)
                             : (settings.isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
@@ -292,7 +292,7 @@ class QiblaView extends GetView<QiblaController> {
   }
 
   Widget _buildCompassNeedle(bool isAligned) {
-    return Container(
+    return SizedBox(
       width: 220,
       height: 220,
       child: CustomPaint(

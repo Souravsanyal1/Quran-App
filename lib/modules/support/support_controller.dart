@@ -49,7 +49,7 @@ class SupportController extends GetxController {
         isBangla ? 'সফল হয়েছে' : 'Success',
         isBangla ? 'আপনার বার্তা সফলভাবে পাঠানো হয়েছে!' : 'Your message has been sent successfully!',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withOpacity(0.8),
+        backgroundColor: Colors.green.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } catch (e) {
@@ -58,7 +58,7 @@ class SupportController extends GetxController {
         isBangla ? 'ব্যর্থ হয়েছে' : 'Error',
         isBangla ? 'বার্তা পাঠাতে সমস্যা হয়েছে। পরে আবার চেষ্টা করুন।' : 'Failed to send message. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } finally {

@@ -143,7 +143,7 @@ class SplashView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
                                 value: controller.progress.value,
-                                backgroundColor: AppColors.borderDark.withOpacity(0.5),
+                                backgroundColor: AppColors.borderDark.withValues(alpha: 0.5),
                                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                               ),
                             ),

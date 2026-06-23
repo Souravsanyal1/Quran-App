@@ -107,7 +107,7 @@ class SalahGuideView extends GetView<SalahGuideController> {
                           settings.isBangla ? step.descBn : step.descEn,
                           style: TextStyle(
                             fontSize: 14,
-                            color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                            color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
                             height: 1.5,
                           ),
                           textAlign: TextAlign.center,
