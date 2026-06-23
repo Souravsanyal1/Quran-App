@@ -94,8 +94,3 @@ flutter:
     - assets/animations/
     - assets/audio/
     - assets/data/
-
-  fonts:
-    - family: Uthmanic
-      fonts:
-        - asset: assets/fonts/UthmanicHafs.ttf
