@@ -30,8 +30,10 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Initialize notifications
-  await NotificationService.instance.init();
+  // Initialize notifications asynchronously so it does not block app launch
+  NotificationService.instance.init().catchError((e) {
+    debugPrint('Failed to initialize notifications: $e');
+  });
 
   // Initialize Hive for local storage
   final appDocDir = await getApplicationDocumentsDirectory();
