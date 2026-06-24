@@ -457,56 +457,58 @@ class TasbihView extends GetView<TasbihController> {
               constraints: BoxConstraints(
                 maxHeight: Get.height * 0.55,
               ),
-              child: Obx(() => ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: controller.dhikrList.length,
-                    separatorBuilder: (context, i) => Divider(
-                      height: 1,
-                      color: Colors.grey.withValues(alpha: 0.2),
-                    ),
-                    itemBuilder: (context, index) {
-                      final dhikr = controller.dhikrList[index];
-                      final isSelected = controller.selectedDhikrIndex.value == index;
-                      return ListTile(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        onTap: () {
-                          controller.selectDhikr(index);
-                          Get.back();
-                        },
-                        leading: CircleAvatar(
-                          backgroundColor: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.15)
-                              : Colors.grey.withValues(alpha: 0.1),
-                          child: Text(
-                            '${dhikr.defaultTarget}',
-                            style: TextStyle(
-                              color: isSelected ? AppColors.primary : AppColors.textGrey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          dhikr.arabic,
-                          style: const TextStyle(
-                            fontFamily: 'Amiri',
-                            fontSize: 18,
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: controller.dhikrList.length,
+                separatorBuilder: (context, i) => Divider(
+                  height: 1,
+                  color: Colors.grey.withValues(alpha: 0.2),
+                ),
+                itemBuilder: (context, index) {
+                  final dhikr = controller.dhikrList[index];
+                  return Obx(() {
+                    final isSelected = controller.selectedDhikrIndex.value == index;
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      onTap: () {
+                        controller.selectDhikr(index);
+                        Get.back();
+                      },
+                      leading: CircleAvatar(
+                        backgroundColor: isSelected
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : Colors.grey.withValues(alpha: 0.1),
+                        child: Text(
+                          '${dhikr.defaultTarget}',
+                          style: TextStyle(
+                            color: isSelected ? AppColors.primary : AppColors.textGrey,
                             fontWeight: FontWeight.bold,
+                            fontSize: 12,
                           ),
-                          textDirection: TextDirection.rtl,
                         ),
-                        subtitle: Text(
-                          settings.isBangla
-                              ? '${dhikr.transliterationBn} — ${dhikr.meaningBn}'
-                              : '${dhikr.transliterationEn} — ${dhikr.meaningEn}',
-                          style: const TextStyle(fontSize: 11),
+                      ),
+                      title: Text(
+                        dhikr.arabic,
+                        style: const TextStyle(
+                          fontFamily: 'Amiri',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: AppColors.primary)
-                            : null,
-                      );
-                    },
-                  )),
+                        textDirection: TextDirection.rtl,
+                      ),
+                      subtitle: Text(
+                        settings.isBangla
+                            ? '${dhikr.transliterationBn} — ${dhikr.meaningBn}'
+                            : '${dhikr.transliterationEn} — ${dhikr.meaningEn}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.primary)
+                          : null,
+                    );
+                  });
+                },
+              ),
             ),
           ],
         ),
