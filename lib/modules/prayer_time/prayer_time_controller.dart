@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../../data/providers/quran_api_provider.dart';
 import '../../services/notification_service.dart';
 import '../settings/settings_controller.dart';
@@ -17,6 +18,7 @@ class PrayerTimeController extends GetxController {
   static const String _keyLocName = 'custom_location_name';
   static const String _keyIsManual = 'is_manual_location';
   static const String _keyCalcMethod = 'prayer_calc_method';
+  static const String _keyAsrSchool = 'prayer_asr_school';
 
   static const Map<int, String> calculationMethods = {
     1: 'University of Islamic Sciences, Karachi',
@@ -57,7 +59,8 @@ class PrayerTimeController extends GetxController {
   final RxDouble customLatitude = 23.8103.obs;
   final RxDouble customLongitude = 90.4125.obs;
   final RxBool isManualLocation = false.obs;
-  final RxInt calculationMethod = 2.obs;
+  final RxInt calculationMethod = 1.obs;
+  final RxInt asrSchool = 1.obs;
   final RxMap<String, bool> azanNotifications = <String, bool>{
     'Fajr': true,
     'Dhuhr': true,
@@ -105,7 +108,12 @@ class PrayerTimeController extends GetxController {
       customLatitude.value = prefs.getDouble(_keyLat) ?? 23.8103;
       customLongitude.value = prefs.getDouble(_keyLng) ?? 90.4125;
       locationName.value = prefs.getString(_keyLocName) ?? 'Dhaka, Bangladesh';
-      calculationMethod.value = prefs.getInt(_keyCalcMethod) ?? 2;
+      
+      _latitude = customLatitude.value;
+      _longitude = customLongitude.value;
+
+      calculationMethod.value = prefs.getInt(_keyCalcMethod) ?? 1; // Default to Karachi (1)
+      asrSchool.value = prefs.getInt(_keyAsrSchool) ?? 1; // Default to Hanafi (1)
 
       // Load individual notification settings
       for (var k in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
@@ -118,6 +126,7 @@ class PrayerTimeController extends GetxController {
       } else {
         // Try auto GPS location
         bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        bool gpsSuccess = false;
         if (serviceEnabled) {
           LocationPermission permission = await Geolocator.checkPermission();
           if (permission == LocationPermission.denied) {
@@ -125,20 +134,62 @@ class PrayerTimeController extends GetxController {
           }
 
           if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
-            final position = await Geolocator.getCurrentPosition(
-              locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.low,
-                timeLimit: Duration(seconds: 5),
-              ),
-            );
-            _latitude = position.latitude;
-            _longitude = position.longitude;
-            customLatitude.value = position.latitude;
-            customLongitude.value = position.longitude;
-            
-            // Try to reverse geocode city name
-            final address = await _getAddressFromLatLng(_latitude, _longitude);
-            locationName.value = address;
+            try {
+              final position = await Geolocator.getCurrentPosition(
+                locationSettings: const LocationSettings(
+                  accuracy: LocationAccuracy.low,
+                  timeLimit: Duration(seconds: 4), // 4 seconds timeout for fast startup
+                ),
+              );
+              _latitude = position.latitude;
+              _longitude = position.longitude;
+              customLatitude.value = position.latitude;
+              customLongitude.value = position.longitude;
+              
+              // Try to reverse geocode city name
+              final address = await _getAddressFromLatLng(_latitude, _longitude);
+              locationName.value = address;
+              gpsSuccess = true;
+
+              // Cache current GPS location to SharedPreferences
+              await prefs.setDouble(_keyLat, _latitude);
+              await prefs.setDouble(_keyLng, _longitude);
+              await prefs.setString(_keyLocName, address);
+            } catch (e) {
+              Get.log('GPS fetch failed or timed out: $e');
+            }
+          }
+        }
+
+        // IP-based location fallback if GPS failed and we don't have cached coordinates yet
+        if (!gpsSuccess && !prefs.containsKey(_keyLat)) {
+          try {
+            final dio = Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 3),
+              receiveTimeout: const Duration(seconds: 3),
+            ));
+            final response = await dio.get('http://ip-api.com/json/');
+            if (response.statusCode == 200 && response.data != null && response.data['status'] == 'success') {
+              final double lat = response.data['lat'] ?? 23.8103;
+              final double lng = response.data['lon'] ?? 90.4125;
+              final String city = response.data['city'] ?? 'Dhaka';
+              final String country = response.data['country'] ?? 'Bangladesh';
+              final String address = '$city, $country';
+
+              _latitude = lat;
+              _longitude = lng;
+              customLatitude.value = lat;
+              customLongitude.value = lng;
+              locationName.value = address;
+
+              // Cache to SharedPreferences
+              await prefs.setDouble(_keyLat, lat);
+              await prefs.setDouble(_keyLng, lng);
+              await prefs.setString(_keyLocName, address);
+              Get.log('IP Location fallback succeeded: $address ($lat, $lng)');
+            }
+          } catch (e) {
+            Get.log('IP Location fallback failed: $e');
           }
         }
       }
@@ -190,6 +241,18 @@ class PrayerTimeController extends GetxController {
     await loadPrayerTimes();
   }
 
+  Future<void> setAsrSchool(int schoolId) async {
+    asrSchool.value = schoolId;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_keyAsrSchool, schoolId);
+    } catch (e) {
+      Get.log('Error saving asr school: $e');
+    }
+    isLoading.value = true;
+    await loadPrayerTimes();
+  }
+
   Future<void> toggleAzanNotification(String prayerKey) async {
     final current = azanNotifications[prayerKey] ?? true;
     final updated = !current;
@@ -218,6 +281,7 @@ class PrayerTimeController extends GetxController {
     final double targetLat = double.parse(_latitude.toStringAsFixed(2));
     final double targetLng = double.parse(_longitude.toStringAsFixed(2));
     final int targetMethod = calculationMethod.value;
+    final int targetSchool = asrSchool.value;
 
     if (cachedStr != null) {
       try {
@@ -225,10 +289,12 @@ class PrayerTimeController extends GetxController {
         final double cachedLat = double.parse((cachedMap['lat'] ?? 0.0).toStringAsFixed(2));
         final double cachedLng = double.parse((cachedMap['lng'] ?? 0.0).toStringAsFixed(2));
         final int cachedMethod = cachedMap['method'] ?? 0;
+        final int cachedSchool = cachedMap['school'] ?? 1;
 
         if ((cachedLat - targetLat).abs() < 0.02 &&
             (cachedLng - targetLng).abs() < 0.02 &&
-            cachedMethod == targetMethod) {
+            cachedMethod == targetMethod &&
+            cachedSchool == targetSchool) {
           return cachedMap;
         }
       } catch (e) {
@@ -244,6 +310,7 @@ class PrayerTimeController extends GetxController {
         year: year,
         month: month,
         method: targetMethod,
+        school: targetSchool,
       );
 
       if (response.statusCode == 200) {
@@ -251,6 +318,7 @@ class PrayerTimeController extends GetxController {
           'lat': _latitude,
           'lng': _longitude,
           'method': targetMethod,
+          'school': targetSchool,
           'data': response.data['data'],
         };
         await prefs.setString(cacheKey, jsonEncode(cacheData));

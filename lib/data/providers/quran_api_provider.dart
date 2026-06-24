@@ -74,12 +74,14 @@ class QuranApiProvider {
     required double longitude,
     required String date, // format: DD-MM-YYYY
     int method = 2,
+    int school = 1,
   }) async {
     final url = AppUrls.prayerByLocation.replaceFirst('{date}', date);
     return await _dio.get(url, queryParameters: {
       'latitude': latitude,
       'longitude': longitude,
       'method': method,
+      'school': school,
       'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
     });
   }
@@ -91,6 +93,7 @@ class QuranApiProvider {
     required int year,
     required int month,
     int method = 2,
+    int school = 1,
   }) async {
     final url = AppUrls.prayerMonthly
         .replaceFirst('{year}', year.toString())
@@ -99,6 +102,7 @@ class QuranApiProvider {
       'latitude': latitude,
       'longitude': longitude,
       'method': method,
+      'school': school,
       'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
     });
   }

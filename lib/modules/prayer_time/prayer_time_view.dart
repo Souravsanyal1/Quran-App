@@ -594,7 +594,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -609,12 +609,12 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                   : 'Select Calculation Method',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: 16,
                 color: isDark ? AppColors.textWhite : AppColors.textDark,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Flexible(
               child: ListView(
                 shrinkWrap: true,
@@ -629,9 +629,11 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                     final isSelected =
                         controller.calculationMethod.value == methodId;
                     return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                       title: Text(
                         name,
                         style: TextStyle(
+                          fontSize: 14,
                           fontWeight: isSelected
                               ? FontWeight.bold
                               : FontWeight.normal,
@@ -644,15 +646,95 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                       ),
                       trailing: isSelected
                           ? const Icon(Icons.check_circle_rounded,
-                              color: AppColors.primary)
+                              color: AppColors.primary, size: 20)
                           : null,
                       onTap: () {
                         controller.setCalculationMethod(methodId);
-                        Get.back();
                       },
                     );
                   });
                 }).toList(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight),
+            const SizedBox(height: 8),
+            Text(
+              bn
+                  ? 'আসরের ওয়াক্ত গণনা পদ্ধতি'
+                  : 'Asr Time Calculation School',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: isDark ? AppColors.textWhite : AppColors.textDark,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            // Hanafi option
+            Obx(() {
+              final isHanafi = controller.asrSchool.value == 1;
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                title: Text(
+                  bn ? 'হানাফী (আসরের ওয়াক্ত পরে শুরু হয়)' : 'Hanafi (Asr starts later)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isHanafi ? FontWeight.bold : FontWeight.normal,
+                    color: isHanafi
+                        ? AppColors.primary
+                        : (isDark ? AppColors.textWhite : AppColors.textDark),
+                  ),
+                ),
+                trailing: isHanafi
+                    ? const Icon(Icons.check_circle_rounded,
+                        color: AppColors.primary, size: 20)
+                    : null,
+                onTap: () {
+                  controller.setAsrSchool(1);
+                },
+              );
+            }),
+            // Shafi'i / Standard option
+            Obx(() {
+              final isStandard = controller.asrSchool.value == 0;
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                title: Text(
+                  bn
+                      ? 'শাফেয়ী / সাধারণ (আসরের ওয়াক্ত আগে শুরু হয়)'
+                      : 'Shafi\'i / Standard (Asr starts earlier)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isStandard ? FontWeight.bold : FontWeight.normal,
+                    color: isStandard
+                        ? AppColors.primary
+                        : (isDark ? AppColors.textWhite : AppColors.textDark),
+                  ),
+                ),
+                trailing: isStandard
+                    ? const Icon(Icons.check_circle_rounded,
+                        color: AppColors.primary, size: 20)
+                    : null,
+                onTap: () {
+                  controller.setAsrSchool(0);
+                },
+              );
+            }),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Get.back(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                bn ? 'ঠিক আছে' : 'OK',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
           ],
