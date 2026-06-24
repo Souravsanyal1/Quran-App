@@ -123,29 +123,35 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                           Icon(Icons.calendar_month_outlined,
                               color: headerFg, size: 26),
                           const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Obx(() => Text(
-                                    controller.hijriDateStr.value.isNotEmpty
-                                        ? '$shortDayOfWeek, ${controller.hijriDateStr.value.split(',')[0].trim()}'
-                                        : '$shortDayOfWeek, -- --',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: headerFg,
-                                    ),
-                                  )),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$formattedGregorian, ${bn ? controller.bengaliDateStr : "Bengali date"}',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: headerFgMuted,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Obx(() => Text(
+                                      controller.hijriDateStr.value.isNotEmpty
+                                          ? '$shortDayOfWeek, ${controller.hijriDateStr.value.split(',')[0].trim()}'
+                                          : '$shortDayOfWeek, -- --',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: headerFg,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '$formattedGregorian, ${bn ? controller.bengaliDateStr : "Bengali date"}',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: headerFgMuted,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -275,53 +281,56 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                                 color: pillBg,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.wb_sunny_outlined,
-                                      color: pillText, size: 14),
-                                  const SizedBox(width: 3),
-                                  Text('↑ ',
-                                      style: TextStyle(
-                                          color: pillTextMuted,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold)),
-                                  Obx(() => Text(
-                                        _formatTimeWithoutAmPm(
-                                            controller
-                                                .sunriseTimeStr.value,
-                                            bn),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.wb_sunny_outlined,
+                                        color: pillText, size: 14),
+                                    const SizedBox(width: 3),
+                                    Text('↑ ',
                                         style: TextStyle(
-                                            color: pillText,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold),
-                                      )),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5),
-                                    child: Text('|',
+                                            color: pillTextMuted,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold)),
+                                    Obx(() => Text(
+                                          _formatTimeWithoutAmPm(
+                                              controller
+                                                  .sunriseTimeStr.value,
+                                              bn),
+                                          style: TextStyle(
+                                              color: pillText,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5),
+                                      child: Text('|',
+                                          style: TextStyle(
+                                              color: pillDivider)),
+                                    ),
+                                    Icon(Icons.wb_twilight_outlined,
+                                        color: pillText, size: 14),
+                                    const SizedBox(width: 3),
+                                    Text('↓ ',
                                         style: TextStyle(
-                                            color: pillDivider)),
-                                  ),
-                                  Icon(Icons.wb_twilight_outlined,
-                                      color: pillText, size: 14),
-                                  const SizedBox(width: 3),
-                                  Text('↓ ',
-                                      style: TextStyle(
-                                          color: pillTextMuted,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold)),
-                                  Obx(() => Text(
-                                        _formatTimeWithoutAmPm(
-                                            controller
-                                                .sunsetTimeStr.value,
-                                            bn),
-                                        style: TextStyle(
-                                            color: pillText,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold),
-                                      )),
-                                ],
+                                            color: pillTextMuted,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold)),
+                                    Obx(() => Text(
+                                          _formatTimeWithoutAmPm(
+                                              controller
+                                                  .sunsetTimeStr.value,
+                                              bn),
+                                          style: TextStyle(
+                                              color: pillText,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold),
+                                        )),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -413,14 +422,16 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                                           : PrayerTimeController
                                               .calculationMethods[
                                                   methodId]!;
-                                      return Text(
-                                        name.length > 25
-                                            ? '${name.substring(0, 23)}...'
-                                            : name,
-                                        style: TextStyle(
-                                            color: sheetTextMuted,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold),
+                                      return Flexible(
+                                        child: Text(
+                                          name,
+                                          style: TextStyle(
+                                              color: sheetTextMuted,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       );
                                     }),
                                   ],
@@ -509,21 +520,28 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Icon(icon,
-                color: isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54), size: 24),
-            const SizedBox(width: 16),
-            Text(
-              _translatePrayerName(name, bn),
-              style: TextStyle(
-                fontSize: 16.5,
-                fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+        Expanded(
+          child: Row(
+            children: [
+              Icon(icon,
+                  color: isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54), size: 24),
+              const SizedBox(width: 16),
+              Flexible(
+                child: Text(
+                  _translatePrayerName(name, bn),
+                  style: TextStyle(
+                    fontSize: 16.5,
+                    fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
+                    color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         Row(
           children: [
             Text(
