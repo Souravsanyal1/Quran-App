@@ -54,8 +54,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
 
       // Date strings (non-reactive, computed once per rebuild)
       final String dayOfWeek = DateFormat('EEEE').format(now);
-      final String dayAndMonth = DateFormat('d MMMM').format(now);
-      final String shortDayOfWeek = _translateDayShort(dayOfWeek, bn);
+      final String dayAndMonth = DateFormat('d MMMM yyyy').format(now);
       final String formattedGregorian =
           _translateGregorianDate(dayAndMonth, bn);
 
@@ -127,8 +126,8 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                               children: [
                                 Obx(() => Text(
                                       controller.hijriDateStr.value.isNotEmpty
-                                          ? '$shortDayOfWeek, ${controller.hijriDateStr.value.split(',')[0].trim()}'
-                                          : '$shortDayOfWeek, -- --',
+                                          ? '${_translateDayShort(dayOfWeek, bn)}, ${controller.hijriDateStr.value}'
+                                          : '${_translateDayShort(dayOfWeek, bn)}, -- --',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -139,7 +138,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                                     )),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '$formattedGregorian, ${bn ? controller.bengaliDateStr : "Bengali date"}',
+                                  '$formattedGregorian, ${controller.bengaliDateStr}',
                                   style: TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,
@@ -548,10 +547,44 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
   }
 
   String _getPrayerRange(String name, bool isBangla) {
-    // Read the already-formatted 12h time from prayerTimes (e.g. "05:12 AM")
-    final time = controller.prayerTimes[name] ?? '';
-    if (time.isEmpty) return '';
-    return isBangla ? controller.toBanglaDigits(time) : time;
+    final start = controller.prayerTimes[name] ?? '';
+    if (start.isEmpty) return '';
+
+    String end = '';
+    switch (name) {
+      case 'Fajr':
+        end = controller.sunriseTimeStr.value;
+        break;
+      case 'Dhuhr':
+        end = controller.prayerTimes['Asr'] ?? '';
+        break;
+      case 'Asr':
+        end = controller.prayerTimes['Maghrib'] ?? '';
+        break;
+      case 'Maghrib':
+        end = controller.prayerTimes['Isha'] ?? '';
+        break;
+      case 'Isha':
+        end = controller.prayerTimes['Fajr'] ?? '';
+        break;
+    }
+
+    if (end.isEmpty) {
+      return _formatPrayerTime(start, isBangla);
+    }
+
+    return '${_formatPrayerTime(start, isBangla)} - ${_formatPrayerTime(end, isBangla)}';
+  }
+
+  String _formatPrayerTime(String time12h, bool isBangla) {
+    // Strip AM/PM for compact display so prayer names are never truncated
+    final clean = time12h
+        .replaceAll(' AM', '')
+        .replaceAll(' PM', '')
+        .replaceAll(' am', '')
+        .replaceAll(' pm', '')
+        .trim();
+    return isBangla ? controller.toBanglaDigits(clean) : clean;
   }
 
   void _showCalculationMethodSheet(
@@ -655,8 +688,11 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
     }
   }
 
+
+
+  /// Short weekday label used in the compact prayer-time header.
   String _translateDayShort(String day, bool isBangla) {
-    if (!isBangla) return day;
+    if (!isBangla) return day.length >= 3 ? day.substring(0, 3) : day;
     switch (day) {
       case 'Monday':
         return 'সোম';
@@ -665,7 +701,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       case 'Wednesday':
         return 'বুধ';
       case 'Thursday':
-        return 'বৃহস্পতি';
+        return 'বৃহঃ';
       case 'Friday':
         return 'শুক্র';
       case 'Saturday':

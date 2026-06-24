@@ -4,6 +4,7 @@ import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import '../../widgets/percentage_loading_widget.dart';
 import 'quran_controller.dart';
 
 class QuranView extends GetView<QuranController> {
@@ -260,8 +261,10 @@ class QuranView extends GetView<QuranController> {
         Expanded(
           child: Obx(() {
             if (controller.isLoading.value) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+              return Center(
+                child: PercentageLoadingWidget(
+                  message: settings.isBangla ? 'সূরা তালিকা লোড হচ্ছে...' : 'Loading Surah List...',
+                ),
               );
             }
             if (controller.filteredSurahList.isEmpty) {

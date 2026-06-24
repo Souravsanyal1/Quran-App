@@ -15,7 +15,6 @@ import '../modules/para_details/para_details_controller.dart';
 import '../modules/quran_download/quran_download_view.dart';
 import '../modules/quran_download/quran_download_controller.dart';
 import '../modules/prayer_time/prayer_time_view.dart';
-import '../modules/prayer_time/prayer_time_controller.dart';
 import '../modules/salah_guide/salah_guide_view.dart';
 import '../modules/salah_guide/salah_guide_controller.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_view.dart';
@@ -90,7 +89,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.prayerTime,
       page: () => const PrayerTimeView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => PrayerTimeController())),
       transition: Transition.rightToLeft,
     ),
     GetPage(

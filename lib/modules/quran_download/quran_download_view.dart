@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import '../../widgets/percentage_loading_widget.dart';
 import 'quran_download_controller.dart';
 
 class QuranDownloadView extends GetView<QuranDownloadController> {
@@ -20,7 +21,11 @@ class QuranDownloadView extends GetView<QuranDownloadController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return Center(
+            child: PercentageLoadingWidget(
+              message: settings.isBangla ? 'সূরা তালিকা লোড হচ্ছে...' : 'Loading Surah List...',
+            ),
+          );
         }
 
         return Column(
@@ -105,28 +110,32 @@ class QuranDownloadView extends GetView<QuranDownloadController> {
                           if (state == 2)
                             const Icon(Icons.check_circle, color: AppColors.success)
                           else if (state == 1)
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 28,
-                                  height: 28,
-                                  child: CircularProgressIndicator(
-                                    value: controller.downloadProgress[surah.number],
-                                    strokeWidth: 2,
-                                    color: AppColors.primary,
-                                    backgroundColor: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
+                            SizedBox(
+                              width: 60,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '${((controller.downloadProgress[surah.number] ?? 0.0) * 100).toInt()}%',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '${((controller.downloadProgress[surah.number] ?? 0.0) * 100).toInt()}%',
-                                  style: const TextStyle(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
+                                  const SizedBox(height: 4),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(
+                                      value: controller.downloadProgress[surah.number],
+                                      minHeight: 4,
+                                      backgroundColor: settings.isDark ? AppColors.borderDark : AppColors.borderLight,
+                                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             )
                           else
                             IconButton(

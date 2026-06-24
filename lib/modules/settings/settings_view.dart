@@ -201,6 +201,18 @@ class SettingsView extends GetView<SettingsController> {
                       orElse: () => {'name': 'Unknown'})['name']!,
                   onTap: () => _showQariSelectionBottomSheet(context, controller, bn),
                 ),
+                _SettingsTile(
+                  isDark: isDark,
+                  icon: Icons.play_circle_fill_rounded,
+                  title: bn ? 'ব্যাকগ্রাউন্ডে অডিও প্লে করুন' : 'Play Audio in Background',
+                  subtitle: bn
+                      ? 'অ্যাপ বন্ধ বা স্ক্রিন লক থাকলেও অডিও সচল রাখবে'
+                      : 'Keep playing audio when screen is locked or app is in background',
+                  trailing: Switch(
+                    value: controller.backgroundPlayEnabled.value,
+                    onChanged: controller.setBackgroundPlay,
+                  ),
+                ),
               ],
             ),
 
@@ -275,6 +287,7 @@ class SettingsView extends GetView<SettingsController> {
                         ),
                       );
                       if (picked != null) {
+                        if (!context.mounted) return;
                         // Capture context-dependent value before async gap
                         final formattedTime = picked.format(context);
                         await controller.setDuaReminderTime(picked);

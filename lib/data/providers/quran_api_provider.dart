@@ -80,6 +80,26 @@ class QuranApiProvider {
       'latitude': latitude,
       'longitude': longitude,
       'method': method,
+      'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
+    });
+  }
+
+  /// Monthly calendar of prayer times by latitude/longitude, year and month
+  Future<Response> fetchMonthlyPrayerTimes({
+    required double latitude,
+    required double longitude,
+    required int year,
+    required int month,
+    int method = 2,
+  }) async {
+    final url = AppUrls.prayerMonthly
+        .replaceFirst('{year}', year.toString())
+        .replaceFirst('{month}', month.toString());
+    return await _dio.get(url, queryParameters: {
+      'latitude': latitude,
+      'longitude': longitude,
+      'method': method,
+      'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
     });
   }
 

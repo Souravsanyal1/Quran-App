@@ -1,0 +1,19 @@
+- `[x]` 1. Create [percentage_loading_widget.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/widgets/percentage_loading_widget.dart)
+- `[x]` 2. Replace all circular loading indicators with linear percentage progress bars
+  - `[x]` [surah_details_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/surah_details/surah_details_view.dart) (full page load & play button buffer)
+  - `[x]` [para_details_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/para_details/para_details_view.dart) (full page load & play button buffer)
+  - `[x]` [quran_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/quran/quran_view.dart) (surah list load)
+  - `[x]` [quran_download_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/quran_download/quran_download_view.dart) (list load & surah downloading state)
+  - `[x]` [support_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/support/support_view.dart) (submit button load)
+  - `[x]` [location_map_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/prayer_time/location_map_view.dart) (search load)
+  - `[x]` [developer_info_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/developer_info/developer_info_view.dart) (profile picture load placeholder)
+- `[x]` 3. Fix date display and implement start/end time ranges on Prayer page
+  - `[x]` Support transliteration in `_getBengaliDate` of [prayer_time_controller.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/prayer_time/prayer_time_controller.dart)
+  - `[x]` Update Header Date Area strings in [prayer_time_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/prayer_time/prayer_time_view.dart)
+  - `[x]` Implement `_getPrayerRange` with start/end bounds in [prayer_time_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/prayer_time/prayer_time_view.dart)
+- `[x]` 4. Implement background play permission flow
+  - `[x]` Add settings logic in [settings_controller.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/settings/settings_controller.dart)
+  - `[x]` Add settings toggle tile in [settings_view.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/modules/settings/settings_view.dart)
+  - `[x]` Implement custom explanation dialog & permission request on play in [audio_player_service.dart](file:///c:/Users/Sourav%20sanyal/OneDrive/Desktop/Quran%20App/lib/services/audio_player_service.dart)
+- `[x]` 5. Verification
+  - `[x]` Run `flutter analyze`

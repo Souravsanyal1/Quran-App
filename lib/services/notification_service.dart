@@ -88,7 +88,14 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(duaChannel);
 
-      // 3. Request exact alarm permission on Android 12+
+      // 3. Request permissions
+      if (Platform.isAndroid) {
+        final status = await Permission.notification.status;
+        if (!status.isGranted) {
+          _logger.i('Requesting notification permission...');
+          await Permission.notification.request();
+        }
+      }
       await _requestExactAlarmPermission();
 
       // 4. Handle foreground FCM messages
@@ -173,6 +180,24 @@ class NotificationService {
     }
   }
 
+  /// Request notifications permission at runtime (especially Android 13+)
+  Future<bool> requestNotificationPermission() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.notification.status;
+      if (!status.isGranted) {
+        final result = await Permission.notification.request();
+        return result.isGranted;
+      }
+      return true;
+    } else if (Platform.isIOS) {
+      final bool? granted = await _localNotifications
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      return granted ?? false;
+    }
+    return true;
+  }
+
   String _detectType(Map<String, dynamic> data) {
     if (data.containsKey('prayer')) return 'prayer';
     if (data.containsKey('hadith')) return 'hadith';
@@ -232,13 +257,23 @@ class NotificationService {
 
   // ── Prayer Azan Notifications ─────────────────────────────────────────────
 
-  /// Schedules daily local notifications for the 5 prayers.
+  /// Schedules daily local notifications for the 5 prayers (single day fallback).
   Future<void> scheduleAzanNotifications(Map<String, dynamic> timings) async {
+    await scheduleWeeklyAzanNotifications([
+      {
+        'date': DateTime.now(),
+        'timings': timings,
+      }
+    ]);
+  }
+
+  /// Schedules weekly local notifications for the 5 prayers for the next 7 days.
+  Future<void> scheduleWeeklyAzanNotifications(List<Map<String, dynamic>> weeklyTimings) async {
     await cancelAzanNotifications();
 
     final keys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-    final Map<String, int> ids = {
+    final Map<String, int> baseIds = {
       'Fajr': 1001,
       'Dhuhr': 1002,
       'Asr': 1003,
@@ -246,7 +281,7 @@ class NotificationService {
       'Isha': 1005,
     };
 
-    final Map<String, int> reminderIds = {
+    final Map<String, int> baseReminderIds = {
       'Fajr': 2001,
       'Dhuhr': 2002,
       'Asr': 2003,
@@ -311,81 +346,95 @@ class NotificationService {
       ),
     );
 
-    for (var k in keys) {
-      try {
-        if (timings[k] == null) continue;
+    for (int dayOffset = 0; dayOffset < weeklyTimings.length; dayOffset++) {
+      final dayData = weeklyTimings[dayOffset];
+      final DateTime date = dayData['date'] as DateTime;
+      final Map<String, dynamic> timings = dayData['timings'] as Map<String, dynamic>;
 
-        final bool isPrayerEnabled = prefs.getBool('azan_notification_$k') ?? true;
-        if (!isPrayerEnabled) continue;
+      for (var k in keys) {
+        try {
+          if (timings[k] == null) continue;
 
-        final cleanTime = timings[k].toString().split(' ')[0];
-        final timeParts = cleanTime.split(':');
-        final hour = int.parse(timeParts[0]);
-        final minute = int.parse(timeParts[1]);
+          final bool isPrayerEnabled = prefs.getBool('azan_notification_$k') ?? true;
+          if (!isPrayerEnabled) continue;
 
-        var prayerTime = DateTime(now.year, now.month, now.day, hour, minute);
-        if (prayerTime.isBefore(now)) {
-          prayerTime = prayerTime.add(const Duration(days: 1));
-        }
+          final cleanTime = timings[k].toString().split(' ')[0];
+          final timeParts = cleanTime.split(':');
+          final hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
 
-        final tzPrayerTime = tz.TZDateTime.from(prayerTime, tz.local);
+          var prayerTime = DateTime(date.year, date.month, date.day, hour, minute);
+          
+          // If scheduling for today and the time has already passed, skip it
+          if (dayOffset == 0 && prayerTime.isBefore(now)) {
+            continue;
+          }
 
-        // ── At-prayer-time notification ──────────────────────────────────
-        // Message: "ওজু করে রেডি হয়ে নামাজ পড়ুন"
-        final title = bn
-            ? '🕌 ${namesBn[k]} নামাজের সময় হয়েছে'
-            : '🕌 $k prayer time has started';
-        final body = bn
-            ? 'ওজু করে রেডি হোন এবং এখনই ${namesBnPossessive[k]} নামাজ আদায় করুন।'
-            : 'Perform wudu and offer $k prayer now. Do not delay!';
+          final tzPrayerTime = tz.TZDateTime.from(prayerTime, tz.local);
 
-        await _localNotifications.zonedSchedule(
-          id: ids[k]!,
-          title: title,
-          body: body,
-          scheduledDate: tzPrayerTime,
-          notificationDetails: notifDetails,
-          androidScheduleMode: scheduleMode,
-        );
-        _logger.i('Scheduled Azan for $k at $tzPrayerTime');
+          // Unique IDs for each day and prayer
+          final int notifId = baseIds[k]! + (dayOffset * 10);
+          final int reminderId = baseReminderIds[k]! + (dayOffset * 10);
 
-        // ── 30-minute reminder ───────────────────────────────────────────
-        final reminderTime = prayerTime.subtract(const Duration(minutes: 30));
-        if (reminderTime.isAfter(now)) {
-          final tzReminderTime = tz.TZDateTime.from(reminderTime, tz.local);
-
-          final reminderTitle = bn
-              ? '⏰ ${namesBn[k]} নামাজ ৩০ মিনিট পরে'
-              : '⏰ $k prayer in 30 minutes';
-          final reminderBody = bn
-              ? 'আর মাত্র ৩০ মিনিট বাকি! ওজু করুন এবং প্রস্তুত হন।'
-              : 'Only 30 minutes left! Perform wudu and get ready.';
+          // ── At-prayer-time notification ──────────────────────────────────
+          final title = bn
+              ? '🕌 ${namesBn[k]} নামাজের সময় হয়েছে'
+              : '🕌 $k prayer time has started';
+          final body = bn
+              ? 'ওজু করে রেডি হোন এবং এখনই ${namesBnPossessive[k]} নামাজ আদায় করুন।'
+              : 'Perform wudu and offer $k prayer now. Do not delay!';
 
           await _localNotifications.zonedSchedule(
-            id: reminderIds[k]!,
-            title: reminderTitle,
-            body: reminderBody,
-            scheduledDate: tzReminderTime,
+            id: notifId,
+            title: title,
+            body: body,
+            scheduledDate: tzPrayerTime,
             notificationDetails: notifDetails,
             androidScheduleMode: scheduleMode,
           );
+          _logger.i('Scheduled Azan for $k (Day $dayOffset) at $tzPrayerTime (ID: $notifId)');
+
+          // ── 30-minute reminder ───────────────────────────────────────────
+          final reminderTime = prayerTime.subtract(const Duration(minutes: 30));
+          if (reminderTime.isAfter(now)) {
+            final tzReminderTime = tz.TZDateTime.from(reminderTime, tz.local);
+
+            final reminderTitle = bn
+                ? '⏰ ${namesBn[k]} নামাজ ৩০ মিনিট পরে'
+                : '⏰ $k prayer in 30 minutes';
+            final reminderBody = bn
+                ? 'আর মাত্র ৩০ মিনিট বাকি! ওজু করুন এবং প্রস্তুত হন।'
+                : 'Only 30 minutes left! Perform wudu and get ready.';
+
+            await _localNotifications.zonedSchedule(
+              id: reminderId,
+              title: reminderTitle,
+              body: reminderBody,
+              scheduledDate: tzReminderTime,
+              notificationDetails: notifDetails,
+              androidScheduleMode: scheduleMode,
+            );
+            _logger.i('Scheduled Reminder for $k (Day $dayOffset) at $tzReminderTime (ID: $reminderId)');
+          }
+        } catch (e) {
+          _logger.e('Error scheduling Azan/Reminder for $k on Day $dayOffset: $e');
         }
-      } catch (e) {
-        _logger.e('Error scheduling Azan for $k: $e');
       }
     }
   }
 
   /// Cancels all scheduled Azan and reminder notifications.
   Future<void> cancelAzanNotifications() async {
-    final List<int> ids = [
-      1001, 1002, 1003, 1004, 1005,
-      2001, 2002, 2003, 2004, 2005,
-    ];
-    for (var id in ids) {
-      await _localNotifications.cancel(id: id);
+    for (int i = 0; i < 7; i++) {
+      final List<int> ids = [
+        1001 + (i * 10), 1002 + (i * 10), 1003 + (i * 10), 1004 + (i * 10), 1005 + (i * 10),
+        2001 + (i * 10), 2002 + (i * 10), 2003 + (i * 10), 2004 + (i * 10), 2005 + (i * 10),
+      ];
+      for (var id in ids) {
+        await _localNotifications.cancel(id: id);
+      }
     }
-    _logger.i('Cancelled all Azan notifications');
+    _logger.i('Cancelled all scheduled Azan and reminder notifications');
   }
 
   // ── Daily Dua Reminder ────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geo;
@@ -208,49 +209,127 @@ class PrayerTimeController extends GetxController {
   double get latitude => _latitude;
   double get longitude => _longitude;
 
-  Future<void> loadPrayerTimes() async {
-    try {
-      final now = DateTime.now();
-      final formatter = DateFormat('dd-MM-yyyy');
-      final dateStr = formatter.format(now);
+  Future<Map<String, dynamic>?> _getOrFetchMonthlyCalendar(
+      int year, int month, SharedPreferences prefs) async {
+    final cacheKey = 'cached_calendar_${year}_$month';
+    final cachedStr = prefs.getString(cacheKey);
+    
+    // Round lat/lng to 2 decimal places to avoid tiny differences causing refetch
+    final double targetLat = double.parse(_latitude.toStringAsFixed(2));
+    final double targetLng = double.parse(_longitude.toStringAsFixed(2));
+    final int targetMethod = calculationMethod.value;
 
-      final response = await _api.fetchPrayerTimes(
+    if (cachedStr != null) {
+      try {
+        final Map<String, dynamic> cachedMap = jsonDecode(cachedStr);
+        final double cachedLat = double.parse((cachedMap['lat'] ?? 0.0).toStringAsFixed(2));
+        final double cachedLng = double.parse((cachedMap['lng'] ?? 0.0).toStringAsFixed(2));
+        final int cachedMethod = cachedMap['method'] ?? 0;
+
+        if ((cachedLat - targetLat).abs() < 0.02 &&
+            (cachedLng - targetLng).abs() < 0.02 &&
+            cachedMethod == targetMethod) {
+          return cachedMap;
+        }
+      } catch (e) {
+        Get.log('Error parsing cached calendar: $e');
+      }
+    }
+
+    // Cache miss or invalid - fetch from API
+    try {
+      final response = await _api.fetchMonthlyPrayerTimes(
         latitude: _latitude,
         longitude: _longitude,
-        date: dateStr,
-        method: calculationMethod.value,
+        year: year,
+        month: month,
+        method: targetMethod,
       );
 
       if (response.statusCode == 200) {
-        final data = response.data['data']['timings'] as Map<String, dynamic>;
-        final dateData = response.data['data']['date'] as Map<String, dynamic>;
+        final Map<String, dynamic> cacheData = {
+          'lat': _latitude,
+          'lng': _longitude,
+          'method': targetMethod,
+          'data': response.data['data'],
+        };
+        await prefs.setString(cacheKey, jsonEncode(cacheData));
+        return cacheData;
+      }
+    } catch (e) {
+      Get.log('Error fetching monthly prayer times for $year-$month: $e');
+    }
+    return null;
+  }
+
+  Future<void> loadPrayerTimes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final now = DateTime.now();
+
+      // Gather weekly timings list
+      final List<Map<String, dynamic>> weeklyTimings = [];
+
+      for (int i = 0; i < 7; i++) {
+        final targetDate = now.add(Duration(days: i));
+        final calendar = await _getOrFetchMonthlyCalendar(targetDate.year, targetDate.month, prefs);
         
+        if (calendar != null) {
+          final List<dynamic> daysList = calendar['data'];
+          // Days in AlAdhan list are 1-indexed by day number
+          final dayIdx = targetDate.day - 1;
+          if (dayIdx >= 0 && dayIdx < daysList.length) {
+            final dayData = daysList[dayIdx];
+            weeklyTimings.add({
+              'date': targetDate,
+              'timings': dayData['timings'],
+            });
+          }
+        }
+      }
+
+      if (weeklyTimings.isNotEmpty) {
+        final todayData = weeklyTimings[0];
+        final timings = todayData['timings'] as Map<String, dynamic>;
+        
+        // Find gregDateData or date details for today
+        final todayDate = todayData['date'] as DateTime;
+        Map<String, dynamic>? dateData;
+        final calendar = await _getOrFetchMonthlyCalendar(todayDate.year, todayDate.month, prefs);
+        if (calendar != null) {
+          final List<dynamic> daysList = calendar['data'];
+          final dayIdx = todayDate.day - 1;
+          if (dayIdx >= 0 && dayIdx < daysList.length) {
+            dateData = daysList[dayIdx]['date'] as Map<String, dynamic>?;
+          }
+        }
+
         // Pick only 5 daily prayers for the list
         prayerTimes.assignAll({
-          'Fajr': _formatTime12h(data['Fajr']),
-          'Dhuhr': _formatTime12h(data['Dhuhr']),
-          'Asr': _formatTime12h(data['Asr']),
-          'Maghrib': _formatTime12h(data['Maghrib']),
-          'Isha': _formatTime12h(data['Isha']),
+          'Fajr': _formatTime12h(timings['Fajr']),
+          'Dhuhr': _formatTime12h(timings['Dhuhr']),
+          'Asr': _formatTime12h(timings['Asr']),
+          'Maghrib': _formatTime12h(timings['Maghrib']),
+          'Isha': _formatTime12h(timings['Isha']),
         });
 
         // Populate raw timings map (24h strings from API) so the view can
         // compute start-time labels and ranges for each prayer row.
         rawPrayerTimings.assignAll({
-          'Fajr': data['Fajr']?.toString() ?? '',
-          'Sunrise': data['Sunrise']?.toString() ?? '',
-          'Dhuhr': data['Dhuhr']?.toString() ?? '',
-          'Asr': data['Asr']?.toString() ?? '',
-          'Maghrib': data['Maghrib']?.toString() ?? '',
-          'Isha': data['Isha']?.toString() ?? '',
+          'Fajr': timings['Fajr']?.toString() ?? '',
+          'Sunrise': timings['Sunrise']?.toString() ?? '',
+          'Dhuhr': timings['Dhuhr']?.toString() ?? '',
+          'Asr': timings['Asr']?.toString() ?? '',
+          'Maghrib': timings['Maghrib']?.toString() ?? '',
+          'Isha': timings['Isha']?.toString() ?? '',
         });
 
         // Set Sunrise & Sunset
-        sunriseTimeStr.value = _formatTime12h(data['Sunrise'] ?? '');
-        sunsetTimeStr.value = _formatTime12h(data['Sunset'] ?? data['Maghrib'] ?? '');
+        sunriseTimeStr.value = _formatTime12h(timings['Sunrise'] ?? '');
+        sunsetTimeStr.value = _formatTime12h(timings['Sunset'] ?? timings['Maghrib'] ?? '');
 
         // Format Hijri Date
-        if (dateData.containsKey('hijri')) {
+        if (dateData != null && dateData.containsKey('hijri')) {
           final hijriData = dateData['hijri'] as Map<String, dynamic>;
           final day = hijriData['day'] as String;
           final monthEn = hijriData['month']['en'] as String;
@@ -259,20 +338,20 @@ class PrayerTimeController extends GetxController {
         }
 
         // Start countdown and active period detection
-        _startCountdown(data);
+        _startCountdown(timings);
 
         // Schedule Azan notifications if enabled
         try {
           final settings = Get.find<SettingsController>();
           if (settings.azanEnabled.value) {
-            await NotificationService.instance.scheduleAzanNotifications(data);
+            await NotificationService.instance.scheduleWeeklyAzanNotifications(weeklyTimings);
           }
         } catch (e) {
-          Get.log('Error scheduling azan notifications: $e');
+          Get.log('Error scheduling weekly azan notifications: $e');
         }
       }
     } catch (e) {
-      Get.log('Error fetching prayer times: $e');
+      Get.log('Error loading prayer times: $e');
     } finally {
       isLoading.value = false;
     }
@@ -425,17 +504,18 @@ class PrayerTimeController extends GetxController {
 
   String _formatHijriDate(String day, String monthEn, String year) {
     final settings = Get.find<SettingsController>();
-    if (!settings.isBangla) {
-      return '$day $monthEn, $year AH';
-    }
-    
+
     final Map<String, String> monthsBn = {
       'Muharram': 'মুহাররম',
       'Safar': 'সফর',
       'Rabi\' al-awwal': 'রবিউল আউয়াল',
+      'Rabi\' al-Awwal': 'রবিউল আউয়াল',
       'Rabi\' ath-thani': 'রবিউস সানি',
+      'Rabi\' al-Thani': 'রবিউস সানি',
       'Jumada al-awwal': 'জুমাদাল উলা',
+      'Jumada al-Awwal': 'জুমাদাল উলা',
       'Jumada al-thani': 'জুমাদাস সানি',
+      'Jumada al-Thani': 'জুমাদাস সানি',
       'Rajab': 'রজব',
       'Sha\'ban': 'শাবান',
       'Ramadan': 'রমজান',
@@ -443,12 +523,24 @@ class PrayerTimeController extends GetxController {
       'Dhu al-Qadah': 'জিলকদ',
       'Dhu al-Hijjah': 'জিলহজ',
     };
-    
+
+    if (!settings.isBangla) {
+      // English: compact "8 Muharram" — no year in header
+      return '$day $monthEn';
+    }
+
     final dayBn = _toBanglaDigits(day);
-    final yearBn = _toBanglaDigits(year);
-    final monthBn = monthsBn[monthEn] ?? monthEn;
-    
-    return '$dayBn $monthBn, $yearBn হিজরি';
+    // Case-insensitive fallback so API spelling variations never leak English
+    final monthBn = monthsBn[monthEn] ??
+        monthsBn.entries
+            .firstWhere(
+              (e) => e.key.toLowerCase() == monthEn.toLowerCase(),
+              orElse: () => MapEntry(monthEn, monthEn),
+            )
+            .value;
+
+    // Compact: "৮ মুহাররম" — year omitted so it fits in the one-line header
+    return '$dayBn $monthBn';
   }
 
   String _toBanglaDigits(String englishDigits) {
@@ -474,112 +566,119 @@ class PrayerTimeController extends GetxController {
   }
 
   String _getBengaliDate(DateTime date) {
+    final settings = Get.find<SettingsController>();
+    final isBangla = settings.isBangla;
     final day = date.day;
     final month = date.month;
     
     int bDay = 1;
-    String bMonth = '';
+    String bMonthBn = '';
+    String bMonthEn = '';
     
     if (month == 4) { // April
       if (day < 14) {
-        bMonth = 'চৈত্র';
+        bMonthBn = 'চৈত্র'; bMonthEn = 'Choitro';
         bDay = day + 17;
       } else {
-        bMonth = 'বৈশাখ';
+        bMonthBn = 'বৈশাখ'; bMonthEn = 'Baishakh';
         bDay = day - 13;
       }
     } else if (month == 5) { // May
       if (day < 15) {
-        bMonth = 'বৈশাখ';
+        bMonthBn = 'বৈশাখ'; bMonthEn = 'Baishakh';
         bDay = day + 17;
       } else {
-        bMonth = 'জ্যৈষ্ঠ';
+        bMonthBn = 'জ্যৈষ্ঠ'; bMonthEn = 'Jyeshtha';
         bDay = day - 14;
       }
     } else if (month == 6) { // June
       if (day < 15) {
-        bMonth = 'জ্যৈষ্ঠ';
+        bMonthBn = 'জ্যৈষ্ঠ'; bMonthEn = 'Jyeshtha';
         bDay = day + 17;
       } else {
-        bMonth = 'আষাঢ়';
+        bMonthBn = 'আষাঢ়'; bMonthEn = 'Ashar';
         bDay = day - 14;
       }
     } else if (month == 7) { // July
       if (day < 16) {
-        bMonth = 'আষাঢ়';
+        bMonthBn = 'আষাঢ়'; bMonthEn = 'Ashar';
         bDay = day + 16;
       } else {
-        bMonth = 'শ্রাবণ';
+        bMonthBn = 'শ্রাবণ'; bMonthEn = 'Shrabon';
         bDay = day - 15;
       }
     } else if (month == 8) { // August
       if (day < 16) {
-        bMonth = 'শ্রাবণ';
+        bMonthBn = 'শ্রাবণ'; bMonthEn = 'Shrabon';
         bDay = day + 16;
       } else {
-        bMonth = 'ভাদ্র';
+        bMonthBn = 'ভাদ্র'; bMonthEn = 'Bhadra';
         bDay = day - 15;
       }
     } else if (month == 9) { // September
       if (day < 16) {
-        bMonth = 'ভাদ্র';
+        bMonthBn = 'ভাদ্র'; bMonthEn = 'Bhadra';
         bDay = day + 16;
       } else {
-        bMonth = 'আশ্বিন';
+        bMonthBn = 'আশ্বিন'; bMonthEn = 'Ashwin';
         bDay = day - 15;
       }
     } else if (month == 10) { // October
       if (day < 16) {
-        bMonth = 'আশ্বিন';
+        bMonthBn = 'আশ্বিন'; bMonthEn = 'Ashwin';
         bDay = day + 15;
       } else {
-        bMonth = 'কার্তিক';
+        bMonthBn = 'কার্তিক'; bMonthEn = 'Kartik';
         bDay = day - 15;
       }
     } else if (month == 11) { // November
       if (day < 15) {
-        bMonth = 'কার্তিক';
+        bMonthBn = 'কার্তিক'; bMonthEn = 'Kartik';
         bDay = day + 16;
       } else {
-        bMonth = 'অগ্রহায়ণ';
+        bMonthBn = 'অগ্রহায়ণ'; bMonthEn = 'Ograhayon';
         bDay = day - 14;
       }
     } else if (month == 12) { // December
       if (day < 15) {
-        bMonth = 'অগ্রহায়ণ';
+        bMonthBn = 'অগ্রহায়ণ'; bMonthEn = 'Ograhayon';
         bDay = day + 16;
       } else {
-        bMonth = 'পৌষ';
+        bMonthBn = 'পৌষ'; bMonthEn = 'Poush';
         bDay = day - 14;
       }
     } else if (month == 1) { // January
       if (day < 14) {
-        bMonth = 'পৌষ';
+        bMonthBn = 'পৌষ'; bMonthEn = 'Poush';
         bDay = day + 17;
       } else {
-        bMonth = 'মাঘ';
+        bMonthBn = 'মাঘ'; bMonthEn = 'Magh';
         bDay = day - 13;
       }
     } else if (month == 2) { // February
       if (day < 13) {
-        bMonth = 'মাঘ';
+        bMonthBn = 'মাঘ'; bMonthEn = 'Magh';
         bDay = day + 18;
       } else {
-        bMonth = 'ফাল্গুন';
+        bMonthBn = 'ফাল্গুন'; bMonthEn = 'Falgun';
         bDay = day - 12;
       }
     } else if (month == 3) { // March
       if (day < 15) {
-        bMonth = 'ফাল্গুন';
+        bMonthBn = 'ফাল্গুন'; bMonthEn = 'Falgun';
         final isLeap = (date.year % 4 == 0 && date.year % 100 != 0) || (date.year % 400 == 0);
         bDay = day + (isLeap ? 17 : 16);
       } else {
-        bMonth = 'চৈত্র';
+        bMonthBn = 'চৈত্র'; bMonthEn = 'Choitro';
         bDay = day - 14;
       }
     }
     
-    return '${_toBanglaDigits(bDay.toString())} $bMonth';
+    if (isBangla) {
+      return '${_toBanglaDigits(bDay.toString())} $bMonthBn';
+    } else {
+      return '$bDay $bMonthEn';
+    }
   }
 
   String _translateTime(String time, bool isBangla) {

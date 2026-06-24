@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import '../../widgets/percentage_loading_widget.dart';
 import 'para_details_controller.dart';
 
 class ParaDetailsView extends GetView<ParaDetailsController> {
@@ -36,7 +37,11 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return Center(
+            child: PercentageLoadingWidget(
+              message: settings.isBangla ? 'পারা লোড হচ্ছে...' : 'Loading Juz/Para...',
+            ),
+          );
         }
 
         if (controller.ayahs.isEmpty) {
@@ -168,11 +173,14 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                                   IconButton(
                                     icon: isCurrentPlaying && controller.isPlayerLoading.value
                                         ? const SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: AppColors.primary,
+                                            width: 24,
+                                            height: 8,
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.all(Radius.circular(4)),
+                                              child: LinearProgressIndicator(
+                                                color: AppColors.primary,
+                                                backgroundColor: Colors.transparent,
+                                              ),
                                             ),
                                           )
                                         : Icon(

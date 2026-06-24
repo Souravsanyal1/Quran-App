@@ -5,6 +5,7 @@ import '../data/repositories/quran_repository.dart';
 import '../data/providers/quran_api_provider.dart';
 import '../modules/settings/settings_controller.dart';
 import '../modules/notifications/notifications_controller.dart';
+import '../modules/prayer_time/prayer_time_controller.dart';
 import '../services/audio_player_service.dart';
 
 /// Global dependency injection — registered once for the entire app lifetime
@@ -35,6 +36,9 @@ class AppBinding extends Bindings {
       () async => AudioPlayerService(),
       permanent: true,
     );
+
+    // Prayer time controller — permanent singleton so notifications are scheduled on startup
+    Get.put<PrayerTimeController>(PrayerTimeController(), permanent: true);
   }
 }
 

@@ -202,12 +202,18 @@ class _LocationMapViewState extends State<LocationMapView> {
                       ),
                     ),
                     Obx(() => isSearching.value
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.primary,
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: SizedBox(
+                              width: 24,
+                              height: 4,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.all(Radius.circular(2)),
+                                child: LinearProgressIndicator(
+                                  color: AppColors.primary,
+                                  backgroundColor: Colors.transparent,
+                                ),
+                              ),
                             ),
                           )
                         : IconButton(

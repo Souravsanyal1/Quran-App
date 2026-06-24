@@ -150,13 +150,20 @@ class SupportView extends GetView<SupportController> {
                               ? null
                               : () => controller.submitTicket(settings.isBangla),
                           child: controller.isSubmitting.value
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: isDark ? Colors.black : Colors.white,
-                                  ),
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(
+                                      width: 16,
+                                      height: 3,
+                                      child: LinearProgressIndicator(
+                                        color: Colors.white,
+                                        backgroundColor: Colors.white30,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(settings.isBangla ? 'পাঠানো হচ্ছে...' : 'Sending...'),
+                                  ],
                                 )
                               : Text(settings.isBangla ? 'বার্তা পাঠান' : 'Send Message'),
                         )),

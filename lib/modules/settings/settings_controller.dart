@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsController extends GetxController {
   static const String _keyTheme = 'theme_mode';
@@ -11,6 +12,7 @@ class SettingsController extends GetxController {
   static const String _keyAzan = 'azan_enabled';
   static const String _keyQari = 'selected_qari';
   static const String _keyNotifications = 'fcm_enabled';
+  static const String _keyBackgroundPlay = 'background_play_enabled';
 
   final RxString themeMode = 'dark'.obs;
   final RxString language = 'bn'.obs; // Default: Bangla
@@ -19,6 +21,7 @@ class SettingsController extends GetxController {
   final RxBool azanEnabled = true.obs;
   final RxBool notificationsEnabled = true.obs;
   final RxString selectedQari = 'ar.alafasy'.obs;
+  final RxBool backgroundPlayEnabled = false.obs;
 
   SharedPreferences? _prefs;
 
@@ -36,6 +39,7 @@ class SettingsController extends GetxController {
     azanEnabled.value = _prefs?.getBool(_keyAzan) ?? true;
     notificationsEnabled.value = _prefs?.getBool(_keyNotifications) ?? true;
     selectedQari.value = _prefs?.getString(_keyQari) ?? 'ar.alafasy';
+    backgroundPlayEnabled.value = _prefs?.getBool(_keyBackgroundPlay) ?? false;
     _applyTheme();
     Get.updateLocale(Locale(language.value));
     // Load dua reminder settings
@@ -86,6 +90,14 @@ class SettingsController extends GetxController {
   }
 
   Future<void> setAzanEnabled(bool enabled) async {
+    if (enabled) {
+      final granted = await NotificationService.instance.requestNotificationPermission();
+      if (!granted) {
+        azanEnabled.value = false;
+        await _prefs?.setBool(_keyAzan, false);
+        return;
+      }
+    }
     azanEnabled.value = enabled;
     await _prefs?.setBool(_keyAzan, enabled);
     if (enabled) {
@@ -103,6 +115,14 @@ class SettingsController extends GetxController {
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {
+    if (enabled) {
+      final granted = await NotificationService.instance.requestNotificationPermission();
+      if (!granted) {
+        notificationsEnabled.value = false;
+        await _prefs?.setBool(_keyNotifications, false);
+        return;
+      }
+    }
     notificationsEnabled.value = enabled;
     await _prefs?.setBool(_keyNotifications, enabled);
     await NotificationService.instance.toggleFCM(enabled);
@@ -111,6 +131,17 @@ class SettingsController extends GetxController {
   Future<void> setQari(String qariId) async {
     selectedQari.value = qariId;
     await _prefs?.setString(_keyQari, qariId);
+  }
+
+  Future<void> setBackgroundPlay(bool enabled) async {
+    backgroundPlayEnabled.value = enabled;
+    await _prefs?.setBool(_keyBackgroundPlay, enabled);
+    if (enabled) {
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      if (!status.isGranted) {
+        await Permission.ignoreBatteryOptimizations.request();
+      }
+    }
   }
 
   // ── Daily Dua Reminder ────────────────────────────────────────────────────
@@ -130,6 +161,15 @@ class SettingsController extends GetxController {
   }
 
   Future<void> setDuaReminderEnabled(bool enabled) async {
+    if (enabled) {
+      final granted = await NotificationService.instance.requestNotificationPermission();
+      if (!granted) {
+        duaReminderEnabled.value = false;
+        final prefs = _prefs ?? await SharedPreferences.getInstance();
+        await prefs.setBool(_keyDuaReminderEnabled, false);
+        return;
+      }
+    }
     duaReminderEnabled.value = enabled;
     final prefs = _prefs ?? await SharedPreferences.getInstance();
     await prefs.setBool(_keyDuaReminderEnabled, enabled);

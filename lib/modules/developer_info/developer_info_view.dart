@@ -62,8 +62,15 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                           width: 104,
                           height: 104,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                          placeholder: (context, url) => const SizedBox(
+                            width: 32,
+                            height: 6,
+                            child: Center(
+                              child: LinearProgressIndicator(
+                                color: AppColors.primary,
+                                backgroundColor: Colors.transparent,
+                              ),
+                            ),
                           ),
                           errorWidget: (context, url, error) => const Icon(
                             Icons.person_rounded,

@@ -8,10 +8,12 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../core/constants/app_urls.dart';
+import '../core/theme/app_colors.dart';
 import '../data/repositories/quran_repository.dart';
 import '../data/providers/quran_api_provider.dart';
 import '../data/models/ayah_model.dart';
 import '../modules/settings/settings_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// A global singleton GetxService that owns the single AudioPlayer instance.
 ///
@@ -96,6 +98,9 @@ class AudioPlayerService extends GetxService {
   bool get hasActivePlayback => playingAyahNumber.value != null;
 
   Future<void> playAyah(AyahModel ayah, {String? qariId}) async {
+    // Show background play explanation dialog if not prompted yet
+    await _checkAndPromptBackgroundPermission();
+
     final repo = Get.find<QuranRepository>();
     final api  = Get.find<QuranApiProvider>();
     final activeQariId = qariId ?? Get.find<SettingsController>().selectedQari.value;
@@ -193,6 +198,69 @@ class AudioPlayerService extends GetxService {
   }
 
   void setAutoPlayNext(bool value) => _autoPlayNext = value;
+
+  Future<void> _checkAndPromptBackgroundPermission() async {
+    try {
+      final settings = Get.find<SettingsController>();
+      final prefs = await SharedPreferences.getInstance();
+      final alreadyPrompted = prefs.getBool('background_play_prompted') ?? false;
+      
+      if (!alreadyPrompted && !settings.backgroundPlayEnabled.value) {
+        final bn = settings.isBangla;
+        final userChoice = await Get.dialog<bool>(
+          AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                const Icon(Icons.settings_suggest_rounded, color: AppColors.primary, size: 28),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    bn ? 'ব্যাকগ্রাউন্ডে চালু রাখুন' : 'Run in Background',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              bn
+                  ? 'স্ক্রিন বন্ধ বা অন্য অ্যাপ ব্যবহার করার সময়ও কুরআন অডিও প্লে রাখতে চান? এর জন্য অ্যাপটিকে ব্যাকগ্রাউন্ডে চলার অনুমতি দিতে হবে।'
+                  : 'Do you want to keep playing Quran audio even when the screen is locked or when using other apps? This requires background running permission.',
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(result: false),
+                child: Text(
+                  bn ? 'পরে' : 'Later',
+                  style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Get.back(result: true),
+                child: Text(
+                  bn ? 'অনুমতি দিন' : 'Allow',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        );
+        
+        await prefs.setBool('background_play_prompted', true);
+        if (userChoice == true) {
+          await settings.setBackgroundPlay(true);
+        }
+      }
+    } catch (e) {
+      debugPrint('[AudioPlayerService] error checking background permission: $e');
+    }
+  }
 
   // ── Internal ──────────────────────────────────────────────────────────────
 
