@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SupportController extends GetxController {
   final nameController = TextEditingController();
-  final emailController = TextEditingController();
   final messageController = TextEditingController();
 
   final RxBool isSubmitting = false.obs;
@@ -32,35 +31,14 @@ class SupportController extends GetxController {
     }
   }
 
-  Future<void> launchEmail() async {
-    final url = Uri.parse('mailto:support@quranapp.com?subject=Quran%20App%20Support');
-    try {
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        Get.snackbar('Error', 'Could not open Email client');
-      }
-    } catch (e) {
-      Get.snackbar('Error', 'Could not launch link: $e');
-    }
-  }
-
   Future<void> submitTicket(bool isBangla) async {
     final name = nameController.text.trim();
-    final email = emailController.text.trim();
     final message = messageController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || message.isEmpty) {
+    if (name.isEmpty || message.isEmpty) {
       Get.snackbar(
         isBangla ? 'ভুল ইনপুট' : 'Invalid Input',
         isBangla ? 'অনুগ্রহ করে সকল ঘর পূরণ করুন।' : 'Please fill all fields.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
-    if (!GetUtils.isEmail(email)) {
-      Get.snackbar(
-        isBangla ? 'ভুল ইমেইল' : 'Invalid Email',
-        isBangla ? 'অনুগ্রহ করে সঠিক ইমেইল দিন।' : 'Please enter a valid email address.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
@@ -70,13 +48,11 @@ class SupportController extends GetxController {
     try {
       await FirebaseFirestore.instance.collection('support_tickets').add({
         'name': name,
-        'email': email,
         'message': message,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       nameController.clear();
-      emailController.clear();
       messageController.clear();
 
       Get.snackbar(
@@ -103,7 +79,6 @@ class SupportController extends GetxController {
   @override
   void onClose() {
     nameController.dispose();
-    emailController.dispose();
     messageController.dispose();
     super.onClose();
   }

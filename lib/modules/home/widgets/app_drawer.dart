@@ -171,7 +171,7 @@ class AppDrawer extends StatelessWidget {
                       onTap: () { Get.back(); home.goToDonation(); },
                     ),
                     _DrawerItem(
-                      icon: Icons.support_agent_rounded,
+                      icon: Icons.headset_mic_rounded,
                       label: bn ? 'সাপোর্ট' : 'Support',
                       onTap: () { Get.back(); home.goToSupport(); },
                     ),
