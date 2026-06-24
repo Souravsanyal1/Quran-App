@@ -340,11 +340,18 @@ class PrayerTimeController extends GetxController {
         // Start countdown and active period detection
         _startCountdown(timings);
 
-        // Schedule Azan notifications if enabled
+        // Schedule Azan notifications if enabled and notification service is ready.
+        // On first app launch, AppBinding registers PrayerTimeController before
+        // NotificationService.init() runs in splash. The guard in
+        // scheduleWeeklyAzanNotifications() will silently skip in that case;
+        // SplashController calls loadPrayerTimes() again after init() completes.
         try {
           final settings = Get.find<SettingsController>();
-          if (settings.azanEnabled.value) {
+          if (settings.azanEnabled.value &&
+              NotificationService.instance.isInitialized) {
             await NotificationService.instance.scheduleWeeklyAzanNotifications(weeklyTimings);
+          } else if (!NotificationService.instance.isInitialized) {
+            Get.log('[PrayerTime] NotificationService not ready yet — splash will reschedule.');
           }
         } catch (e) {
           Get.log('Error scheduling weekly azan notifications: $e');

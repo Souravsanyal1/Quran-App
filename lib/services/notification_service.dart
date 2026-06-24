@@ -24,6 +24,9 @@ class NotificationService {
 
   bool _initialized = false;
 
+  /// Whether [init] has completed successfully.
+  bool get isInitialized => _initialized;
+
   Future<void> init() async {
     if (_initialized) return;
 
@@ -269,6 +272,10 @@ class NotificationService {
 
   /// Schedules weekly local notifications for the 5 prayers for the next 7 days.
   Future<void> scheduleWeeklyAzanNotifications(List<Map<String, dynamic>> weeklyTimings) async {
+    if (!_initialized) {
+      _logger.w('NotificationService not yet initialized — skipping azan scheduling. Will be rescheduled after init.');
+      return;
+    }
     await cancelAzanNotifications();
 
     final keys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
@@ -439,9 +446,9 @@ class NotificationService {
 
   // ── Daily Dua Reminder ────────────────────────────────────────────────────
 
-  static const int _duaNotifId = 3001;
+  static const int _duaNotifIdBase = 3001;
 
-  /// Schedules a daily dua reminder at the given time.
+  /// Schedules daily rotating dua reminders for the next 7 days.
   Future<void> scheduleDuaReminder(TimeOfDay time) async {
     await cancelDuaReminder();
 
@@ -452,12 +459,6 @@ class NotificationService {
     } catch (_) {}
 
     final now = DateTime.now();
-    var scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
 
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -486,39 +487,58 @@ class NotificationService {
       'Guidance: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً" — Grant us good in this world and hereafter.',
     ];
 
-    final int idx = DateTime.now().day % duasBn.length;
+    for (int i = 0; i < 7; i++) {
+      final targetDate = now.add(Duration(days: i));
+      var scheduledDate = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        time.hour,
+        time.minute,
+      );
 
-    await _localNotifications.zonedSchedule(
-      id: _duaNotifId,
-      title: bn ? '📿 দৈনিক দোয়ার স্মরণ' : '📿 Daily Dua Reminder',
-      body: bn ? duasBn[idx] : duasEn[idx],
-      scheduledDate: tzScheduled,
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'dua_channel',
-          'Daily Dua Reminder',
-          channelDescription: 'Daily dua reminder notifications.',
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: true,
+      // If scheduled time is in the past for today, schedule it for the same time next week (day 7)
+      if (i == 0 && scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
+
+      final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
+      final int idx = scheduledDate.day % duasBn.length;
+      final int notifId = _duaNotifIdBase + i;
+
+      await _localNotifications.zonedSchedule(
+        id: notifId,
+        title: bn ? '📿 দৈনিক দোয়ার স্মরণ' : '📿 Daily Dua Reminder',
+        body: bn ? duasBn[idx] : duasEn[idx],
+        scheduledDate: tzScheduled,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'dua_channel',
+            'Daily Dua Reminder',
+            channelDescription: 'Daily dua reminder notifications.',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      androidScheduleMode: canUseExactAlarms
-          ? AndroidScheduleMode.exactAllowWhileIdle
-          : AndroidScheduleMode.inexactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
-    );
-    _logger.i('Scheduled daily dua reminder at ${time.hour}:${time.minute}');
+        androidScheduleMode: canUseExactAlarms
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
+    _logger.i('Scheduled 7-day daily rotating dua reminders at ${time.hour}:${time.minute}');
   }
 
-  /// Cancels the daily dua reminder.
+  /// Cancels all scheduled daily dua reminders.
   Future<void> cancelDuaReminder() async {
-    await _localNotifications.cancel(id: _duaNotifId);
-    _logger.i('Cancelled dua reminder');
+    for (int i = 0; i < 7; i++) {
+      await _localNotifications.cancel(id: _duaNotifIdBase + i);
+    }
+    _logger.i('Cancelled all scheduled dua reminders');
   }
 }

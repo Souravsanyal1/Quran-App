@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
 import '../../firebase_options.dart';
+import '../../modules/prayer_time/prayer_time_controller.dart';
 
 class SplashController extends GetxController {
   static const String _onboardingKey = 'onboarding_done';
@@ -46,6 +47,14 @@ class SplashController extends GetxController {
       statusMessage.value = 'Setting up services...';
       final prefs = await SharedPreferences.getInstance();
       await NotificationService.instance.init();
+
+      // Now that NotificationService is initialized, reschedule azan notifications.
+      // PrayerTimeController.onInit() ran before init() completed (AppBinding
+      // registers it before splash), so scheduling was silently skipped then.
+      try {
+        final prayerController = Get.find<PrayerTimeController>();
+        await prayerController.loadPrayerTimes();
+      } catch (_) {}
 
       // Request battery optimization exemption once on first launch
       final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
