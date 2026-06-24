@@ -13,15 +13,78 @@ class SettingsView extends GetView<SettingsController> {
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Obx(() => Text(controller.isBangla ? 'সেটিংস' : 'Settings')),
+        elevation: 0,
       ),
       body: Obx(() {
         final bn = controller.isBangla;
         final isDark = controller.isDark;
-        final textColor = isDark ? AppColors.textWhite : AppColors.textDark;
 
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Premium Header Card
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.settings_outlined,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          bn ? 'পছন্দসমূহ' : 'Preferences',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          bn 
+                              ? 'আপনার অভিজ্ঞতা কাস্টমাইজ করুন' 
+                              : 'Customize your Quranic experience',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             _SectionHeader(title: bn ? 'সাধারণ' : 'General'),
 
             // Language toggle
@@ -71,13 +134,54 @@ class SettingsView extends GetView<SettingsController> {
                   title: bn ? 'আরবি ফন্ট সাইজ' : 'Arabic Font Size',
                   subtitle: controller.arabicFontSize.value.toStringAsFixed(0),
                 ),
-                Slider(
-                  value: controller.arabicFontSize.value,
-                  min: 16,
-                  max: 40,
-                  divisions: 12,
-                  label: controller.arabicFontSize.value.toStringAsFixed(0),
-                  onChanged: controller.setArabicFontSize,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Slider(
+                    value: controller.arabicFontSize.value,
+                    min: 16,
+                    max: 40,
+                    divisions: 12,
+                    activeColor: AppColors.primary,
+                    inactiveColor: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    label: controller.arabicFontSize.value.toStringAsFixed(0),
+                    onChanged: controller.setArabicFontSize,
+                  ),
+                ),
+                // Live preview container
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.cardDark : AppColors.cardLight,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        bn ? 'ফন্ট সাইজ প্রিভিউ:' : 'Font Size Preview:',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textGrey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Uthmanic',
+                          fontSize: controller.arabicFontSize.value,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -91,44 +195,12 @@ class SettingsView extends GetView<SettingsController> {
                 _SettingsTile(
                   isDark: isDark,
                   icon: Icons.record_voice_over_rounded,
-                  title: bn ? 'কারী নির্বাচন' : 'Select Qari',
+                  title: bn ? 'কারী নির্বাচন করুন' : 'Select Qari',
                   subtitle: AppUrls.qariList.firstWhere(
                       (q) => q['id'] == controller.selectedQari.value,
                       orElse: () => {'name': 'Unknown'})['name']!,
+                  onTap: () => _showQariSelectionBottomSheet(context, controller, bn),
                 ),
-                ...AppUrls.qariList.map((qari) => ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                      leading: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: controller.selectedQari.value == qari['id']
-                                ? AppColors.primary
-                                : AppColors.textMuted,
-                            width: 2,
-                          ),
-                        ),
-                        child: controller.selectedQari.value == qari['id']
-                            ? Container(
-                                margin: const EdgeInsets.all(3),
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: AppColors.primary,
-                                ),
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        qari['name']!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                      onTap: () => controller.setQari(qari['id']!),
-                    )),
               ],
             ),
 
@@ -162,11 +234,109 @@ class SettingsView extends GetView<SettingsController> {
             Text(
               'Quran App v1.0.0\nMade with ❤️ for the Ummah',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12, height: 1.5),
             ),
+            const SizedBox(height: 16),
           ],
         );
       }),
+    );
+  }
+
+  void _showQariSelectionBottomSheet(BuildContext context, SettingsController controller, bool bn) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        decoration: BoxDecoration(
+          color: controller.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          border: Border.all(
+            color: controller.isDark ? AppColors.borderDark : AppColors.borderLight,
+            width: 0.5,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: controller.isDark ? AppColors.borderDark : AppColors.borderLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              bn ? 'কারী নির্বাচন করুন' : 'Select Qari',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: controller.isDark ? AppColors.textWhite : AppColors.textDark,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.45,
+              ),
+              child: ListView(
+                shrinkWrap: true,
+                children: AppUrls.qariList.map((qari) {
+                  final isSelected = controller.selectedQari.value == qari['id'];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : (controller.isDark ? AppColors.borderDark : AppColors.borderLight),
+                        width: isSelected ? 1 : 0.5,
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                      leading: Icon(
+                        Icons.record_voice_over_rounded,
+                        color: isSelected ? AppColors.primary : AppColors.textGrey,
+                      ),
+                      title: Text(
+                        qari['name']!,
+                        style: TextStyle(
+                          color: isSelected
+                              ? AppColors.primary
+                              : (controller.isDark ? AppColors.textWhite : AppColors.textDark),
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 14,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                          : null,
+                      onTap: () {
+                        controller.setQari(qari['id']!);
+                        Get.back();
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }
@@ -220,6 +390,7 @@ class _SettingsTile extends StatelessWidget {
   final String? subtitle;
   final Widget? trailing;
   final bool isDark;
+  final VoidCallback? onTap;
 
   const _SettingsTile({
     required this.icon,
@@ -227,11 +398,13 @@ class _SettingsTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     required this.isDark,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: onTap,
       leading: Container(
         width: 36,
         height: 36,
@@ -246,12 +419,19 @@ class _SettingsTile extends StatelessWidget {
         style: TextStyle(
           color: isDark ? AppColors.textWhite : AppColors.textDark,
           fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
       ),
       subtitle: subtitle != null
           ? Text(subtitle!, style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
           : null,
-      trailing: trailing,
+      trailing: trailing ??
+          (onTap != null
+              ? Icon(
+                  Icons.keyboard_arrow_right_rounded,
+                  color: isDark ? AppColors.textGrey : AppColors.textMuted,
+                )
+              : null),
     );
   }
 }
