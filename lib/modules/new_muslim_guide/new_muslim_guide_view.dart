@@ -18,9 +18,9 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
         appBar: AppBar(
           title: Text(settings.isBangla ? 'নতুন মুসলিম গাইড' : 'New Muslim Guide'),
           bottom: TabBar(
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textGrey,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
             tabs: [
               Tab(text: settings.isBangla ? 'কালেমা ও স্তম্ভ' : 'Shahada & Pillars'),
               Tab(text: settings.isBangla ? 'ওযুর নিয়মাবলী' : 'Wudu Steps'),

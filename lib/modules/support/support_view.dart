@@ -87,12 +87,12 @@ class SupportView extends GetView<SupportController> {
                               ? null
                               : () => controller.submitTicket(settings.isBangla),
                           child: controller.isSubmitting.value
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 20,
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.black,
+                                    color: isDark ? Colors.black : Colors.white,
                                   ),
                                 )
                               : Text(settings.isBangla ? 'বার্তা পাঠান' : 'Send Message'),

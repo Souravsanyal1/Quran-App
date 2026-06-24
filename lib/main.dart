@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 
@@ -44,5 +45,9 @@ Future<void> main() async {
     ),
   );
 
-  runApp(const QuranApp());
+  // Load initial theme mode from SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  final String savedTheme = prefs.getString('theme_mode') ?? 'dark';
+
+  runApp(QuranApp(savedTheme: savedTheme));
 }

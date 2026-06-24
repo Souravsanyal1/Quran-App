@@ -40,7 +40,7 @@ class NotificationsView extends GetView<NotificationsController> {
             icon: const Icon(Icons.done_all_rounded, size: 18),
             label: Text(isBn ? 'সব পড়া' : 'Mark All'),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
               textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           );

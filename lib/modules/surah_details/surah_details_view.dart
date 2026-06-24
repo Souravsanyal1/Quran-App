@@ -21,7 +21,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                 children: [
                   Text(
                     settings.isBangla ? 'অটো-প্লে' : 'Auto Play',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                   Switch(
                     value: controller.autoPlayNextToggle.value,

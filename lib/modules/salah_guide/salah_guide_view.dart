@@ -18,9 +18,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
         appBar: AppBar(
           title: Text(settings.isBangla ? 'নামাজ শিক্ষা গাইড' : 'Salah Guide'),
           bottom: TabBar(
-            indicatorColor: AppColors.primary,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: settings.isDark ? AppColors.textGrey : AppColors.textMuted,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
             tabs: [

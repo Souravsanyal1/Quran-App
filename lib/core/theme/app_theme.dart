@@ -150,6 +150,15 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.surfaceLight,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textMuted,
+        type: BottomNavigationBarType.fixed,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        elevation: 0,
+      ),
       cardTheme: CardThemeData(
         color: AppColors.cardLight,
         elevation: 0,
@@ -158,14 +167,87 @@ class AppTheme {
           side: const BorderSide(color: AppColors.borderLight, width: 0.5),
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surfaceLight,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderLight),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.borderLight),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        hintStyle: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 14),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.borderLight, thickness: 0.5),
+      iconTheme: const IconThemeData(color: AppColors.textDark),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.primary),
+      sliderTheme: const SliderThemeData(
+        activeTrackColor: AppColors.primary,
+        inactiveTrackColor: AppColors.borderLight,
+        thumbColor: AppColors.primary,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.selected) ? AppColors.primary : Colors.grey.shade400),
+        trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected)
+            ? AppColors.primary.withValues(alpha: 0.4)
+            : AppColors.borderLight),
+      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: AppColors.surfaceLight),
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surfaceLight,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textMuted,
-        type: BottomNavigationBarType.fixed,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.cardLight,
+        contentTextStyle: GoogleFonts.inter(color: AppColors.textDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        behavior: SnackBarBehavior.floating,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.cardLight,
+        selectedColor: AppColors.primary.withValues(alpha: 0.15),
+        labelStyle: GoogleFonts.inter(color: AppColors.textDark, fontSize: 13),
+        side: const BorderSide(color: AppColors.borderLight),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
       ),
     );
   }
+
 
   static TextTheme _buildTextTheme(Brightness brightness) {
     final Color color =

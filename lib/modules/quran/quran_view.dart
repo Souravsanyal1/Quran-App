@@ -25,7 +25,11 @@ class QuranView extends GetView<QuranController> {
             elevation: 0,
             title: Text(
               bn ? 'আল-কুরআন' : 'Al-Quran',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.white,
+              ),
             ),
             actions: [
               IconButton(
@@ -34,9 +38,9 @@ class QuranView extends GetView<QuranController> {
               ),
             ],
             bottom: TabBar(
-              indicatorColor: AppColors.primary,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: AppColors.textGrey,
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

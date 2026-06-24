@@ -7,10 +7,23 @@ import 'core/theme/app_theme.dart';
 import 'routes/app_pages.dart';
 
 class QuranApp extends StatelessWidget {
-  const QuranApp({super.key});
+  final String savedTheme;
+  const QuranApp({super.key, required this.savedTheme});
 
   @override
   Widget build(BuildContext context) {
+    ThemeMode initialThemeMode;
+    switch (savedTheme) {
+      case 'light':
+        initialThemeMode = ThemeMode.light;
+        break;
+      case 'dark':
+        initialThemeMode = ThemeMode.dark;
+        break;
+      default:
+        initialThemeMode = ThemeMode.system;
+    }
+
     return GetMaterialApp(
       title: 'Quran App',
       debugShowCheckedModeBanner: false,
@@ -18,7 +31,7 @@ class QuranApp extends StatelessWidget {
       // Theme
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: initialThemeMode,
 
       // Routing
       initialRoute: AppRoutes.splash,
