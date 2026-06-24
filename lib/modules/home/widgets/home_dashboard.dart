@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../modules/settings/settings_controller.dart';
+import '../home_controller.dart';
 
 class HomeDashboard extends StatelessWidget {
   const HomeDashboard({super.key});
@@ -11,10 +12,12 @@ class HomeDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
+    final homeController = Get.find<HomeController>();
 
     return Obx(() {
       final bool bn = settings.isBangla;
       final isDark = settings.isDark;
+      final currentHour = homeController.currentHour.value;
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -22,7 +25,7 @@ class HomeDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Greeting card
-            _GreetingCard(isBangla: bn).animate().fadeIn(duration: 400.ms),
+            _GreetingCard(isBangla: bn, currentHour: currentHour).animate().fadeIn(duration: 400.ms),
 
             const SizedBox(height: 20),
 
@@ -123,15 +126,15 @@ class HomeDashboard extends StatelessWidget {
 
 class _GreetingCard extends StatelessWidget {
   final bool isBangla;
+  final int currentHour;
 
-  const _GreetingCard({required this.isBangla});
+  const _GreetingCard({required this.isBangla, required this.currentHour});
 
   String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 5) return isBangla ? 'আস-সালামু আলাইকুম 🌙' : 'Assalamu Alaikum 🌙';
-    if (hour < 12) return isBangla ? 'সুপ্রভাত ☀️' : 'Good Morning ☀️';
-    if (hour < 17) return isBangla ? 'শুভ অপরাহ্ন 🌤' : 'Good Afternoon 🌤';
-    if (hour < 20) return isBangla ? 'শুভ সন্ধ্যা 🌅' : 'Good Evening 🌅';
+    if (currentHour < 5) return isBangla ? 'আস-সালামু আলাইকুম 🌙' : 'Assalamu Alaikum 🌙';
+    if (currentHour < 12) return isBangla ? 'সুপ্রভাত ☀️' : 'Good Morning ☀️';
+    if (currentHour < 17) return isBangla ? 'শুভ অপরাহ্ন 🌤' : 'Good Afternoon 🌤';
+    if (currentHour < 20) return isBangla ? 'শুভ সন্ধ্যা 🌅' : 'Good Evening 🌅';
     return isBangla ? 'শুভ রাত্রি 🌙' : 'Good Night 🌙';
   }
 
@@ -263,6 +266,74 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
+class _DailyVerse {
+  final String arabic;
+  final String english;
+  final String bangla;
+  final String referenceEn;
+  final String referenceBn;
+
+  const _DailyVerse({
+    required this.arabic,
+    required this.english,
+    required this.bangla,
+    required this.referenceEn,
+    required this.referenceBn,
+  });
+}
+
+const List<_DailyVerse> _dailyVerses = [
+  _DailyVerse(
+    arabic: 'وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا',
+    english: 'And whoever fears Allah — He will make for him a way out.',
+    bangla: 'যে আল্লাহকে ভয় করে, তিনি তার জন্য পথ করে দেন।',
+    referenceEn: '— Surah At-Talaq (65:2)',
+    referenceBn: '— সূরা আত-তালাক (৬৫:২)',
+  ),
+  _DailyVerse(
+    arabic: 'وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ',
+    english: 'And when My servants ask you concerning Me - indeed I am near.',
+    bangla: 'আর যখন আমার বান্দাগণ আমার সম্পর্কে জিজ্ঞাসা করে, নিশ্চয়ই আমি নিকটে আছি।',
+    referenceEn: '— Surah Al-Baqarah (2:186)',
+    referenceBn: '— সূরা আল-বাকারা (২:১৮৬)',
+  ),
+  _DailyVerse(
+    arabic: 'إِنَّ مَعَ الْعُسْرِ يُসْرًا',
+    english: 'Indeed, with hardship [will be] ease.',
+    bangla: 'নিশ্চয়ই কষ্টের সাথে স্বস্তি রয়েছে।',
+    referenceEn: '— Surah Ash-Sharh (94:6)',
+    referenceBn: '— সূরা আশ-শারহ (৯৪:৬)',
+  ),
+  _DailyVerse(
+    arabic: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ',
+    english: 'There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.',
+    bangla: 'তুমি ছাড়া কোন উপাস্য নেই, তুমি পবিত্র! নিশ্চয় আমি অপরাধীদের অন্তর্ভুক্ত ছিলাম।',
+    referenceEn: '— Surah Al-Anbiya (21:87)',
+    referenceBn: '— সূরা আল-আম্বিয়া (২১:৮৭)',
+  ),
+  _DailyVerse(
+    arabic: 'لَئِن شَكَرْتُمْ لَأَزِيدَنَّكُمْ',
+    english: 'If you are grateful, I will surely increase you [in favor].',
+    bangla: 'যদি তোমরা কৃতজ্ঞতা প্রকাশ করো, তবে আমি অবশ্যই তোমাদেরকে বাড়িয়ে দেব।',
+    referenceEn: '— Surah Ibrahim (14:7)',
+    referenceBn: '— সূরা ইব্রাহিম (১৪:৭)',
+  ),
+  _DailyVerse(
+    arabic: 'فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي',
+    english: 'So remember Me; I will remember you. And be grateful to Me.',
+    bangla: 'অতএব তোমরা আমাকে স্মরণ করো, আমিও তোমাদের স্মরণ করব। আর আমার প্রতি কৃতজ্ঞ হও।',
+    referenceEn: '— Surah Al-Baqarah (2:152)',
+    referenceBn: '— সূরা আল-বাকারা (২:১৫২)',
+  ),
+  _DailyVerse(
+    arabic: 'رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي',
+    english: 'My Lord, expand for me my breast [with assurance] and ease for me my task.',
+    bangla: 'হে আমার রব, আমার বুক প্রশস্ত করে দিন এবং আমার কাজ সহজ করে দিন।',
+    referenceEn: '— Surah Taha (20:25-26)',
+    referenceBn: '— সূরা তহা (২০:২৫-২৬)',
+  ),
+];
+
 class _DailyVerseCard extends StatelessWidget {
   final bool isBangla;
 
@@ -272,6 +343,12 @@ class _DailyVerseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final isDark = settings.isDark;
+    
+    // Select daily verse based on day of year
+    final now = DateTime.now();
+    final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+    final verse = _dailyVerses[dayOfYear % _dailyVerses.length];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -313,9 +390,9 @@ class _DailyVerseCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا',
-            style: TextStyle(
+          Text(
+            verse.arabic,
+            style: const TextStyle(
               fontSize: 22,
               fontFamily: 'Uthmanic',
               color: AppColors.gold,
@@ -326,9 +403,7 @@ class _DailyVerseCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isBangla
-                ? 'যে আল্লাহকে ভয় করে, তিনি তার জন্য পথ করে দেন।'
-                : 'And whoever fears Allah — He will make for him a way out.',
+            isBangla ? verse.bangla : verse.english,
             style: TextStyle(
               fontSize: 14,
               color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
@@ -337,7 +412,7 @@ class _DailyVerseCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            isBangla ? '— সূরা আত-তালাক (৬৫:২)' : '— Surah At-Talaq (65:2)',
+            isBangla ? verse.referenceBn : verse.referenceEn,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
@@ -349,3 +424,4 @@ class _DailyVerseCard extends StatelessWidget {
     );
   }
 }
+

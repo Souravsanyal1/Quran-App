@@ -207,6 +207,8 @@ class NotificationService {
     await cancelAzanNotifications();
 
     final keys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+    // Notification IDs — at prayer time
     final Map<String, int> ids = {
       'Fajr': 1001,
       'Dhuhr': 1002,
@@ -215,25 +217,77 @@ class NotificationService {
       'Isha': 1005,
     };
 
-    final Map<String, String> namesBn = {
-      'Fajr': 'ফজর',
-      'Dhuhr': 'যোহর',
-      'Asr': 'আসর',
-      'Maghrib': 'মাগরিব',
-      'Isha': 'ইশা',
+    // Notification IDs — 30-min reminder
+    final Map<String, int> reminderIds = {
+      'Fajr': 2001,
+      'Dhuhr': 2002,
+      'Asr': 2003,
+      'Maghrib': 2004,
+      'Isha': 2005,
+    };
+
+    // Bengali prayer names in possessive form (e.g. "ফজরের")
+    final Map<String, String> namesBnPossessive = {
+      'Fajr': 'ফজরের',
+      'Dhuhr': 'যোহরের',
+      'Asr': 'আসরের',
+      'Maghrib': 'মাগরিবের',
+      'Isha': 'ইশার',
     };
 
     final settings = Get.find<SettingsController>();
-    final bn = settings.isBangla;
+    // Read language live so rescheduling always picks up the latest setting
+    final bn = settings.language.value == 'bn';
     final now = DateTime.now();
     final prefs = await SharedPreferences.getInstance();
+
+    // Check if exact alarms are permitted (Android 12+ / API 31+).
+    // Fall back to inexact scheduling if the permission is not granted.
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms = true;
+    try {
+      final permitted = await androidPlugin?.canScheduleExactNotifications();
+      canUseExactAlarms = permitted ?? true;
+    } catch (_) {
+      canUseExactAlarms = false;
+    }
+
+    final scheduleMode = canUseExactAlarms
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+
+    if (!canUseExactAlarms) {
+      _logger.w(
+          'Exact alarms not permitted — falling back to inexact scheduling. '
+          'Notifications may arrive a few minutes late.');
+    }
+
+    const notifDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'azan_channel',
+        'Azan Notifications',
+        channelDescription:
+            'This channel is used for prayer time (Azan) notifications.',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
 
     for (var k in keys) {
       try {
         if (timings[k] == null) continue;
 
         // Check if individual prayer notification is enabled
-        final bool isPrayerEnabled = prefs.getBool('azan_notification_$k') ?? true;
+        final bool isPrayerEnabled =
+            prefs.getBool('azan_notification_$k') ?? true;
         if (!isPrayerEnabled) {
           _logger.i('Notification for $k is disabled, skipping');
           continue;
@@ -244,55 +298,114 @@ class NotificationService {
         final hour = int.parse(timeParts[0]);
         final minute = int.parse(timeParts[1]);
 
-        var scheduledDate = DateTime(now.year, now.month, now.day, hour, minute);
+        var prayerTime = DateTime(now.year, now.month, now.day, hour, minute);
 
-        // If the prayer time has already passed today, schedule it for tomorrow
-        if (scheduledDate.isBefore(now)) {
-          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        // If the prayer time has already passed today, schedule for tomorrow
+        if (prayerTime.isBefore(now)) {
+          prayerTime = prayerTime.add(const Duration(days: 1));
         }
 
-        final tzScheduledDate = tz.TZDateTime.from(scheduledDate, tz.local);
+        final tzPrayerTime = tz.TZDateTime.from(prayerTime, tz.local);
 
-        final title = bn ? '${namesBn[k]} নামাজের সময়' : 'Time for $k Prayer';
+        // ── 1. At-prayer-time notification ────────────────────────────────
+        final title = bn
+            ? '${namesBnPossessive[k]} নামাজের সময় শুরু'
+            : '$k prayer time has started';
         final body = bn
-            ? 'হাইয়া আলাস-সালাহ, নামাজের সময় হয়েছে।'
-            : "Hayya 'alas-Salah, it is time for prayer.";
+            ? 'আযান হচ্ছে, এখনই নামাজের প্রস্তুতি নিন।'
+            : 'The adhan is called. Prepare yourself for prayer.';
 
         await _localNotifications.zonedSchedule(
           id: ids[k]!,
           title: title,
           body: body,
-          scheduledDate: tzScheduledDate,
-          notificationDetails: const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'azan_channel',
-              'Azan Notifications',
-              channelDescription: 'This channel is used for prayer time (Azan) notifications.',
-              importance: Importance.max,
-              priority: Priority.high,
-              playSound: true,
-            ),
-            iOS: DarwinNotificationDetails(
-              presentAlert: true,
-              presentBadge: true,
-              presentSound: true,
-            ),
-          ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          scheduledDate: tzPrayerTime,
+          notificationDetails: notifDetails,
+          androidScheduleMode: scheduleMode,
         );
-        _logger.i('Scheduled Azan for $k at $tzScheduledDate');
+        _logger.i(
+            'Scheduled Azan for $k at $tzPrayerTime (exact: $canUseExactAlarms)');
+
+        // ── 2. 30-minute reminder notification ────────────────────────────
+        final reminderTime = prayerTime.subtract(const Duration(minutes: 30));
+
+        // Only schedule the reminder if it's still in the future
+        if (reminderTime.isAfter(now)) {
+          final tzReminderTime = tz.TZDateTime.from(reminderTime, tz.local);
+
+          final reminderTitle = bn
+              ? '${namesBnPossessive[k]} নামাজ ৩০ মিনিট পরে'
+              : '$k prayer in 30 minutes';
+          final reminderBody = bn
+              ? 'আর মাত্র ৩০ মিনিট বাকি, ওজু করুন এবং প্রস্তুত হন।'
+              : 'Only 30 minutes left. Perform wudu and get ready.';
+
+          await _localNotifications.zonedSchedule(
+            id: reminderIds[k]!,
+            title: reminderTitle,
+            body: reminderBody,
+            scheduledDate: tzReminderTime,
+            notificationDetails: notifDetails,
+            androidScheduleMode: scheduleMode,
+          );
+          _logger.i('Scheduled 30-min reminder for $k at $tzReminderTime');
+        } else {
+          _logger.i(
+              '30-min reminder for $k skipped (reminder time already passed)');
+        }
       } catch (e) {
         _logger.e('Error scheduling Azan for $k: $e');
       }
     }
   }
 
-  /// Cancels all scheduled Azan notifications.
+  /// Cancels all scheduled Azan and reminder notifications.
   Future<void> cancelAzanNotifications() async {
-    final List<int> ids = [1001, 1002, 1003, 1004, 1005];
+    // At-prayer-time IDs: 1001-1005
+    // 30-minute reminder IDs: 2001-2005
+    final List<int> ids = [1001, 1002, 1003, 1004, 1005,
+                           2001, 2002, 2003, 2004, 2005];
     for (var id in ids) {
       await _localNotifications.cancel(id: id);
     }
-    _logger.i('Cancelled all Azan notifications');
+    _logger.i('Cancelled all Azan and reminder notifications');
+  }
+
+  /// Fires an immediate test notification to verify the notification pipeline.
+  Future<void> showTestNotification() async {
+    try {
+      final bool bn = Get.find<SettingsController>().language.value == 'bn';
+      final String title =
+          bn ? 'ফজরের নামাজের সময় শুরু' : 'Fajr prayer time has started';
+      final String body = bn
+          ? 'আযান হচ্ছে, এখনই নামাজের প্রস্তুতি নিন।'
+          : 'The adhan is called. Prepare yourself for prayer.';
+
+      await _localNotifications.show(
+        id: 9999,
+        title: title,
+        body: body,
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'azan_channel',
+            'Azan Notifications',
+            channelDescription:
+                'This channel is used for prayer time (Azan) notifications.',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+      );
+      _logger.i('Test notification sent (bn: $bn)');
+    } catch (e) {
+      _logger.e('Error sending test notification: $e');
+    }
   }
 }
+

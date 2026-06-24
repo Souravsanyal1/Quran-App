@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'surah_details_controller.dart';
 
 class SurahDetailsView extends GetView<SurahDetailsController> {
@@ -15,6 +16,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(controller.surahName),
         actions: [
           Obx(() => Row(

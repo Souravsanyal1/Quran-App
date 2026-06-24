@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'new_muslim_guide_controller.dart';
 
 class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
@@ -16,6 +17,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          leading: const AppBackButton(),
           title: Text(settings.isBangla ? 'নতুন মুসলিম গাইড' : 'New Muslim Guide'),
           bottom: TabBar(
             indicatorColor: Colors.white,
@@ -142,7 +144,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
           ),
           child: Text(
             num,
-            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
         title: Text(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'quran_download_controller.dart';
 
 class QuranDownloadView extends GetView<QuranDownloadController> {
@@ -14,6 +15,7 @@ class QuranDownloadView extends GetView<QuranDownloadController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(settings.isBangla ? 'অফলাইন কুরআন ডাউনলোড' : 'Offline Quran Download'),
       ),
       body: Obx(() {

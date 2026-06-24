@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'para_details_controller.dart';
 
 class ParaDetailsView extends GetView<ParaDetailsController> {
@@ -15,6 +16,7 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text('${settings.isBangla ? "পারা" : "Juz"} ${controller.paraNumber} - ${controller.paraName}'),
         actions: [
           Obx(() => Row(
@@ -90,7 +92,7 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

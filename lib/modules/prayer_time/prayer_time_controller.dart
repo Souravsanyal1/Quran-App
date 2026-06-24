@@ -51,6 +51,7 @@ class PrayerTimeController extends GetxController {
   final RxString periodName = ''.obs;
   final RxString periodTimeRemaining = '00:00:00'.obs;
   final RxString hijriDateStr = ''.obs;
+  final RxBool isPeriodActive = true.obs;
 
   final RxDouble customLatitude = 23.8103.obs;
   final RxDouble customLongitude = 90.4125.obs;
@@ -307,7 +308,6 @@ class PrayerTimeController extends GetxController {
       final maghrib = parseTime('Maghrib');
       final isha = parseTime('Isha');
       
-      // Calculate Makruh and Ishraq intervals
       final ishraqStart = sunrise.add(const Duration(minutes: 15));
       final zawalStart = dhuhr.subtract(const Duration(minutes: 15));
       final makruhAsrStart = maghrib.subtract(const Duration(minutes: 15));
@@ -316,50 +316,41 @@ class PrayerTimeController extends GetxController {
       DateTime periodEnd;
       String nameEn;
       String nameBn;
+      bool isActive;
       
-      // Determine the active period
+      // Determine the active period (Fajr, Dhuhr Upcoming, Dhuhr, Asr, Maghrib, Isha)
       if (now.isAfter(fajr) && now.isBefore(sunrise)) {
         periodStart = fajr;
         periodEnd = sunrise;
         nameEn = 'Fajr';
         nameBn = 'ফজর';
-      } else if (now.isAfter(sunrise) && now.isBefore(ishraqStart)) {
+        isActive = true;
+      } else if (now.isAfter(sunrise) && now.isBefore(dhuhr)) {
         periodStart = sunrise;
-        periodEnd = ishraqStart;
-        nameEn = 'Makruh (Sunrise)';
-        nameBn = 'মাকরুহ (সূর্যোদয়)';
-      } else if (now.isAfter(ishraqStart) && now.isBefore(zawalStart)) {
-        periodStart = ishraqStart;
-        periodEnd = zawalStart;
-        nameEn = 'Ishraq';
-        nameBn = 'ইশরাক';
-      } else if (now.isAfter(zawalStart) && now.isBefore(dhuhr)) {
-        periodStart = zawalStart;
         periodEnd = dhuhr;
-        nameEn = 'Makruh (Zawal)';
-        nameBn = 'মাকরুহ (যাওয়াল)';
+        nameEn = 'Dhuhr (Upcoming)';
+        nameBn = 'যোহর (আসন্ন)';
+        isActive = false;
       } else if (now.isAfter(dhuhr) && now.isBefore(asr)) {
         periodStart = dhuhr;
         periodEnd = asr;
         nameEn = 'Dhuhr';
         nameBn = 'যোহর';
-      } else if (now.isAfter(asr) && now.isBefore(makruhAsrStart)) {
+        isActive = true;
+      } else if (now.isAfter(asr) && now.isBefore(maghrib)) {
         periodStart = asr;
-        periodEnd = makruhAsrStart;
+        periodEnd = maghrib;
         nameEn = 'Asr';
         nameBn = 'আসর';
-      } else if (now.isAfter(makruhAsrStart) && now.isBefore(maghrib)) {
-        periodStart = makruhAsrStart;
-        periodEnd = maghrib;
-        nameEn = 'Makruh (Sunset)';
-        nameBn = 'মাকরুহ (সূর্যাস্ত)';
+        isActive = true;
       } else if (now.isAfter(maghrib) && now.isBefore(isha)) {
         periodStart = maghrib;
         periodEnd = isha;
         nameEn = 'Maghrib';
         nameBn = 'মাগরিব';
+        isActive = true;
       } else {
-        // Isha or Tahajjud (Isha to Fajr)
+        // Isha or Night period before Fajr (Isha to Fajr)
         if (now.isAfter(isha)) {
           final nextFajr = parseTime('Fajr', nextDay: true);
           periodStart = isha;
@@ -371,19 +362,19 @@ class PrayerTimeController extends GetxController {
         }
         nameEn = 'Isha';
         nameBn = 'ইশা';
+        isActive = true;
       }
 
       final settings = Get.find<SettingsController>();
       periodName.value = settings.isBangla ? nameBn : nameEn;
+      isPeriodActive.value = isActive;
 
       // Set nextPrayerName for highlights
       if (nameEn == 'Fajr') {
         nextPrayerName.value = 'Fajr';
-      } else if (nameEn.startsWith('Makruh (Sunrise)') || nameEn == 'Ishraq' || nameEn.startsWith('Makruh (Zawal)')) {
+      } else if (nameEn.startsWith('Dhuhr')) {
         nextPrayerName.value = 'Dhuhr';
-      } else if (nameEn == 'Dhuhr') {
-        nextPrayerName.value = 'Dhuhr';
-      } else if (nameEn == 'Asr' || nameEn.startsWith('Makruh (Sunset)')) {
+      } else if (nameEn == 'Asr') {
         nextPrayerName.value = 'Asr';
       } else if (nameEn == 'Maghrib') {
         nextPrayerName.value = 'Maghrib';
@@ -598,9 +589,14 @@ class PrayerTimeController extends GetxController {
     return res;
   }
 
+  Future<void> sendTestNotification() async {
+    await NotificationService.instance.showTestNotification();
+  }
+
   @override
   void onClose() {
     _countdownTimer?.cancel();
     super.onClose();
   }
 }
+

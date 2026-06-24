@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'salah_guide_controller.dart';
 
 class SalahGuideView extends GetView<SalahGuideController> {
@@ -16,6 +17,7 @@ class SalahGuideView extends GetView<SalahGuideController> {
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
         appBar: AppBar(
+          leading: const AppBackButton(),
           title: Text(settings.isBangla ? 'নামাজ শিক্ষা গাইড' : 'Salah Guide'),
           bottom: TabBar(
             indicatorColor: Colors.white,

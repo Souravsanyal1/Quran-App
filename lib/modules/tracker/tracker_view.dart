@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'tracker_controller.dart';
 
 class TrackerView extends GetView<TrackerController> {
@@ -15,6 +16,7 @@ class TrackerView extends GetView<TrackerController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(settings.isBangla ? 'ইবাদত ট্র্যাকার' : 'Deen Tracker'),
       ),
       body: Obx(() {
@@ -109,7 +111,7 @@ class TrackerView extends GetView<TrackerController> {
                     value: isDone,
                     onChanged: (val) => controller.toggleRecord(activity),
                     activeColor: AppColors.primary,
-                    checkColor: Colors.black,
+                    checkColor: Colors.white,
                     title: Text(
                       _getActivityName(activity, settings.isBangla),
                       style: TextStyle(

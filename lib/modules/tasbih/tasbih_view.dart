@@ -80,7 +80,7 @@ class TasbihView extends GetView<TasbihController> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
             onPressed: () => Get.back(),
           ),
           Expanded(

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'quran_controller.dart';
 
 class QuranView extends GetView<QuranController> {
@@ -22,6 +23,7 @@ class QuranView extends GetView<QuranController> {
         child: Scaffold(
           backgroundColor: context.theme.scaffoldBackgroundColor,
           appBar: AppBar(
+            leading: const AppBackButton(),
             elevation: 0,
             title: Text(
               bn ? 'আল-কুরআন' : 'Al-Quran',
@@ -603,7 +605,7 @@ class QuranView extends GetView<QuranController> {
         onSelected: (_) => controller.setTypeFilter(filterType),
         labelStyle: TextStyle(
           color: isSelected
-              ? Colors.black
+              ? Colors.white
               : (isDark ? AppColors.textGrey : AppColors.textDark),
           fontWeight: FontWeight.w600,
           fontSize: 12,
@@ -612,7 +614,7 @@ class QuranView extends GetView<QuranController> {
         backgroundColor: isDark
             ? AppColors.surfaceDark
             : AppColors.surfaceLight,
-        checkmarkColor: Colors.black,
+        checkmarkColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(
@@ -691,7 +693,7 @@ class QuranView extends GetView<QuranController> {
                   onPressed: () => Get.back(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.black,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

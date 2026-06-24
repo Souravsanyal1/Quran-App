@@ -63,6 +63,15 @@ class SettingsController extends GetxController {
     language.value = lang;
     await _prefs?.setString(_keyLanguage, lang);
     Get.updateLocale(Locale(lang));
+
+    // Reschedule Azan notifications so they pick up the new language
+    try {
+      final prayerController = Get.find<PrayerTimeController>();
+      if (prayerController.rawPrayerTimings.isNotEmpty) {
+        await NotificationService.instance
+            .scheduleAzanNotifications(prayerController.rawPrayerTimings);
+      }
+    } catch (_) {}
   }
 
   Future<void> setArabicFontSize(double size) async {

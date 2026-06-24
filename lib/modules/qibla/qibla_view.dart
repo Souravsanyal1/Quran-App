@@ -4,6 +4,7 @@ import 'package:flutter_qiblah/flutter_qiblah.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'qibla_controller.dart';
 
 class QiblaView extends GetView<QiblaController> {
@@ -16,6 +17,7 @@ class QiblaView extends GetView<QiblaController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(settings.isBangla ? 'কিবলা কম্পাস' : 'Qibla Finder'),
       ),
       body: Obx(() {

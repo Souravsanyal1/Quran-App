@@ -13,351 +13,478 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
-    final isDark = settings.isDark;
-    final bn = settings.isBangla;
-    final now = DateTime.now();
 
-    // Format week day and Gregorian month in Bangla if active
-    final String dayOfWeek = DateFormat('EEEE').format(now);
-    final String dayAndMonth = DateFormat('d MMMM').format(now);
-    final String shortDayOfWeek = _translateDayShort(dayOfWeek, bn);
-    final String formattedGregorian = _translateGregorianDate(dayAndMonth, bn);
+    // Wrap everything in Obx so the whole page rebuilds whenever
+    // themeMode OR language changes — the two reactive sources used here.
+    return Obx(() {
+      final isDark = settings.themeMode.value == 'dark';
+      final bn = settings.language.value == 'bn';
+      final now = DateTime.now();
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.bgDark : const Color(0xFFFCFBEF),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
+      // ── Theme-aware colours ───────────────────────────────────────────────
+      final Color headerFg = isDark ? Colors.white : Colors.black87;
+      final Color headerFgMuted = isDark
+          ? Colors.white.withValues(alpha: 0.6)
+          : Colors.black.withValues(alpha: 0.6);
 
-        return Stack(
-          children: [
-            // ── Background Sunset Gradient (Top Half) ────────────────────────
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: MediaQuery.of(context).size.height * 0.52,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFFFFF59D), // Light warm yellow
-                      Color(0xFFFFD54F), // Gold/Amber
-                      Color(0xFFFFC107), // Deep amber sunset
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+      final Color gaugeTextColor =
+          isDark ? Colors.white : const Color(0xFF14302E);
+      final Color gaugeTextMuted = isDark
+          ? Colors.white.withValues(alpha: 0.5)
+          : Colors.black.withValues(alpha: 0.5);
+      final Color gaugeProgressColor =
+          isDark ? AppColors.primary : const Color(0xFF14302E);
+      final Color gaugeTrackColor = isDark
+          ? Colors.white.withValues(alpha: 0.12)
+          : Colors.black.withValues(alpha: 0.08);
+
+      final Color pillBg = isDark
+          ? Colors.white.withValues(alpha: 0.10)
+          : Colors.black.withValues(alpha: 0.08);
+      final Color pillText = isDark ? Colors.white : Colors.black87;
+      final Color pillTextMuted = isDark ? Colors.white70 : Colors.black54;
+      final Color pillDivider = isDark
+          ? Colors.white.withValues(alpha: 0.2)
+          : Colors.black.withValues(alpha: 0.2);
+
+      final Color sheetBg =
+          isDark ? const Color(0xFF161A22) : const Color(0xFFF7F7F7);
+
+      final Color sheetTextMuted = isDark ? Colors.white60 : Colors.black54;
+
+      // Date strings (non-reactive, computed once per rebuild)
+      final String dayOfWeek = DateFormat('EEEE').format(now);
+      final String dayAndMonth = DateFormat('d MMMM').format(now);
+      final String shortDayOfWeek = _translateDayShort(dayOfWeek, bn);
+      final String formattedGregorian =
+          _translateGregorianDate(dayAndMonth, bn);
+
+      return Scaffold(
+        backgroundColor: isDark ? AppColors.bgDark : const Color(0xFFFCFBEF),
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+                child:
+                    CircularProgressIndicator(color: AppColors.primary));
+          }
+
+          return Stack(
+            children: [
+              // ── Background Gradient (Top Half) ──────────────────────────
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: MediaQuery.of(context).size.height * 0.52,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? const [
+                              Color(0xFF0D1B2A),
+                              Color(0xFF1B3A4B),
+                              Color(0xFF1A3C34),
+                            ]
+                          : const [
+                              Color(0xFFFFF59D),
+                              Color(0xFFFFD54F),
+                              Color(0xFFFFC107),
+                            ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            // ── Main Scrollable Body ─────────────────────────────────────────
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 1. Header (Date Info, Donation & Bell Icons)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left Side: Date Calendar Info
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
-                              onPressed: () => Get.back(),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+              // ── Main Body ───────────────────────────────────────────────
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. Header — back button + dates only
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: headerFg,
+                              size: 20,
                             ),
-                            const SizedBox(width: 12),
-                            const Icon(Icons.calendar_month_outlined, color: Colors.black87, size: 26),
-                            const SizedBox(width: 8),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Obx(() => Text(
-                                      controller.hijriDateStr.value.isNotEmpty
-                                          ? '$shortDayOfWeek, ${controller.hijriDateStr.value.split(',')[0].trim()}'
-                                          : '$shortDayOfWeek, -- --',
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    )),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '$formattedGregorian, ${bn ? controller.bengaliDateStr : "Bengali date"}',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        // Right Side: Action Icons
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.volunteer_activism_rounded, color: Colors.black87, size: 24),
-                              onPressed: () => Get.toNamed(AppRoutes.donation),
-                            ),
-                            const SizedBox(width: 4),
-                            IconButton(
-                              icon: Badge(
-                                label: Text(bn ? '৩' : '3'),
-                                backgroundColor: const Color(0xFFE91E63),
-                                child: const Icon(Icons.notifications_rounded, color: Colors.black87, size: 25),
-                              ),
-                              onPressed: () => Get.toNamed(AppRoutes.notifications),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 2. Arc Countdown Gauge Semicircle
-                  Expanded(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Semicircle Sized Gauge
-                        Positioned(
-                          top: 10,
-                          child: SizedBox(
-                            width: 220,
-                            height: 120,
-                            child: CustomPaint(
-                              painter: ArcProgressPainter(
-                                progress: controller.periodProgress.value,
-                                trackColor: Colors.black.withValues(alpha: 0.08),
-                                progressColor: const Color(0xFF14302E), // Dark forest/green-black from reference image
-                              ),
-                            ),
+                            onPressed: () => Get.back(),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                           ),
-                        ),
-                        // Overlay Text Inside Semicircle
-                        Positioned(
-                          top: 45,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                          const SizedBox(width: 12),
+                          Icon(Icons.calendar_month_outlined,
+                              color: headerFg, size: 26),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Obx(() => Text(
-                                    controller.periodName.value,
-                                    style: const TextStyle(
-                                      color: Color(0xFF14302E),
-                                      fontSize: 22,
+                                    controller.hijriDateStr.value.isNotEmpty
+                                        ? '$shortDayOfWeek, ${controller.hijriDateStr.value.split(',')[0].trim()}'
+                                        : '$shortDayOfWeek, -- --',
+                                    style: TextStyle(
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
+                                      color: headerFg,
                                     ),
                                   )),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
-                                bn ? 'শেষ হতে বাকি' : 'time remaining',
+                                '$formattedGregorian, ${bn ? controller.bengaliDateStr : "Bengali date"}',
                                 style: TextStyle(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: headerFgMuted,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Obx(() => Text(
-                                    controller.periodTimeRemaining.value,
-                                    style: const TextStyle(
-                                      color: Color(0xFF14302E),
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  )),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // 3. Location and Sunrise/Sunset Pills Row
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Location Selector Pill
-                        GestureDetector(
-                          onTap: () => Get.toNamed(AppRoutes.locationMap),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
+                    // 2. Arc Countdown Gauge Semicircle
+                    Expanded(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            top: 10,
+                            child: SizedBox(
+                              width: 220,
+                              height: 120,
+                              child: Obx(() => CustomPaint(
+                                    painter: ArcProgressPainter(
+                                      progress:
+                                          controller.periodProgress.value,
+                                      trackColor: gaugeTrackColor,
+                                      progressColor: gaugeProgressColor,
+                                    ),
+                                  )),
                             ),
-                            child: Row(
+                          ),
+                          Positioned(
+                            top: 45,
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.location_on_rounded, color: Colors.black87, size: 16),
-                                const SizedBox(width: 6),
-                                Obx(() {
-                                  final name = controller.locationName.value.split(',')[0];
-                                  return Text(
-                                    name,
-                                    style: const TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  );
-                                }),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black87, size: 18),
+                                Obx(() => Text(
+                                      controller.periodName.value,
+                                      style: TextStyle(
+                                        color: gaugeTextColor,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                const SizedBox(height: 4),
+                                Obx(() => Text(
+                                      controller.isPeriodActive.value
+                                          ? (bn ? 'শেষ হতে বাকি' : 'time remaining')
+                                          : (bn ? 'শুরু হতে বাকি' : 'time until start'),
+                                      style: TextStyle(
+                                        color: gaugeTextMuted,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )),
+                                const SizedBox(height: 4),
+                                Obx(() => Text(
+                                      controller.periodTimeRemaining.value,
+                                      style: TextStyle(
+                                        color: gaugeTextColor,
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    )),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Sunrise / Sunset Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.wb_sunny_outlined, color: Colors.black87, size: 15),
-                              const SizedBox(width: 4),
-                              Text(
-                                bn ? 'সূর্যোদয়: ' : 'Sunrise: ',
-                                style: const TextStyle(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                              Obx(() => Text(
-                                    _formatTimeWithoutAmPm(controller.sunriseTimeStr.value, bn),
-                                    style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.bold),
-                                  )),
-                              const SizedBox(width: 8),
-                              Text('|', style: TextStyle(color: Colors.black.withValues(alpha: 0.15))),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.wb_twilight_outlined, color: Colors.black87, size: 15),
-                              const SizedBox(width: 4),
-                              Text(
-                                bn ? 'সূর্যাস্ত: ' : 'Sunset: ',
-                                style: const TextStyle(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.bold),
-                              ),
-                              Obx(() => Text(
-                                    _formatTimeWithoutAmPm(controller.sunsetTimeStr.value, bn),
-                                    style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.bold),
-                                  )),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // 4. Bottom Timings Sheet
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF161A22) : const Color(0xFF1E252B), // Dark premium background matching reference
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Timings List
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.prayerTimes.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 18),
-                          itemBuilder: (context, index) {
-                            final key = controller.prayerTimes.keys.elementAt(index);
-                            final time = controller.prayerTimes[key]!;
-                            final isNext = controller.nextPrayerName.value == key;
-                            
-                            return _buildRedesignedPrayerItem(context, settings, key, time, isNext);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Makruh Timing Status footer
-                        Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.amber,
-                                shape: BoxShape.circle,
+                    // 3. Location + Sunrise/Sunset Pills Row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Location pill
+                          Flexible(
+                            flex: 2,
+                            child: GestureDetector(
+                              onTap: () =>
+                                  Get.toNamed(AppRoutes.locationMap),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: pillBg,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.location_on_rounded,
+                                        color: pillText, size: 15),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Obx(() {
+                                        final name = controller
+                                            .locationName.value
+                                            .split(',')[0];
+                                        return Text(
+                                          name,
+                                          style: TextStyle(
+                                            color: pillText,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        );
+                                      }),
+                                    ),
+                                    Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: pillText,
+                                        size: 16),
+                                  ],
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Obx(() => Text(
-                                    controller.makruhTimeStr.value,
-                                    style: const TextStyle(
-                                      color: Colors.white60,
-                                      fontSize: 12,
-                                      height: 1.4,
-                                    ),
-                                  )),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 10),
-                        
-                        // Calculation Methods Button
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: InkWell(
-                            onTap: () => _showCalculationMethodBottomSheet(context, settings),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
+                          ),
+                          const SizedBox(width: 6),
+                          // Sunrise / Sunset pill
+                          Flexible(
+                            flex: 3,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: pillBg,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.settings_suggest_rounded, color: AppColors.primary, size: 16),
-                                  const SizedBox(width: 6),
-                                  Obx(() {
-                                    final methodId = controller.calculationMethod.value;
-                                    final name = bn
-                                        ? PrayerTimeController.calculationMethodsBn[methodId]!
-                                        : PrayerTimeController.calculationMethods[methodId]!;
-                                    return Text(
-                                      name.length > 25 ? '${name.substring(0, 23)}...' : name,
-                                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
-                                    );
-                                  }),
+                                  Icon(Icons.wb_sunny_outlined,
+                                      color: pillText, size: 14),
+                                  const SizedBox(width: 3),
+                                  Text('↑ ',
+                                      style: TextStyle(
+                                          color: pillTextMuted,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold)),
+                                  Obx(() => Text(
+                                        _formatTimeWithoutAmPm(
+                                            controller
+                                                .sunriseTimeStr.value,
+                                            bn),
+                                        style: TextStyle(
+                                            color: pillText,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      )),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5),
+                                    child: Text('|',
+                                        style: TextStyle(
+                                            color: pillDivider)),
+                                  ),
+                                  Icon(Icons.wb_twilight_outlined,
+                                      color: pillText, size: 14),
+                                  const SizedBox(width: 3),
+                                  Text('↓ ',
+                                      style: TextStyle(
+                                          color: pillTextMuted,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold)),
+                                  Obx(() => Text(
+                                        _formatTimeWithoutAmPm(
+                                            controller
+                                                .sunsetTimeStr.value,
+                                            bn),
+                                        style: TextStyle(
+                                            color: pillText,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      )),
                                 ],
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+
+                    // 4. Bottom Timings Sheet
+                    Container(
+                      decoration: BoxDecoration(
+                        color: sheetBg,
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(30)),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 22),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: controller.prayerTimes.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 18),
+                            itemBuilder: (context, index) {
+                              final key = controller.prayerTimes.keys
+                                  .elementAt(index);
+                              final time = controller.prayerTimes[key]!;
+                              final isNext =
+                                  controller.nextPrayerName.value == key;
+                              return _buildPrayerItem(
+                                  settings, isDark, bn, key, time, isNext);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Makruh footer
+                          Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Colors.amber,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Obx(() => Text(
+                                      controller.makruhTimeStr.value,
+                                      style: TextStyle(
+                                        color: sheetTextMuted,
+                                        fontSize: 12,
+                                        height: 1.4,
+                                      ),
+                                    )),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Calculation method selector
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: InkWell(
+                              onTap: () =>
+                                  _showCalculationMethodSheet(context, settings),
+                              borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                        Icons.settings_suggest_rounded,
+                                        color: AppColors.primary,
+                                        size: 16),
+                                    const SizedBox(width: 6),
+                                    Obx(() {
+                                      final methodId = controller
+                                          .calculationMethod.value;
+                                      final name = bn
+                                          ? PrayerTimeController
+                                              .calculationMethodsBn[
+                                                  methodId]!
+                                          : PrayerTimeController
+                                              .calculationMethods[
+                                                  methodId]!;
+                                      return Text(
+                                        name.length > 25
+                                            ? '${name.substring(0, 23)}...'
+                                            : name,
+                                        style: TextStyle(
+                                            color: sheetTextMuted,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Test Notification Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await controller.sendTestNotification();
+                                Get.snackbar(
+                                  bn ? 'টেস্ট নোটিফিকেশন' : 'Test Sent',
+                                  bn
+                                      ? 'একটি টেস্ট নোটিফিকেশন পাঠানো হয়েছে।'
+                                      : 'A test notification was sent. Check your status bar.',
+                                  snackPosition: SnackPosition.TOP,
+                                  backgroundColor:
+                                      AppColors.primary.withValues(alpha: 0.9),
+                                  colorText: Colors.black,
+                                  duration: const Duration(seconds: 3),
+                                );
+                              },
+                              icon: const Icon(Icons.notifications_active_rounded,
+                                  color: AppColors.primary, size: 18),
+                              label: Text(
+                                bn
+                                    ? 'টেস্ট নোটিফিকেশন পাঠান'
+                                    : 'Send Test Notification',
+                                style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(
+                                    color: AppColors.primary, width: 1),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      }),
-    );
+            ],
+          );
+        }),
+      );
+    });
   }
 
-  Widget _buildRedesignedPrayerItem(BuildContext context, SettingsController settings, String name, String time, bool isNext) {
-    // Icons & Colors matching the dark layout
+  Widget _buildPrayerItem(SettingsController settings, bool isDark, bool bn, String name,
+      String time, bool isNext) {
     IconData icon = Icons.wb_sunny_outlined;
     switch (name) {
       case 'Fajr':
@@ -377,33 +504,26 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
         break;
     }
 
-    final bn = settings.isBangla;
     final rangeStr = _getPrayerRange(name, bn);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Prayer Icon + Name
         Row(
           children: [
-            Icon(
-              icon,
-              color: isNext ? AppColors.primary : Colors.white70,
-              size: 24,
-            ),
+            Icon(icon,
+                color: isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54), size: 24),
             const SizedBox(width: 16),
             Text(
               _translatePrayerName(name, bn),
               style: TextStyle(
                 fontSize: 16.5,
                 fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                color: isNext ? AppColors.primary : Colors.white,
+                color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
               ),
             ),
           ],
         ),
-
-        // Range timings + Alert bell icon
         Row(
           children: [
             Text(
@@ -411,25 +531,32 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                color: isNext ? AppColors.primary : Colors.white,
+                color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
                 letterSpacing: 0.5,
               ),
             ),
             const SizedBox(width: 16),
             Obx(() {
-              final isAlertEnabled = controller.azanNotifications[name] ?? true;
+              final isAlertEnabled =
+                  controller.azanNotifications[name] ?? true;
               return IconButton(
                 icon: Icon(
-                  isAlertEnabled ? Icons.notifications_active_rounded : Icons.notifications_off_outlined,
-                  color: isAlertEnabled ? (isNext ? AppColors.primary : Colors.white70) : Colors.white24,
+                  isAlertEnabled
+                      ? Icons.notifications_active_rounded
+                      : Icons.notifications_off_outlined,
+                  color: isAlertEnabled
+                      ? (isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54))
+                      : (isDark ? Colors.white24 : Colors.black12),
                   size: 20,
                 ),
                 onPressed: () {
                   controller.toggleAzanNotification(name);
                   Get.snackbar(
-                    settings.isBangla ? 'নোটিফিকেশন পরিবর্তিত' : 'Alert Changed',
                     settings.isBangla
-                        ? '${_translatePrayerName(name, true)} নামাজের জন্য অ্যালার্ট ${isAlertEnabled ? 'বন্ধ' : 'চালু'} করা হয়েছে।'
+                        ? 'নোটিফিকেশন পরিবর্তিত'
+                        : 'Alert Changed',
+                    settings.isBangla
+                        ? '${_translatePrayerName(name, true)} নামাজের জন্য অ্যালার্ট ${isAlertEnabled ? 'বন্ধ' : 'চালু'} করা হয়েছে।'
                         : 'Alert for $name prayer has been ${isAlertEnabled ? 'disabled' : 'enabled'}.',
                     snackPosition: SnackPosition.BOTTOM,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.9),
@@ -455,11 +582,9 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       final parts = val.split(' ')[0].split(':');
       final hour24 = int.parse(parts[0]);
       final minute = parts[1];
-      
-      final hour12 = hour24 > 12 ? hour24 - 12 : (hour24 == 0 ? 12 : hour24);
-      final paddedHour = hour12.toString().padLeft(2, '0');
-      
-      return '$paddedHour:$minute';
+      final hour12 =
+          hour24 > 12 ? hour24 - 12 : (hour24 == 0 ? 12 : hour24);
+      return '${hour12.toString().padLeft(2, '0')}:$minute';
     }
 
     final fajr = formatTime('Fajr');
@@ -486,14 +611,13 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       case 'Isha':
         range = '$isha - $fajr';
         break;
-      default:
-        range = '';
     }
 
     return isBangla ? controller.toBanglaDigits(range) : range;
   }
 
-  void _showCalculationMethodBottomSheet(BuildContext context, SettingsController settings) {
+  void _showCalculationMethodSheet(
+      BuildContext context, SettingsController settings) {
     final isDark = settings.isDark;
     final bn = settings.isBangla;
 
@@ -509,7 +633,9 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              bn ? 'হিসাব পদ্ধতি নির্বাচন করুন' : 'Select Calculation Method',
+              bn
+                  ? 'হিসাব পদ্ধতি নির্বাচন করুন'
+                  : 'Select Calculation Method',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -521,24 +647,33 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
             Flexible(
               child: ListView(
                 shrinkWrap: true,
-                children: PrayerTimeController.calculationMethods.keys.map((methodId) {
+                children: PrayerTimeController.calculationMethods.keys
+                    .map((methodId) {
                   final name = bn
-                      ? PrayerTimeController.calculationMethodsBn[methodId]!
-                      : PrayerTimeController.calculationMethods[methodId]!;
+                      ? PrayerTimeController
+                          .calculationMethodsBn[methodId]!
+                      : PrayerTimeController
+                          .calculationMethods[methodId]!;
                   return Obx(() {
-                    final isSelected = controller.calculationMethod.value == methodId;
+                    final isSelected =
+                        controller.calculationMethod.value == methodId;
                     return ListTile(
                       title: Text(
                         name,
                         style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           color: isSelected
                               ? AppColors.primary
-                              : (isDark ? AppColors.textWhite : AppColors.textDark),
+                              : (isDark
+                                  ? AppColors.textWhite
+                                  : AppColors.textDark),
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                          ? const Icon(Icons.check_circle_rounded,
+                              color: AppColors.primary)
                           : null,
                       onTap: () {
                         controller.setCalculationMethod(methodId);
@@ -557,7 +692,8 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
   }
 
   String _formatTimeWithoutAmPm(String time12h, bool isBangla) {
-    final clean = time12h.replaceAll(' AM', '').replaceAll(' PM', '').trim();
+    final clean =
+        time12h.replaceAll(' AM', '').replaceAll(' PM', '').trim();
     return isBangla ? controller.toBanglaDigits(clean) : clean;
   }
 
@@ -567,7 +703,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       case 'Fajr':
         return 'ফজর';
       case 'Sunrise':
-        return 'সূর্যোদয়';
+        return 'সূর্যোদয়';
       case 'Dhuhr':
         return 'যোহর';
       case 'Asr':
@@ -605,9 +741,9 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
 
   String _translateGregorianDate(String date, bool isBangla) {
     if (!isBangla) return date;
-    var res = date
-        .replaceAll('January', 'জানুয়ারি')
-        .replaceAll('February', 'ফেব্রুয়ারি')
+    return date
+        .replaceAll('January', 'জানুয়ারি')
+        .replaceAll('February', 'ফেব্রুয়ারি')
         .replaceAll('March', 'মার্চ')
         .replaceAll('April', 'এপ্রিল')
         .replaceAll('May', 'মে')
@@ -628,11 +764,10 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
         .replaceAll('7', '৭')
         .replaceAll('8', '৮')
         .replaceAll('9', '৯');
-    return res;
   }
 }
 
-// ── Custom Arc Progress Painter Gauge ────────────────────────────────────────
+// ── Arc Progress Painter ───────────────────────────────────────────────────────
 class ArcProgressPainter extends CustomPainter {
   final double progress;
   final Color trackColor;
@@ -661,29 +796,15 @@ class ArcProgressPainter extends CustomPainter {
       ..strokeWidth = 14
       ..strokeCap = StrokeCap.round;
 
-    // Semicircular track (180 degrees arc pointing up)
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      math.pi,
-      math.pi,
-      false,
-      paintTrack,
-    );
-
-    // Semicircular progress arc
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      math.pi,
-      math.pi * progress,
-      false,
-      paintProgress,
-    );
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), math.pi,
+        math.pi, false, paintTrack);
+    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), math.pi,
+        math.pi * progress, false, paintProgress);
   }
 
   @override
-  bool shouldRepaint(covariant ArcProgressPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.progressColor != progressColor;
-  }
+  bool shouldRepaint(covariant ArcProgressPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.progressColor != progressColor;
 }

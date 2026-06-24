@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SupportController extends GetxController {
   final nameController = TextEditingController();
@@ -8,6 +9,39 @@ class SupportController extends GetxController {
   final messageController = TextEditingController();
 
   final RxBool isSubmitting = false.obs;
+
+  Future<void> launchWhatsApp() async {
+    final url = Uri.parse('https://wa.me/8801700000000');
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        Get.snackbar('Error', 'Could not open WhatsApp');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Could not launch link: $e');
+    }
+  }
+
+  Future<void> launchFacebook() async {
+    final url = Uri.parse('https://facebook.com/quranapp.official');
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        Get.snackbar('Error', 'Could not open Facebook');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Could not launch link: $e');
+    }
+  }
+
+  Future<void> launchEmail() async {
+    final url = Uri.parse('mailto:support@quranapp.com?subject=Quran%20App%20Support');
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        Get.snackbar('Error', 'Could not open Email client');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Could not launch link: $e');
+    }
+  }
 
   Future<void> submitTicket(bool isBangla) async {
     final name = nameController.text.trim();

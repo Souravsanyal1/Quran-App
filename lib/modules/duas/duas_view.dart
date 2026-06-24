@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/app_back_button.dart';
 import 'duas_controller.dart';
 
 class DuasView extends GetView<DuasController> {
@@ -15,6 +16,7 @@ class DuasView extends GetView<DuasController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const AppBackButton(),
         title: Text(settings.isBangla ? 'দোয়া ও যিকর' : 'Duas & Azkar'),
       ),
       body: Column(
@@ -53,7 +55,7 @@ class DuasView extends GetView<DuasController> {
                         settings.isBangla ? catBn : catEn,
                         style: TextStyle(
                           color: isSelected
-                              ? Colors.black
+                              ? Colors.white
                               : (settings.isDark ? AppColors.textWhite : AppColors.textDark),
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
