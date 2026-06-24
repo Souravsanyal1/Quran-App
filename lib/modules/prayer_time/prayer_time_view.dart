@@ -592,46 +592,10 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
   }
 
   String _getPrayerRange(String name, bool isBangla) {
-    if (controller.rawPrayerTimings.isEmpty) return '';
-
-    String formatTime(String key) {
-      final val = controller.rawPrayerTimings[key] ?? '';
-      if (val.isEmpty) return '';
-      final parts = val.split(' ')[0].split(':');
-      final hour24 = int.parse(parts[0]);
-      final minute = parts[1];
-      final hour12 =
-          hour24 > 12 ? hour24 - 12 : (hour24 == 0 ? 12 : hour24);
-      return '${hour12.toString().padLeft(2, '0')}:$minute';
-    }
-
-    final fajr = formatTime('Fajr');
-    final sunrise = formatTime('Sunrise');
-    final dhuhr = formatTime('Dhuhr');
-    final asr = formatTime('Asr');
-    final maghrib = formatTime('Maghrib');
-    final isha = formatTime('Isha');
-
-    String range = '';
-    switch (name) {
-      case 'Fajr':
-        range = '$fajr - $sunrise';
-        break;
-      case 'Dhuhr':
-        range = '$dhuhr - $asr';
-        break;
-      case 'Asr':
-        range = '$asr - $maghrib';
-        break;
-      case 'Maghrib':
-        range = '$maghrib - $isha';
-        break;
-      case 'Isha':
-        range = '$isha - $fajr';
-        break;
-    }
-
-    return isBangla ? controller.toBanglaDigits(range) : range;
+    // Read the already-formatted 12h time from prayerTimes (e.g. "05:12 AM")
+    final time = controller.prayerTimes[name] ?? '';
+    if (time.isEmpty) return '';
+    return isBangla ? controller.toBanglaDigits(time) : time;
   }
 
   void _showCalculationMethodSheet(

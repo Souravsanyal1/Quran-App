@@ -234,6 +234,17 @@ class PrayerTimeController extends GetxController {
           'Isha': _formatTime12h(data['Isha']),
         });
 
+        // Populate raw timings map (24h strings from API) so the view can
+        // compute start-time labels and ranges for each prayer row.
+        rawPrayerTimings.assignAll({
+          'Fajr': data['Fajr']?.toString() ?? '',
+          'Sunrise': data['Sunrise']?.toString() ?? '',
+          'Dhuhr': data['Dhuhr']?.toString() ?? '',
+          'Asr': data['Asr']?.toString() ?? '',
+          'Maghrib': data['Maghrib']?.toString() ?? '',
+          'Isha': data['Isha']?.toString() ?? '',
+        });
+
         // Set Sunrise & Sunset
         sunriseTimeStr.value = _formatTime12h(data['Sunrise'] ?? '');
         sunsetTimeStr.value = _formatTime12h(data['Sunset'] ?? data['Maghrib'] ?? '');

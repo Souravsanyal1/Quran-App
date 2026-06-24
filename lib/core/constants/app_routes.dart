@@ -39,6 +39,9 @@ class AppRoutes {
   // Settings
   static const String settings = '/settings';
 
+  // Developer Info
+  static const String developerInfo = '/developer-info';
+
   // Map
   static const String locationMap = '/location-map';
 }

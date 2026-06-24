@@ -44,4 +44,5 @@ class HomeController extends GetxController {
   void goToSupport() => Get.toNamed(AppRoutes.support);
   void goToSettings() => Get.toNamed(AppRoutes.settings);
   void goToDownload() => Get.toNamed(AppRoutes.quranDownload);
+  void goToDeveloperInfo() => Get.toNamed(AppRoutes.developerInfo);
 }

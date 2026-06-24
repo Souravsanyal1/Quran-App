@@ -182,6 +182,11 @@ class AppDrawer extends StatelessWidget {
                       label: bn ? 'সেটিংস' : 'Settings',
                       onTap: () { Get.back(); home.goToSettings(); },
                     ),
+                    _DrawerItem(
+                      icon: Icons.info_outline_rounded,
+                      label: bn ? 'ডেভেলপার তথ্য' : 'Developer Info',
+                      onTap: () { Get.back(); home.goToDeveloperInfo(); },
+                    ),
                   ]),
                 ],
               ),

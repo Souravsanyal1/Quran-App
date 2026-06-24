@@ -59,10 +59,12 @@ class QiblaView extends GetView<QiblaController> {
               );
             }
 
-            // offset represents the angle difference between device heading and Kaaba direction
-            // direction represents device heading relative to North
-            final direction = qiblahDirection.direction;
-            final offset = qiblahDirection.offset;
+            // qiblahDirection: absolute bearing to Mecca from North (e.g. 247° for BD)
+            // direction: current device heading from North (from compass sensor)
+            // offset: = qiblahDirection - direction (relative angle from device forward to Mecca)
+            final deviceHeading = qiblahDirection.direction; // compass reading
+            final qiblaAngle = qiblahDirection.qiblah; // absolute bearing to Mecca from North
+            final offset = qiblahDirection.offset; // used only for isAligned check
             final isAligned = offset.abs() < 5; // aligned within 5 degrees
 
             return Center(
@@ -102,15 +104,19 @@ class QiblaView extends GetView<QiblaController> {
                               ),
                             ),
                             
-                          // Outer Compass Dial (rotates with device direction)
+                          // Outer Compass Dial (counter-rotates so N always points North on screen)
                           Transform.rotate(
-                            angle: -(direction * (math.pi / 180)),
+                            angle: -(deviceHeading * (math.pi / 180)),
                             child: _buildCompassDial(settings),
                           ),
                           
-                          // Qibla Pointer/Needle (pointing to Kaaba, rotates relative to device)
+                          // Qibla Needle: must point at absolute Qibla bearing.
+                          // The dial rotates by -(deviceHeading). To make the needle
+                          // appear at the correct absolute direction on screen we rotate
+                          // by -(qiblaAngle) so that it points to Mecca regardless of
+                          // how the user holds the device.
                           Transform.rotate(
-                            angle: -(offset * (math.pi / 180)),
+                            angle: -(qiblaAngle * (math.pi / 180)),
                             child: _buildCompassNeedle(isAligned),
                           ),
 
