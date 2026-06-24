@@ -8,6 +8,7 @@ import 'package:logger/logger.dart';
 import '../modules/notifications/notification_model.dart';
 import '../modules/notifications/notifications_controller.dart';
 import '../modules/settings/settings_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationService {
   NotificationService._();
@@ -225,10 +226,19 @@ class NotificationService {
     final settings = Get.find<SettingsController>();
     final bn = settings.isBangla;
     final now = DateTime.now();
+    final prefs = await SharedPreferences.getInstance();
 
     for (var k in keys) {
       try {
         if (timings[k] == null) continue;
+
+        // Check if individual prayer notification is enabled
+        final bool isPrayerEnabled = prefs.getBool('azan_notification_$k') ?? true;
+        if (!isPrayerEnabled) {
+          _logger.i('Notification for $k is disabled, skipping');
+          continue;
+        }
+
         final cleanTime = timings[k].toString().split(' ')[0];
         final timeParts = cleanTime.split(':');
         final hour = int.parse(timeParts[0]);

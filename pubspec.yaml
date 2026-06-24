@@ -78,6 +78,8 @@ dependencies:
   in_app_review: ^2.0.10
   just_audio_background: ^0.0.1-beta.17
   flutter_timezone: ^5.1.0
+  flutter_map: ^8.3.0
+  latlong2: ^0.9.1
 
 dev_dependencies:
   flutter_test:

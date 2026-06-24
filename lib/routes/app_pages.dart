@@ -35,6 +35,7 @@ import '../modules/settings/settings_view.dart';
 import '../modules/settings/settings_controller.dart';
 import '../modules/notifications/notifications_view.dart';
 import '../modules/notifications/notifications_controller.dart';
+import '../modules/prayer_time/location_map_view.dart';
 import '../core/constants/app_routes.dart';
 
 class AppPages {
@@ -147,6 +148,11 @@ class AppPages {
       name: AppRoutes.notifications,
       page: () => const NotificationsView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => NotificationsController())),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.locationMap,
+      page: () => const LocationMapView(),
       transition: Transition.rightToLeft,
     ),
   ];
