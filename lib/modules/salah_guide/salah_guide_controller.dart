@@ -22,8 +22,159 @@ class SalahStep {
   });
 }
 
+class RakahBreakdown {
+  final int fard;
+  final int sunnahMuakkadah;
+  final int sunnahGhairMuakkadah;
+  final int nafl;
+  final int witr;
+
+  const RakahBreakdown({
+    this.fard = 0,
+    this.sunnahMuakkadah = 0,
+    this.sunnahGhairMuakkadah = 0,
+    this.nafl = 0,
+    this.witr = 0,
+  });
+
+  int get total => fard + sunnahMuakkadah + sunnahGhairMuakkadah + nafl + witr;
+}
+
+class PrayerRakahInfo {
+  final String nameEn;
+  final String nameBn;
+  final String timeEn;
+  final String timeBn;
+  final RakahBreakdown breakdown;
+  final String descEn;
+  final String descBn;
+
+  const PrayerRakahInfo({
+    required this.nameEn,
+    required this.nameBn,
+    required this.timeEn,
+    required this.timeBn,
+    required this.breakdown,
+    required this.descEn,
+    required this.descBn,
+  });
+}
+
+class SalahTypeInfo {
+  final String typeEn;
+  final String typeBn;
+  final String significanceEn;
+  final String significanceBn;
+  final String ruleEn;
+  final String ruleBn;
+  final String exampleEn;
+  final String exampleBn;
+
+  const SalahTypeInfo({
+    required this.typeEn,
+    required this.typeBn,
+    required this.significanceEn,
+    required this.significanceBn,
+    required this.ruleEn,
+    required this.ruleBn,
+    required this.exampleEn,
+    required this.exampleBn,
+  });
+}
+
 class SalahGuideController extends GetxController {
   final RxInt currentStep = 0.obs;
+
+  final List<PrayerRakahInfo> prayers = const [
+    PrayerRakahInfo(
+      nameEn: 'Fajr',
+      nameBn: 'ফজর',
+      timeEn: 'Dawn (before sunrise)',
+      timeBn: 'ভোর (সূর্যোদয়ের পূর্বে)',
+      breakdown: RakahBreakdown(sunnahMuakkadah: 2, fard: 2),
+      descEn: 'Fajr is the first of the five daily prayers. It is performed at dawn before sunrise. It consists of 2 Rak\'ah Sunnah Mu\'akkadah followed by 2 Rak\'ah Fard.',
+      descBn: 'ফজর হলো দিনের প্রথম ফরজ নামাজ। এটি ভোরবেলা সূর্যোদয়ের পূর্বে আদায় করতে হয়। এতে প্রথমে ২ রাকাত সুন্নাতে মুয়াক্কাদাহ এবং পরে ২ রাকাত ফরজ নামাজ রয়েছে।',
+    ),
+    PrayerRakahInfo(
+      nameEn: 'Dhuhr',
+      nameBn: 'যোহর',
+      timeEn: 'Midday (after sun passes zenith)',
+      timeBn: 'দুপুর (সূর্য পশ্চিম আকাশে ঢলে পড়ার পর)',
+      breakdown: RakahBreakdown(sunnahMuakkadah: 6, fard: 4, nafl: 2),
+      descEn: 'Dhuhr is the second daily prayer, performed in the afternoon. It contains a total of 12 Rak\'ahs: 4 Sunnah Mu\'akkadah (before Fard), 4 Fard, 2 Sunnah Mu\'akkadah (after Fard), and 2 Nafl.',
+      descBn: 'যোহর হলো দিনের দ্বিতীয় ফরজ নামাজ। এটি দুপুরে সূর্য পশ্চিম আকাশে ঢলে পড়ার পর পড়তে হয়। এতে মোট ১২ রাকাত রয়েছে: ৪ রাকাত সুন্নাতে মুয়াক্কাদাহ, ৪ রাকাত ফরজ, ২ রাকাত সুন্নাতে মুয়াক্কাদাহ এবং ২ রাকাত নফল।',
+    ),
+    PrayerRakahInfo(
+      nameEn: 'Asr',
+      nameBn: 'আসর',
+      timeEn: 'Late afternoon (before sunset)',
+      timeBn: 'বিকাল (সূর্য ডোবার পূর্ব মুহূর্ত পর্যন্ত)',
+      breakdown: RakahBreakdown(sunnahGhairMuakkadah: 4, fard: 4),
+      descEn: 'Asr is the third daily prayer, performed in the late afternoon. It consists of 4 Rak\'ah Sunnah Ghair Mu\'akkadah followed by 4 Rak\'ah Fard.',
+      descBn: 'আসর হলো দিনের তৃতীয় ফরজ নামাজ। এটি বিকালে সূর্য ডোবার আগে পড়তে হয়। এতে প্রথমে ৪ রাকাত সুন্নাতে গাইরে মুয়াক্কাদাহ এবং পরে ৪ রাকাত ফরজ নামাজ রয়েছে।',
+    ),
+    PrayerRakahInfo(
+      nameEn: 'Maghrib',
+      nameBn: 'মাগরিব',
+      timeEn: 'Just after sunset',
+      timeBn: 'সন্ধ্যা (সূর্যাস্তের ঠিক পরপরই)',
+      breakdown: RakahBreakdown(fard: 3, sunnahMuakkadah: 2, nafl: 2),
+      descEn: 'Maghrib is the fourth daily prayer, performed right after sunset. It consists of 3 Rak\'ah Fard, 2 Rak\'ah Sunnah Mu\'akkadah, and 2 Rak\'ah Nafl.',
+      descBn: 'মাগরিব হলো দিনের চতুর্থ ফরজ নামাজ। এটি সূর্যাস্তের ঠিক পরপরই আদায় করতে হয়। এতে প্রথমে ৩ রাকাত ফরজ, তারপর ২ রাকাত সুন্নাতে মুয়াক্কাদাহ এবং শেষে ২ রাকাত নফল রয়েছে।',
+    ),
+    PrayerRakahInfo(
+      nameEn: 'Isha',
+      nameBn: 'ইশা',
+      timeEn: 'Night (after twilight disappears)',
+      timeBn: 'রাত (পশ্চিম আকাশের লালিমা সম্পূর্ণ মুছে যাওয়ার পর)',
+      breakdown: RakahBreakdown(sunnahGhairMuakkadah: 4, fard: 4, sunnahMuakkadah: 2, witr: 3, nafl: 4),
+      descEn: 'Isha is the fifth daily prayer, performed at night. It contains a total of 17 Rak\'ahs: 4 Sunnah Ghair Mu\'akkadah, 4 Fard, 2 Sunnah Mu\'akkadah, 2 Nafl, 3 Witr (Wajib), and 2 Nafl.',
+      descBn: 'ইশা হলো দিনের পঞ্চম ও শেষ ফরজ নামাজ। এটি রাতে আদায় করতে হয়। এতে মোট ১৭ রাকাত রয়েছে: ৪ রাকাত সুন্নাতে গাইরে মুয়াক্কাদাহ, ৪ রাকাত ফরজ, ২ রাকাত সুন্নাতে মুয়াক্কাদাহ, ২ রাকাত নফল, ৩ রাকাত বিতর (ওয়াজিব) এবং শেষে আরও ২ রাকাত নফল নামাজ।',
+    ),
+  ];
+
+  final List<SalahTypeInfo> salahTypes = const [
+    SalahTypeInfo(
+      typeEn: 'Fard (Obligatory)',
+      typeBn: 'ফরজ (অবশ্যই পালনীয়)',
+      significanceEn: 'Absolutely mandatory. Intentionally missing them is a grave sin.',
+      significanceBn: 'ইসলামের অন্যতম স্তম্ভ। প্রাপ্তবয়স্ক ও সুস্থ প্রত্যেক মুসলিমের উপর এটি পালন করা আবশ্যক। ইচ্ছাকৃতভাবে তরক করা কবিরা গুনাহ।',
+      ruleEn: 'Must be performed. If missed due to valid reasons (sleep/forgetfulness), they must be made up (Qada) as soon as possible.',
+      ruleBn: 'অবশ্যই আদায় করতে হবে। কোনো কারণে ছুটে গেলে পরবর্তীতে তা কাযা আদায় করা আবশ্যক।',
+      exampleEn: 'The Fard parts of the 5 Daily prayers, Jumu\'ah (Friday) prayer, and Janazah (Funeral) prayer (Fard Kifayah).',
+      exampleBn: '৫ ওয়াক্ত নামাজের ফরজ অংশসমূহ এবং জুমার নামাজ (ফরজে আইন)। জানাজার নামাজ (ফরজে কিফায়াহ)।',
+    ),
+    SalahTypeInfo(
+      typeEn: 'Wajib (Necessary)',
+      typeBn: 'ওয়াজিব (অপরিহার্য)',
+      significanceEn: 'Highly emphasized and mandatory in practice. Missing them is a sin.',
+      significanceBn: 'ফরজের পরেই এর গুরুত্ব ও স্থান। এটি ওয়াজিব বা অপরিহার্য। ইচ্ছাকৃতভাবে ছেড়ে দেওয়া গুনাহের কাজ।',
+      ruleEn: 'Must be performed and requires Qada (makeup) if missed.',
+      ruleBn: 'অবশ্যই আদায় করতে হবে এবং ছুটে গেলে তা কাযা আদায় করতে হবে।',
+      exampleEn: 'Witr prayer (after Isha), Eid prayers (Eid-ul-Fitr & Eid-ul-Adha), Sajdah of Recitation (Sajdah Sahw/Tilawah).',
+      exampleBn: 'ইশার পর ৩ রাকাত বিতর নামাজ, দুই ঈদের নামাজ এবং কুরআন তিলওয়াতের সেজদা (সেজদায়ে তিলাওয়াত)।',
+    ),
+    SalahTypeInfo(
+      typeEn: 'Sunnah (Prophetic Practice)',
+      typeBn: 'সুন্নাত (রাসুলুল্লাহ সাঃ এর আমল)',
+      significanceEn: 'Prayers established by the Prophet Muhammad (PBUH). Adhering to them brings great rewards and completes shortcomings in Fard prayers.',
+      significanceBn: 'রাসুলুল্লাহ (সাঃ) ফরজ নামাজ ব্যতীত অতিরিক্ত যে নামাজ নিজে আদায় করতেন ও পড়তে উৎসাহিত করেছেন। এটি আদায় করলে অনেক সওয়াব।',
+      ruleEn: 'Divided into:\n• Sunnah Mu\'akkadah (Emphasized): The Prophet rarely missed these. Omitting them regularly is disliked.\n• Sunnah Ghair Mu\'akkadah (Non-emphasized): The Prophet performed them sometimes and skipped them sometimes.',
+      ruleBn: 'দুই প্রকার:\n• সুন্নতে মুয়াক্কাদাহ: যা রাসুলুল্লাহ (সাঃ) নিয়মিত পড়তেন। নিয়মিত তা বর্জন করা অনুচিত।\n• সুন্নতে গাইরে মুয়াক্কাদাহ: যা রাসুলুল্লাহ (সাঃ) কখনো পড়েছেন আবার কখনো পড়েননি।',
+      exampleEn: '2 Rak\'ah before Fajr, 4 before Dhuhr, 2 after Dhuhr, 2 after Maghrib, and 2 after Isha (Mu\'akkadah). 4 before Asr and 4 before Isha (Ghair Mu\'akkadah).',
+      exampleBn: 'ফজরের ২ রাকাত সুন্নত, যোহরের আগের ৪ ও পরের ২ রাকাত, মাগরিবের পরের ২ রাকাত ও ইশার পরের ২ রাকাত (মুয়াক্কাদাহ)। আসরের আগের ৪ রাকাত ও ইশার আগের ৪ রাকাত (গাইরে মুয়াক্কাদাহ)।',
+    ),
+    SalahTypeInfo(
+      typeEn: 'Nafl (Voluntary)',
+      typeBn: 'নফল (ঐচ্ছিক বা অতিরিক্ত)',
+      significanceEn: 'Optional prayers that bring one closer to Allah. There is no sin or blame for omitting them.',
+      significanceBn: 'সম্পূর্ণ অতিরিক্ত নামাজ। আল্লাহ তাআলার নৈকট্য অর্জনের একটি চমৎকার মাধ্যম। এটি না পড়লে কোনো গুনাহ নেই।',
+      ruleEn: 'Can be performed at any permissible time. Compensates for deficiencies in Fard prayers on the Day of Judgment.',
+      ruleBn: 'নিষিদ্ধ সময় ছাড়া যে কোনো সময় আদায় করা যায়। হাশরের মাঠে বান্দার ফরজের হিসাব কম পড়লে তা এই নফল নামাজ দ্বারা পূরণ করা হবে।',
+      exampleEn: 'Tahajjud (Night Prayer), Ishraq (Sunrise Prayer), Duha/Chasht (Forenoon Prayer), Awabin (Evening Prayer), Tahiyyatul Masjid (Mosque Prayer).',
+      exampleBn: 'তাহাজ্জুদ (শেষ রাতের নামাজ), ইশরাক ও চাশত (দিনের শুরুর নামাজ), আওয়াবীন (মাগরিবের পরের নামাজ), তাহিয়্যাতুল মাসজিদ (মসজিদে প্রবেশের পর নামাজ)।',
+    ),
+  ];
 
   final List<SalahStep> steps = const [
     SalahStep(
