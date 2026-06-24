@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
@@ -25,15 +26,8 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
         backgroundColor: isDark ? AppColors.bgDark : const Color(0xFFF9F9F9),
         appBar: AppBar(
           leading: const AppBackButton(),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
           title: Text(
             bn ? 'ডেভেলপার তথ্য' : 'Developer Information',
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
           ),
           centerTitle: true,
         ),
@@ -61,13 +55,21 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                     child: CircleAvatar(
                       radius: 56,
                       backgroundColor: isDark ? AppColors.bgDark : Colors.white,
-                      child: CircleAvatar(
-                        radius: 52,
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 64,
-                          color: AppColors.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(52),
+                        child: CachedNetworkImage(
+                          imageUrl: 'https://i.postimg.cc/t45rDD8J/Whats-App-Image-2026-06-20-at-11-47-11-AM-(1).jpg',
+                          width: 104,
+                          height: 104,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                          ),
+                          errorWidget: (context, url, error) => const Icon(
+                            Icons.person_rounded,
+                            size: 64,
+                            color: AppColors.primary,
+                          ),
                         ),
                       ),
                     ),
