@@ -23,7 +23,6 @@ class QuranView extends GetView<QuranController> {
           backgroundColor: context.theme.scaffoldBackgroundColor,
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: Colors.transparent,
             title: Text(
               bn ? 'আল-কুরআন' : 'Al-Quran',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),

@@ -26,24 +26,12 @@ class NotificationsView extends GetView<NotificationsController> {
 
   PreferredSizeWidget _buildAppBar(bool isDark, bool isBn) {
     return AppBar(
-      backgroundColor: isDark ? AppColors.bgDark : AppColors.bgLight,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: isDark ? AppColors.textWhite : AppColors.textDark,
-          size: 20,
-        ),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
         onPressed: () => Get.back(),
       ),
-      title: Text(
-        isBn ? 'নোটিফিকেশন' : 'Notifications',
-        style: TextStyle(
-          color: isDark ? AppColors.textWhite : AppColors.textDark,
-          fontWeight: FontWeight.w700,
-          fontSize: 20,
-        ),
-      ),
+      title: Text(isBn ? 'নোটিফিকেশন' : 'Notifications'),
       actions: [
         Obx(() {
           if (controller.notifications.isEmpty) return const SizedBox.shrink();

@@ -23,17 +23,11 @@ class HomeView extends GetView<HomeController> {
             isDark ? AppColors.bgDark : AppColors.bgLight,
         drawer: const AppDrawer(),
         appBar: AppBar(
-          backgroundColor:
-              isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           elevation: 0,
           scrolledUnderElevation: 0,
           leading: Builder(
             builder: (ctx) => IconButton(
-              icon: Icon(
-                Icons.menu_rounded,
-                color: isDark ? AppColors.textWhite : AppColors.textDark,
-                size: 24,
-              ),
+              icon: const Icon(Icons.menu_rounded, size: 24),
               onPressed: () => Scaffold.of(ctx).openDrawer(),
               tooltip: bn ? 'মেনু' : 'Menu',
             ),
@@ -44,22 +38,22 @@ class HomeView extends GetView<HomeController> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.menu_book_rounded,
-                  color: Colors.black,
+                  color: Colors.white,
                   size: 18,
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 bn ? 'কুরআন অ্যাপ' : 'Quran App',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? AppColors.textWhite : AppColors.textDark,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -68,7 +62,6 @@ class HomeView extends GetView<HomeController> {
             IconButton(
               icon: Icon(
                 isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-                color: isDark ? AppColors.textGrey : AppColors.textDark,
               ),
               onPressed: settings.toggleTheme,
               tooltip: isDark
