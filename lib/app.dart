@@ -45,7 +45,7 @@ class QuranApp extends StatelessWidget {
       transitionDuration: const Duration(milliseconds: 300),
 
       // Locale
-      locale: const Locale('en'),
+      locale: const Locale('bn'),
       fallbackLocale: const Locale('en'),
     );
   }

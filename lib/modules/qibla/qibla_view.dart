@@ -22,7 +22,7 @@ class QiblaView extends GetView<QiblaController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return _buildLinearLoader(settings.isBangla);
         }
 
         if (!controller.hasPermission.value) {
@@ -33,7 +33,7 @@ class QiblaView extends GetView<QiblaController> {
           stream: FlutterQiblah.qiblahStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return _buildLinearLoader(settings.isBangla);
             }
 
             if (snapshot.hasError) {
@@ -180,6 +180,34 @@ class QiblaView extends GetView<QiblaController> {
           },
         );
       }),
+    );
+  }
+
+  Widget _buildLinearLoader(bool bn) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.explore_rounded, size: 56, color: AppColors.primary),
+            const SizedBox(height: 20),
+            Text(
+              bn ? 'কিবলা কম্পাস লোড হচ্ছে...' : 'Loading Qibla...',
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: const LinearProgressIndicator(
+                minHeight: 6,
+                backgroundColor: Colors.black12,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

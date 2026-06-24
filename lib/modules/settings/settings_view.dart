@@ -230,6 +230,70 @@ class SettingsView extends GetView<SettingsController> {
               ],
             ),
 
+            _SectionHeader(title: bn ? 'দৈনিক দোয়া' : 'Daily Dua'),
+
+            _SettingsCard(
+              isDark: isDark,
+              children: [
+                _SettingsTile(
+                  isDark: isDark,
+                  icon: Icons.auto_awesome_rounded,
+                  title: bn ? 'দৈনিক দোয়ার রিমাইন্ডার' : 'Daily Dua Reminder',
+                  subtitle: bn
+                      ? 'প্রতিদিন নির্দিষ্ট সময়ে দোয়ার নোটিফিকেশন'
+                      : 'Get a daily dua notification at your chosen time',
+                  trailing: Switch(
+                    value: controller.duaReminderEnabled.value,
+                    onChanged: controller.setDuaReminderEnabled,
+                  ),
+                ),
+                if (controller.duaReminderEnabled.value)
+                  _SettingsTile(
+                    isDark: isDark,
+                    icon: Icons.schedule_rounded,
+                    title: bn ? 'রিমাইন্ডারের সময়' : 'Reminder Time',
+                    subtitle: () {
+                      final h = controller.duaReminderHour.value;
+                      final m = controller.duaReminderMinute.value;
+                      final tod = TimeOfDay(hour: h, minute: m);
+                      return tod.format(context);
+                    }(),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay(
+                          hour: controller.duaReminderHour.value,
+                          minute: controller.duaReminderMinute.value,
+                        ),
+                        builder: (ctx, child) => Theme(
+                          data: Theme.of(ctx).copyWith(
+                            colorScheme: Theme.of(ctx).colorScheme.copyWith(
+                              primary: AppColors.primary,
+                            ),
+                          ),
+                          child: child!,
+                        ),
+                      );
+                      if (picked != null) {
+                        // Capture context-dependent value before async gap
+                        final formattedTime = picked.format(context);
+                        await controller.setDuaReminderTime(picked);
+                        Get.snackbar(
+                          bn ? 'রিমাইন্ডার সেট' : 'Reminder Set',
+                          bn
+                              ? 'প্রতিদিন $formattedTime এ দোয়ার নোটিফিকেশন আসবে'
+                              : 'You will receive a dua reminder daily at $formattedTime',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.9),
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 3),
+                        );
+                      }
+                    },
+                  ),
+              ],
+            ),
+
             const SizedBox(height: 32),
             Text(
               'Quran App v1.0.0\nMade with ❤️ for the Ummah',

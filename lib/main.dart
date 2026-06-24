@@ -3,17 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'app.dart';
 
 /// FCM background message handler — MUST be a top-level function
-/// (not inside a class) so it runs in a separate isolate.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // NOTE: Firebase is already initialized by the platform channel at this point.
-  // We cannot access GetX controllers here (separate isolate),
-  // so we simply acknowledge receipt. The message will be visible
-  // via onMessageOpenedApp when the user taps the notification.
   debugPrint('[FCM Background] title=${message.notification?.title}');
 }
 
@@ -48,6 +42,9 @@ Future<void> main() async {
   // Load initial theme mode from SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final String savedTheme = prefs.getString('theme_mode') ?? 'dark';
+
+  // NOTE: NotificationService.instance.init() is called in SplashController
+  // after Firebase.initializeApp() — do NOT call it here.
 
   runApp(QuranApp(savedTheme: savedTheme));
 }

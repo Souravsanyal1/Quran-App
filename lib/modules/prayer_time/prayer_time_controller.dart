@@ -600,9 +600,6 @@ class PrayerTimeController extends GetxController {
     return res;
   }
 
-  Future<void> sendTestNotification() async {
-    await NotificationService.instance.showTestNotification();
-  }
 
   @override
   void onClose() {

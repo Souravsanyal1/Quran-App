@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -45,6 +46,24 @@ class SplashController extends GetxController {
       statusMessage.value = 'Setting up services...';
       final prefs = await SharedPreferences.getInstance();
       await NotificationService.instance.init();
+
+      // Request battery optimization exemption once on first launch
+      final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
+      if (!batteryAsked) {
+        await prefs.setBool('battery_opt_asked', true);
+        await NotificationService.instance.requestBatteryOptimization();
+      }
+
+      // Restore daily dua reminder if it was enabled
+      final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
+      if (duaEnabled) {
+        final int h = prefs.getInt('dua_reminder_hour') ?? 8;
+        final int m = prefs.getInt('dua_reminder_minute') ?? 0;
+        await NotificationService.instance.scheduleDuaReminder(
+          TimeOfDay(hour: h, minute: m),
+        );
+      }
+
       progress.value = 0.85;
       await Future.delayed(const Duration(milliseconds: 60));
 

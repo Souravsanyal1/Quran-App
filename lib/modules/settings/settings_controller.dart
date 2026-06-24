@@ -13,7 +13,7 @@ class SettingsController extends GetxController {
   static const String _keyNotifications = 'fcm_enabled';
 
   final RxString themeMode = 'dark'.obs;
-  final RxString language = 'en'.obs;
+  final RxString language = 'bn'.obs; // Default: Bangla
   final RxDouble arabicFontSize = 24.0.obs;
   final RxDouble translationFontSize = 14.0.obs;
   final RxBool azanEnabled = true.obs;
@@ -31,13 +31,15 @@ class SettingsController extends GetxController {
   Future<void> _loadSettings() async {
     _prefs = await SharedPreferences.getInstance();
     themeMode.value = _prefs?.getString(_keyTheme) ?? 'dark';
-    language.value = _prefs?.getString(_keyLanguage) ?? 'en';
+    language.value = _prefs?.getString(_keyLanguage) ?? 'bn'; // Default: Bangla
     arabicFontSize.value = _prefs?.getDouble(_keyFontSize) ?? 24.0;
     azanEnabled.value = _prefs?.getBool(_keyAzan) ?? true;
     notificationsEnabled.value = _prefs?.getBool(_keyNotifications) ?? true;
     selectedQari.value = _prefs?.getString(_keyQari) ?? 'ar.alafasy';
     _applyTheme();
     Get.updateLocale(Locale(language.value));
+    // Load dua reminder settings
+    await loadDuaReminder();
   }
 
   void _applyTheme() {
@@ -109,6 +111,50 @@ class SettingsController extends GetxController {
   Future<void> setQari(String qariId) async {
     selectedQari.value = qariId;
     await _prefs?.setString(_keyQari, qariId);
+  }
+
+  // ── Daily Dua Reminder ────────────────────────────────────────────────────
+  static const String _keyDuaReminderEnabled = 'dua_reminder_enabled';
+  static const String _keyDuaReminderHour = 'dua_reminder_hour';
+  static const String _keyDuaReminderMinute = 'dua_reminder_minute';
+
+  final RxBool duaReminderEnabled = false.obs;
+  final RxInt duaReminderHour = 8.obs;
+  final RxInt duaReminderMinute = 0.obs;
+
+  Future<void> loadDuaReminder() async {
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    duaReminderEnabled.value = prefs.getBool(_keyDuaReminderEnabled) ?? false;
+    duaReminderHour.value = prefs.getInt(_keyDuaReminderHour) ?? 8;
+    duaReminderMinute.value = prefs.getInt(_keyDuaReminderMinute) ?? 0;
+  }
+
+  Future<void> setDuaReminderEnabled(bool enabled) async {
+    duaReminderEnabled.value = enabled;
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setBool(_keyDuaReminderEnabled, enabled);
+    if (enabled) {
+      await NotificationService.instance.scheduleDuaReminder(
+        TimeOfDay(hour: duaReminderHour.value, minute: duaReminderMinute.value),
+      );
+    } else {
+      await NotificationService.instance.cancelDuaReminder();
+    }
+  }
+
+  Future<void> setDuaReminderTime(TimeOfDay time) async {
+    duaReminderHour.value = time.hour;
+    duaReminderMinute.value = time.minute;
+    final prefs = _prefs ?? await SharedPreferences.getInstance();
+    await prefs.setInt(_keyDuaReminderHour, time.hour);
+    await prefs.setInt(_keyDuaReminderMinute, time.minute);
+    if (duaReminderEnabled.value) {
+      await NotificationService.instance.scheduleDuaReminder(time);
+    }
+  }
+
+  Future<void> requestBatteryOptimization() async {
+    await NotificationService.instance.requestBatteryOptimization();
   }
 
   bool get isBangla => language.value == 'bn';

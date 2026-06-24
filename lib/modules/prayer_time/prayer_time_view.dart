@@ -63,9 +63,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
         backgroundColor: isDark ? AppColors.bgDark : const Color(0xFFFCFBEF),
         body: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(
-                child:
-                    CircularProgressIndicator(color: AppColors.primary));
+            return _PrayerLoadingWidget(isDark: isDark, bn: bn);
           }
 
           return Stack(
@@ -439,48 +437,6 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                               ),
                             ),
                           ),
-
-                          const SizedBox(height: 14),
-
-                          // Test Notification Button
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                await controller.sendTestNotification();
-                                Get.snackbar(
-                                  bn ? 'টেস্ট নোটিফিকেশন' : 'Test Sent',
-                                  bn
-                                      ? 'একটি টেস্ট নোটিফিকেশন পাঠানো হয়েছে।'
-                                      : 'A test notification was sent. Check your status bar.',
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor:
-                                      AppColors.primary.withValues(alpha: 0.9),
-                                  colorText: Colors.black,
-                                  duration: const Duration(seconds: 3),
-                                );
-                              },
-                              icon: const Icon(Icons.notifications_active_rounded,
-                                  color: AppColors.primary, size: 18),
-                              label: Text(
-                                bn
-                                    ? 'টেস্ট নোটিফিকেশন পাঠান'
-                                    : 'Send Test Notification',
-                                style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: AppColors.primary, width: 1),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -746,6 +702,179 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
         .replaceAll('7', '৭')
         .replaceAll('8', '৮')
         .replaceAll('9', '৯');
+  }
+}
+
+// ── Prayer Loading Widget ──────────────────────────────────────────────────────
+class _PrayerLoadingWidget extends StatefulWidget {
+  final bool isDark;
+  final bool bn;
+  const _PrayerLoadingWidget({required this.isDark, required this.bn});
+
+  @override
+  State<_PrayerLoadingWidget> createState() => _PrayerLoadingWidgetState();
+}
+
+class _PrayerLoadingWidgetState extends State<_PrayerLoadingWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _progressAnim;
+  int _step = 0;
+  static const _steps = [0.15, 0.40, 0.65, 0.85, 1.0];
+
+  final List<String> _statusBn = [
+    'অবস্থান শনাক্ত করা হচ্ছে...',
+    'নামাজের সময় লোড হচ্ছে...',
+    'ডেটা প্রক্রিয়া করা হচ্ছে...',
+    'নোটিফিকেশন সেট করা হচ্ছে...',
+    'প্রস্তুত!',
+  ];
+  final List<String> _statusEn = [
+    'Detecting location...',
+    'Loading prayer times...',
+    'Processing data...',
+    'Setting notifications...',
+    'Ready!',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _progressAnim = Tween<double>(begin: 0.0, end: _steps[0]).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
+    );
+    _animController.forward();
+    _advanceStep();
+  }
+
+  void _advanceStep() async {
+    for (int i = 0; i < _steps.length - 1; i++) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+      setState(() {
+        _step = i + 1;
+        _progressAnim = Tween<double>(
+          begin: _steps[i],
+          end: _steps[i + 1],
+        ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+      });
+      _animController.reset();
+      _animController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final bn = widget.bn;
+    final bg = isDark ? const Color(0xFF0D1B2A) : const Color(0xFFFCFBEF);
+    final cardColor = isDark ? const Color(0xFF1B2F40) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final mutedColor = isDark ? Colors.white60 : Colors.black45;
+
+    return Container(
+      color: bg,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Mosque icon with glow
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: cardColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 24,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.mosque_rounded,
+                  size: 44,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                bn ? 'নামাজের সময়সূচি' : 'Prayer Times',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                bn ? _statusBn[_step.clamp(0, _statusBn.length - 1)]
+                   : _statusEn[_step.clamp(0, _statusEn.length - 1)],
+                style: TextStyle(fontSize: 13, color: mutedColor),
+              ),
+              const SizedBox(height: 28),
+              // Progress bar with percentage
+              AnimatedBuilder(
+                animation: _progressAnim,
+                builder: (context, _) {
+                  final pct = (_progressAnim.value * 100).toInt();
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            bn ? 'লোড হচ্ছে' : 'Loading',
+                            style: TextStyle(fontSize: 11, color: mutedColor),
+                          ),
+                          Text(
+                            '$pct%',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: _progressAnim.value,
+                          minHeight: 8,
+                          backgroundColor: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.black.withValues(alpha: 0.08),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

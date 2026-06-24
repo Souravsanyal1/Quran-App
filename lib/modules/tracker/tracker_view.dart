@@ -21,7 +21,7 @@ class TrackerView extends GetView<TrackerController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return _buildLinearLoader(settings.isBangla);
         }
 
         final rate = controller.todayCompletionRate;
@@ -163,7 +163,35 @@ class TrackerView extends GetView<TrackerController> {
       case 'Quran':
         return 'আজকে কুরআন পাঠ বা শ্রবণ করুন';
       default:
-        return 'দৈনিক ফরজ নামাজ আদায় করুন';
+        return 'দৈনিক ফরজ নামাজ আদায় করুন';
     }
+  }
+
+  Widget _buildLinearLoader(bool bn) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.track_changes_rounded, size: 48, color: AppColors.primary),
+            const SizedBox(height: 20),
+            Text(
+              bn ? 'ডেটা লোড হচ্ছে...' : 'Loading data...',
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: const LinearProgressIndicator(
+                minHeight: 6,
+                backgroundColor: Colors.black12,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

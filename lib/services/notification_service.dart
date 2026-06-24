@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
@@ -28,7 +31,6 @@ class NotificationService {
       // Initialize Timezones
       try {
         tz.initializeTimeZones();
-        // flutter_timezone may return a TimezoneInfo object in v5+; use toString()
         final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).toString();
         try {
           tz.setLocalLocation(tz.getLocation(timeZoneName));
@@ -41,52 +43,58 @@ class NotificationService {
         tz.setLocalLocation(tz.UTC);
       }
 
-      // 1. Initialize local notifications for foreground alerts
+      // 1. Initialize local notifications
       const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosInit = DarwinInitializationSettings();
-      const initSettings =
-          InitializationSettings(android: androidInit, iOS: iosInit);
+      const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
       await _localNotifications.initialize(
         settings: initSettings,
         onDidReceiveNotificationResponse: (response) {
-          // Navigate to notifications page when notification is tapped
           Get.toNamed('/notifications');
         },
       );
 
-      // 2. Create Android notification channel
+      // 2. Create Android notification channels
       const channel = AndroidNotificationChannel(
         'high_importance_channel',
         'High Importance Notifications',
         description: 'This channel is used for important notifications.',
         importance: Importance.high,
       );
-
       await _localNotifications
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      // Create separate Android channel for Azan notifications
       const azanChannel = AndroidNotificationChannel(
         'azan_channel',
         'Azan Notifications',
-        description: 'This channel is used for prayer time (Azan) notifications.',
+        description: 'Prayer time (Azan) notifications.',
         importance: Importance.max,
         playSound: true,
       );
-
       await _localNotifications
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(azanChannel);
 
-      // 3. Handle foreground messages
+      const duaChannel = AndroidNotificationChannel(
+        'dua_channel',
+        'Daily Dua Reminder',
+        description: 'Daily dua reminder notifications.',
+        importance: Importance.high,
+        playSound: true,
+      );
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(duaChannel);
+
+      // 3. Request exact alarm permission on Android 12+
+      await _requestExactAlarmPermission();
+
+      // 4. Handle foreground FCM messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         final notification = message.notification;
         if (notification != null) {
-          // Show system notification
           _localNotifications.show(
             id: notification.hashCode,
             title: notification.title,
@@ -105,8 +113,6 @@ class NotificationService {
               ),
             ),
           );
-
-          // Also store in-app notification
           _storeNotification(
             title: notification.title ?? 'New Notification',
             body: notification.body ?? '',
@@ -115,7 +121,7 @@ class NotificationService {
         }
       });
 
-      // 4. Handle background message tap (app was in background)
+      // 5. Handle background message tap
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         final notification = message.notification;
         if (notification != null) {
@@ -128,7 +134,7 @@ class NotificationService {
         }
       });
 
-      // 5. Run permission request and FCM token retrieval asynchronously
+      // 6. Run FCM init in background
       _initFCMInBackground();
 
       _initialized = true;
@@ -137,7 +143,36 @@ class NotificationService {
     }
   }
 
-  /// Detect notification type from FCM data payload
+  /// Request SCHEDULE_EXACT_ALARM permission on Android 12+ (API 31+)
+  Future<void> _requestExactAlarmPermission() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final androidPlugin = _localNotifications
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final bool canSchedule = await androidPlugin?.canScheduleExactNotifications() ?? true;
+      if (!canSchedule) {
+        _logger.w('Exact alarms not permitted — requesting via system settings');
+        await androidPlugin?.requestExactAlarmsPermission();
+      }
+    } catch (e) {
+      _logger.e('Error requesting exact alarm permission: $e');
+    }
+  }
+
+  /// Request battery optimization exemption so background notifications are reliable
+  Future<void> requestBatteryOptimization() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final status = await Permission.ignoreBatteryOptimizations.status;
+      if (!status.isGranted) {
+        await Permission.ignoreBatteryOptimizations.request();
+        _logger.i('Battery optimization exemption requested');
+      }
+    } catch (e) {
+      _logger.e('Error requesting battery optimization: $e');
+    }
+  }
+
   String _detectType(Map<String, dynamic> data) {
     if (data.containsKey('prayer')) return 'prayer';
     if (data.containsKey('hadith')) return 'hadith';
@@ -145,7 +180,6 @@ class NotificationService {
     return 'fcm';
   }
 
-  /// Store a notification in the in-app store
   void _storeNotification({
     required String title,
     required String body,
@@ -160,27 +194,21 @@ class NotificationService {
         receivedAt: DateTime.now(),
         type: type,
       ));
-    } catch (_) {
-      // Controller not yet registered — store once it's available
-    }
+    } catch (_) {}
   }
 
   Future<void> _initFCMInBackground() async {
     try {
-      // 1. Request permission
       final settings = await _fcm.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
-      _logger.i(
-          'Notification permission status: ${settings.authorizationStatus}');
+      _logger.i('Notification permission status: ${settings.authorizationStatus}');
 
-      // 2. Get FCM Token
       final token = await _fcm.getToken();
       _logger.i('FCM Token: $token');
 
-      // 3. Sync topic subscriptions based on user settings
       final settingsController = Get.find<SettingsController>();
       await toggleFCM(settingsController.notificationsEnabled.value);
     } catch (e) {
@@ -202,13 +230,14 @@ class NotificationService {
     }
   }
 
+  // ── Prayer Azan Notifications ─────────────────────────────────────────────
+
   /// Schedules daily local notifications for the 5 prayers.
   Future<void> scheduleAzanNotifications(Map<String, dynamic> timings) async {
     await cancelAzanNotifications();
 
     final keys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 
-    // Notification IDs — at prayer time
     final Map<String, int> ids = {
       'Fajr': 1001,
       'Dhuhr': 1002,
@@ -217,7 +246,6 @@ class NotificationService {
       'Isha': 1005,
     };
 
-    // Notification IDs — 30-min reminder
     final Map<String, int> reminderIds = {
       'Fajr': 2001,
       'Dhuhr': 2002,
@@ -226,7 +254,15 @@ class NotificationService {
       'Isha': 2005,
     };
 
-    // Bengali prayer names in possessive form (e.g. "ফজরের")
+    // Bengali prayer names
+    final Map<String, String> namesBn = {
+      'Fajr': 'ফজর',
+      'Dhuhr': 'যোহর',
+      'Asr': 'আসর',
+      'Maghrib': 'মাগরিব',
+      'Isha': 'ইশা',
+    };
+
     final Map<String, String> namesBnPossessive = {
       'Fajr': 'ফজরের',
       'Dhuhr': 'যোহরের',
@@ -235,17 +271,18 @@ class NotificationService {
       'Isha': 'ইশার',
     };
 
-    final settings = Get.find<SettingsController>();
-    // Read language live so rescheduling always picks up the latest setting
-    final bn = settings.language.value == 'bn';
+    SettingsController? settings;
+    bool bn = true; // Default Bangla
+    try {
+      settings = Get.find<SettingsController>();
+      bn = settings.language.value == 'bn';
+    } catch (_) {}
+
     final now = DateTime.now();
     final prefs = await SharedPreferences.getInstance();
 
-    // Check if exact alarms are permitted (Android 12+ / API 31+).
-    // Fall back to inexact scheduling if the permission is not granted.
     final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     bool canUseExactAlarms = true;
     try {
       final permitted = await androidPlugin?.canScheduleExactNotifications();
@@ -258,18 +295,11 @@ class NotificationService {
         ? AndroidScheduleMode.exactAllowWhileIdle
         : AndroidScheduleMode.inexactAllowWhileIdle;
 
-    if (!canUseExactAlarms) {
-      _logger.w(
-          'Exact alarms not permitted — falling back to inexact scheduling. '
-          'Notifications may arrive a few minutes late.');
-    }
-
     const notifDetails = NotificationDetails(
       android: AndroidNotificationDetails(
         'azan_channel',
         'Azan Notifications',
-        channelDescription:
-            'This channel is used for prayer time (Azan) notifications.',
+        channelDescription: 'Prayer time (Azan) notifications.',
         importance: Importance.max,
         priority: Priority.high,
         playSound: true,
@@ -285,13 +315,8 @@ class NotificationService {
       try {
         if (timings[k] == null) continue;
 
-        // Check if individual prayer notification is enabled
-        final bool isPrayerEnabled =
-            prefs.getBool('azan_notification_$k') ?? true;
-        if (!isPrayerEnabled) {
-          _logger.i('Notification for $k is disabled, skipping');
-          continue;
-        }
+        final bool isPrayerEnabled = prefs.getBool('azan_notification_$k') ?? true;
+        if (!isPrayerEnabled) continue;
 
         final cleanTime = timings[k].toString().split(' ')[0];
         final timeParts = cleanTime.split(':');
@@ -299,21 +324,20 @@ class NotificationService {
         final minute = int.parse(timeParts[1]);
 
         var prayerTime = DateTime(now.year, now.month, now.day, hour, minute);
-
-        // If the prayer time has already passed today, schedule for tomorrow
         if (prayerTime.isBefore(now)) {
           prayerTime = prayerTime.add(const Duration(days: 1));
         }
 
         final tzPrayerTime = tz.TZDateTime.from(prayerTime, tz.local);
 
-        // ── 1. At-prayer-time notification ────────────────────────────────
+        // ── At-prayer-time notification ──────────────────────────────────
+        // Message: "ওজু করে রেডি হয়ে নামাজ পড়ুন"
         final title = bn
-            ? '${namesBnPossessive[k]} নামাজের সময় শুরু'
-            : '$k prayer time has started';
+            ? '🕌 ${namesBn[k]} নামাজের সময় হয়েছে'
+            : '🕌 $k prayer time has started';
         final body = bn
-            ? 'আযান হচ্ছে, এখনই নামাজের প্রস্তুতি নিন।'
-            : 'The adhan is called. Prepare yourself for prayer.';
+            ? 'ওজু করে রেডি হোন এবং এখনই ${namesBnPossessive[k]} নামাজ আদায় করুন।'
+            : 'Perform wudu and offer $k prayer now. Do not delay!';
 
         await _localNotifications.zonedSchedule(
           id: ids[k]!,
@@ -323,22 +347,19 @@ class NotificationService {
           notificationDetails: notifDetails,
           androidScheduleMode: scheduleMode,
         );
-        _logger.i(
-            'Scheduled Azan for $k at $tzPrayerTime (exact: $canUseExactAlarms)');
+        _logger.i('Scheduled Azan for $k at $tzPrayerTime');
 
-        // ── 2. 30-minute reminder notification ────────────────────────────
+        // ── 30-minute reminder ───────────────────────────────────────────
         final reminderTime = prayerTime.subtract(const Duration(minutes: 30));
-
-        // Only schedule the reminder if it's still in the future
         if (reminderTime.isAfter(now)) {
           final tzReminderTime = tz.TZDateTime.from(reminderTime, tz.local);
 
           final reminderTitle = bn
-              ? '${namesBnPossessive[k]} নামাজ ৩০ মিনিট পরে'
-              : '$k prayer in 30 minutes';
+              ? '⏰ ${namesBn[k]} নামাজ ৩০ মিনিট পরে'
+              : '⏰ $k prayer in 30 minutes';
           final reminderBody = bn
-              ? 'আর মাত্র ৩০ মিনিট বাকি, ওজু করুন এবং প্রস্তুত হন।'
-              : 'Only 30 minutes left. Perform wudu and get ready.';
+              ? 'আর মাত্র ৩০ মিনিট বাকি! ওজু করুন এবং প্রস্তুত হন।'
+              : 'Only 30 minutes left! Perform wudu and get ready.';
 
           await _localNotifications.zonedSchedule(
             id: reminderIds[k]!,
@@ -348,10 +369,6 @@ class NotificationService {
             notificationDetails: notifDetails,
             androidScheduleMode: scheduleMode,
           );
-          _logger.i('Scheduled 30-min reminder for $k at $tzReminderTime');
-        } else {
-          _logger.i(
-              '30-min reminder for $k skipped (reminder time already passed)');
         }
       } catch (e) {
         _logger.e('Error scheduling Azan for $k: $e');
@@ -361,51 +378,98 @@ class NotificationService {
 
   /// Cancels all scheduled Azan and reminder notifications.
   Future<void> cancelAzanNotifications() async {
-    // At-prayer-time IDs: 1001-1005
-    // 30-minute reminder IDs: 2001-2005
-    final List<int> ids = [1001, 1002, 1003, 1004, 1005,
-                           2001, 2002, 2003, 2004, 2005];
+    final List<int> ids = [
+      1001, 1002, 1003, 1004, 1005,
+      2001, 2002, 2003, 2004, 2005,
+    ];
     for (var id in ids) {
       await _localNotifications.cancel(id: id);
     }
-    _logger.i('Cancelled all Azan and reminder notifications');
+    _logger.i('Cancelled all Azan notifications');
   }
 
-  /// Fires an immediate test notification to verify the notification pipeline.
-  Future<void> showTestNotification() async {
-    try {
-      final bool bn = Get.find<SettingsController>().language.value == 'bn';
-      final String title =
-          bn ? 'ফজরের নামাজের সময় শুরু' : 'Fajr prayer time has started';
-      final String body = bn
-          ? 'আযান হচ্ছে, এখনই নামাজের প্রস্তুতি নিন।'
-          : 'The adhan is called. Prepare yourself for prayer.';
+  // ── Daily Dua Reminder ────────────────────────────────────────────────────
 
-      await _localNotifications.show(
-        id: 9999,
-        title: title,
-        body: body,
-        notificationDetails: const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'azan_channel',
-            'Azan Notifications',
-            channelDescription:
-                'This channel is used for prayer time (Azan) notifications.',
-            importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
-      );
-      _logger.i('Test notification sent (bn: $bn)');
-    } catch (e) {
-      _logger.e('Error sending test notification: $e');
+  static const int _duaNotifId = 3001;
+
+  /// Schedules a daily dua reminder at the given time.
+  Future<void> scheduleDuaReminder(TimeOfDay time) async {
+    await cancelDuaReminder();
+
+    bool bn = true;
+    try {
+      final settings = Get.find<SettingsController>();
+      bn = settings.language.value == 'bn';
+    } catch (_) {}
+
+    final now = DateTime.now();
+    var scheduledDate = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
+
+    final tzScheduled = tz.TZDateTime.from(scheduledDate, tz.local);
+
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms = true;
+    try {
+      final permitted = await androidPlugin?.canScheduleExactNotifications();
+      canUseExactAlarms = permitted ?? true;
+    } catch (_) {
+      canUseExactAlarms = false;
+    }
+
+    // Daily duas list
+    final List<String> duasBn = [
+      'সকালের দোয়া: "اللَّهُمَّ بِكَ أَصْبَحْنَا" — হে আল্লাহ, তোমার মাধ্যমে আমরা সকালে উপনীত হলাম।',
+      'রিজিকের দোয়া: "اللَّهُمَّ ارْزُقْنِي رِزْقًا حَلَالًا" — হে আল্লাহ, আমাকে হালাল রিজিক দাও।',
+      'ক্ষমার দোয়া: "أَسْتَغْفِرُ اللَّهَ" — আমি আল্লাহর কাছে ক্ষমা চাই।',
+      'শান্তির দোয়া: "اللَّهُمَّ أَنْتَ السَّلَامُ" — হে আল্লাহ, তুমিই শান্তি।',
+      'হেদায়েতের দোয়া: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً" — আমাদের দুনিয়া ও আখিরাতে কল্যাণ দাও।',
+    ];
+
+    final List<String> duasEn = [
+      'Morning Dua: "اللَّهُمَّ بِكَ أَصْبَحْنَا" — O Allah, by You we reach the morning.',
+      'Rizq Dua: "اللَّهُمَّ ارْزُقْنِي رِزْقًا حَلَالًا" — O Allah, grant me halal provision.',
+      'Forgiveness: "أَسْتَغْفِرُ اللَّهَ" — I seek forgiveness from Allah.',
+      'Peace Dua: "اللَّهُمَّ أَنْتَ السَّلَامُ" — O Allah, You are Peace.',
+      'Guidance: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً" — Grant us good in this world and hereafter.',
+    ];
+
+    final int idx = DateTime.now().day % duasBn.length;
+
+    await _localNotifications.zonedSchedule(
+      id: _duaNotifId,
+      title: bn ? '📿 দৈনিক দোয়ার স্মরণ' : '📿 Daily Dua Reminder',
+      body: bn ? duasBn[idx] : duasEn[idx],
+      scheduledDate: tzScheduled,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'dua_channel',
+          'Daily Dua Reminder',
+          channelDescription: 'Daily dua reminder notifications.',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: canUseExactAlarms
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time, // Repeat daily
+    );
+    _logger.i('Scheduled daily dua reminder at ${time.hour}:${time.minute}');
+  }
+
+  /// Cancels the daily dua reminder.
+  Future<void> cancelDuaReminder() async {
+    await _localNotifications.cancel(id: _duaNotifId);
+    _logger.i('Cancelled dua reminder');
   }
 }
-
