@@ -1,13 +1,17 @@
+import 'dart:io';
+
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../core/constants/app_urls.dart';
 import '../data/repositories/quran_repository.dart';
 import '../data/providers/quran_api_provider.dart';
 import '../data/models/ayah_model.dart';
+import '../modules/settings/settings_controller.dart';
 
 /// A global singleton GetxService that owns the single AudioPlayer instance.
 ///
@@ -31,12 +35,15 @@ class AudioPlayerService extends GetxService {
   late final AudioPlayer _player;
   List<AyahModel> _playlist = [];           // current ayah list (surah or para)
   bool _autoPlayNext = true;
+  String? _playingQariId;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override
   Future<void> onInit() async {
     super.onInit();
+    // Do NOT pass userAgent here — it triggers just_audio's internal HTTP proxy
+    // which causes Source errors on Android 9+. We handle caching ourselves.
     _player = AudioPlayer();
     await _configureAudioSession();
     _listenToPlayerState();
@@ -88,18 +95,20 @@ class AudioPlayerService extends GetxService {
 
   bool get hasActivePlayback => playingAyahNumber.value != null;
 
-  Future<void> playAyah(AyahModel ayah, {String qariId = AppUrls.defaultQariId}) async {
+  Future<void> playAyah(AyahModel ayah, {String? qariId}) async {
     final repo = Get.find<QuranRepository>();
     final api  = Get.find<QuranApiProvider>();
+    final activeQariId = qariId ?? Get.find<SettingsController>().selectedQari.value;
 
     // Toggle pause / resume
-    if (playingAyahNumber.value == ayah.number && isPlaying.value) {
-      await _player.pause();
-      return;
-    }
-    if (playingAyahNumber.value == ayah.number && !isPlaying.value) {
-      await _player.play();
-      return;
+    if (playingAyahNumber.value == ayah.number && _playingQariId == activeQariId) {
+      if (isPlaying.value) {
+        await _player.pause();
+        return;
+      } else {
+        await _player.play();
+        return;
+      }
     }
 
     try {
@@ -107,43 +116,48 @@ class AudioPlayerService extends GetxService {
       playingAyahNumber.value = ayah.number;
 
       final qariName = AppUrls.qariList.firstWhere(
-        (q) => q['id'] == qariId,
-        orElse: () => {'id': qariId, 'name': 'Reciter'},
+        (q) => q['id'] == activeQariId,
+        orElse: () => {'id': activeQariId, 'name': 'Reciter'},
       )['name'] ?? 'Reciter';
 
-      final hasLocal = await repo.isAyahAudioDownloaded(ayah.number, qariId);
+      final tag = MediaItem(
+        id: 'ayah_${ayah.number}',
+        album: nowPlayingContext.value,
+        title: 'Ayah ${ayah.numberInSurah}',
+        artist: qariName,
+      );
+
+      final hasLocal = await repo.isAyahAudioDownloaded(ayah.number, activeQariId);
       final AudioSource source;
 
       if (hasLocal) {
-        final localPath = await repo.getLocalAudioPath(ayah.number, qariId);
-        source = AudioSource.file(
-          localPath,
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: nowPlayingContext.value,
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
-        );
+        final localPath = await repo.getLocalAudioPath(ayah.number, activeQariId);
+        debugPrint('[AudioPlayerService] Playing local file: $localPath');
+        source = AudioSource.file(localPath, tag: tag);
       } else {
-        final url = api.getAyahAudioUrl(ayah.number, qariId: qariId);
-        source = AudioSource.uri(
+        final url = api.getAyahAudioUrl(ayah.number, qariId: activeQariId);
+        debugPrint('[AudioPlayerService] Playing online URL: $url');
+
+        // Use LockCachingAudioSource to bypass the internal HTTP proxy.
+        // It downloads the MP3 to a temp file first, then plays from disk —
+        // completely avoiding the CleartextNotPermittedException / Source error
+        // that occurs when just_audio tries to stream through its local proxy.
+        final cacheFile = await _getCacheFile(ayah.number, activeQariId);
+        // ignore: experimental_member_use
+        source = LockCachingAudioSource(
           Uri.parse(url),
-          tag: MediaItem(
-            id: 'ayah_${ayah.number}',
-            album: nowPlayingContext.value,
-            title: 'Ayah ${ayah.numberInSurah}',
-            artist: qariName,
-          ),
+          cacheFile: cacheFile,
+          tag: tag,
         );
       }
 
       await _player.setAudioSource(source);
+      _playingQariId = activeQariId;
       isPlayerLoading.value = false;
       await _player.play();
-    } catch (e) {
+    } catch (e, stack) {
       isPlayerLoading.value = false;
-      Get.log('[AudioPlayerService] playAyah error: $e');
+      debugPrint('[AudioPlayerService] playAyah error: $e\nStacktrace:\n$stack');
       Get.snackbar(
         'Audio Error',
         'Could not load audio. Please check your internet connection.',
@@ -152,6 +166,17 @@ class AudioPlayerService extends GetxService {
         colorText: Colors.white,
       );
     }
+  }
+
+  /// Returns a [File] in the app's temp cache directory for this ayah + qari.
+  /// Using a stable file path means repeated plays won't re-download.
+  Future<File> _getCacheFile(int globalAyahNumber, String qariId) async {
+    final tempDir = await getTemporaryDirectory();
+    final dir = Directory('${tempDir.path}/audio_cache/$qariId');
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return File('${dir.path}/$globalAyahNumber.mp3');
   }
 
   Future<void> stopAudio() async {

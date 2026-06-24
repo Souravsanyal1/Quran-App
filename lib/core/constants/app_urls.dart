@@ -29,11 +29,11 @@ class AppUrls {
   static const String defaultQari = 'ar.alafasy';
   static const String defaultQariId = 'ar.alafasy'; // Mishary Rashid Alafasy
   static const List<Map<String, String>> qariList = [
-    {'id': 'ar.alafasy', 'name': 'Mishary Rashid Alafasy'},
-    {'id': 'ar.abdullahbasfar', 'name': 'Abdullah Basfar'},
-    {'id': 'ar.abdurrahmaansudais', 'name': 'Abdul Rahman Al-Sudais'},
-    {'id': 'ar.hudhaify', 'name': 'Ali Al-Hudhaify'},
-    {'id': 'ar.shaatree', 'name': 'Abu Bakr Al-Shatri'},
-    {'id': 'ar.mahermuaiqly', 'name': 'Maher Al-Muaiqly'},
+    {'id': 'ar.alafasy', 'name': 'Mishary Rashid Alafasy', 'bitrate': '128'},
+    {'id': 'ar.abdullahbasfar', 'name': 'Abdullah Basfar', 'bitrate': '192'},
+    {'id': 'ar.abdurrahmaansudais', 'name': 'Abdul Rahman Al-Sudais', 'bitrate': '192'},
+    {'id': 'ar.hudhaify', 'name': 'Ali Al-Hudhaify', 'bitrate': '128'},
+    {'id': 'ar.shaatree', 'name': 'Abu Bakr Al-Shatri', 'bitrate': '128'},
+    {'id': 'ar.mahermuaiqly', 'name': 'Maher Al-Muaiqly', 'bitrate': '128'},
   ];
 }

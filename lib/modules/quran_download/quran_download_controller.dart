@@ -68,7 +68,11 @@ class QuranDownloadController extends GetxController {
       final totalAyahs = ayahs.length;
       int downloadedCount = 0;
 
-      final dio = Dio();
+      final dio = Dio(BaseOptions(
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+      ));
       
       for (var ayah in ayahs) {
         final localPath = await _repository.getLocalAudioPath(ayah.number, qariId);

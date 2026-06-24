@@ -7,7 +7,8 @@
     <application
         android:label="quran_app"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name="com.quranapp.quran_app.MainActivity"
             android:exported="true"
