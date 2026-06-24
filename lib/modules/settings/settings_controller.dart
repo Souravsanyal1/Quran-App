@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
+import '../../modules/prayer_time/prayer_time_controller.dart';
 
 class SettingsController extends GetxController {
   static const String _keyTheme = 'theme_mode';
@@ -76,6 +77,18 @@ class SettingsController extends GetxController {
   Future<void> setAzanEnabled(bool enabled) async {
     azanEnabled.value = enabled;
     await _prefs?.setBool(_keyAzan, enabled);
+    if (enabled) {
+      // Re-schedule if prayer times are already loaded
+      try {
+        final prayerController = Get.find<PrayerTimeController>();
+        if (prayerController.prayerTimes.isNotEmpty) {
+          // Re-fetch to trigger scheduling with current timings
+          await prayerController.loadPrayerTimes();
+        }
+      } catch (_) {}
+    } else {
+      await NotificationService.instance.cancelAzanNotifications();
+    }
   }
 
   Future<void> setNotificationsEnabled(bool enabled) async {

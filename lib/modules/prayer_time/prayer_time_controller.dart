@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import '../../data/providers/quran_api_provider.dart';
+import '../../services/notification_service.dart';
+import '../settings/settings_controller.dart';
 
 class PrayerTimeController extends GetxController {
   final QuranApiProvider _api = Get.find<QuranApiProvider>();
@@ -82,6 +84,16 @@ class PrayerTimeController extends GetxController {
         });
 
         _startCountdown(data);
+
+        // Schedule Azan notifications if enabled
+        try {
+          final settings = Get.find<SettingsController>();
+          if (settings.azanEnabled.value) {
+            await NotificationService.instance.scheduleAzanNotifications(data);
+          }
+        } catch (e) {
+          Get.log('Error scheduling azan notifications: $e');
+        }
       }
     } catch (e) {
       Get.log('Error fetching prayer times: $e');
