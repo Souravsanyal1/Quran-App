@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../modules/settings/settings_controller.dart';
@@ -19,15 +23,15 @@ class HomeDashboard extends StatelessWidget {
       final isDark = settings.isDark;
       final currentHour = homeController.currentHour.value;
 
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Greeting card
             _GreetingCard(isBangla: bn, currentHour: currentHour).animate().fadeIn(duration: 400.ms),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // Quick actions
             Text(
@@ -68,10 +72,10 @@ class HomeDashboard extends StatelessWidget {
                   route: AppRoutes.qibla,
                 ),
                 _QuickActionCard(
-                  icon: Icons.self_improvement_rounded,
-                  label: bn ? 'নামাজ গাইড' : 'Salah',
-                  color: AppColors.emerald,
-                  route: AppRoutes.salahGuide,
+                  icon: Icons.school_rounded,
+                  label: bn ? 'শিক্ষা ও গাইড' : 'Learning & Guide',
+                  color: AppColors.info,
+                  route: AppRoutes.newMuslimGuide,
                 ),
                 _QuickActionCard(
                   icon: Icons.volunteer_activism_rounded,
@@ -92,12 +96,6 @@ class HomeDashboard extends StatelessWidget {
                   route: AppRoutes.tracker,
                 ),
                 _QuickActionCard(
-                  icon: Icons.school_rounded,
-                  label: bn ? 'নতুন মুসলিম' : 'New Muslim',
-                  color: AppColors.info,
-                  route: AppRoutes.newMuslimGuide,
-                ),
-                _QuickActionCard(
                   icon: Icons.settings_rounded,
                   label: bn ? 'সেটিংস' : 'Settings',
                   color: AppColors.textMuted,
@@ -110,6 +108,11 @@ class HomeDashboard extends StatelessWidget {
                     .scale(begin: const Offset(0.8, 0.8));
               }).toList(),
             ),
+
+            const SizedBox(height: 24),
+
+            // Custom Ad Banner
+            _CustomAdBanner(isBangla: bn).animate(delay: 500.ms).fadeIn(),
 
             const SizedBox(height: 24),
 
@@ -298,7 +301,7 @@ const List<_DailyVerse> _dailyVerses = [
     referenceBn: '— সূরা আল-বাকারা (২:১৮৬)',
   ),
   _DailyVerse(
-    arabic: 'إِنَّ مَعَ الْعُسْرِ يُসْرًا',
+    arabic: 'إِنَّ মَعَ الْعُسْرِ يُسْرًا',
     english: 'Indeed, with hardship [will be] ease.',
     bangla: 'নিশ্চয়ই কষ্টের সাথে স্বস্তি রয়েছে।',
     referenceEn: '— Surah Ash-Sharh (94:6)',
@@ -326,7 +329,7 @@ const List<_DailyVerse> _dailyVerses = [
     referenceBn: '— সূরা আল-বাকারা (২:১৫২)',
   ),
   _DailyVerse(
-    arabic: 'رَبِّ اشْرَحْ لِي صَدْرِي ۝ وَيَسِّرْ لِي أَمْرِي',
+    arabic: 'رَبِّ اشْرَحْ লِي صَدْرِي  وَيَسِّرْ লِي أَمْرِي',
     english: 'My Lord, expand for me my breast [with assurance] and ease for me my task.',
     bangla: 'হে আমার রব, আমার বুক প্রশস্ত করে দিন এবং আমার কাজ সহজ করে দিন।',
     referenceEn: '— Surah Taha (20:25-26)',
@@ -382,19 +385,25 @@ class _DailyVerseCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Icon(
-                Icons.share_outlined,
-                size: 18,
+              IconButton(
+                icon: const Icon(Icons.share_outlined, size: 18),
                 color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
+                onPressed: () {
+                  final text = isBangla
+                      ? '${verse.arabic}\n\n${verse.bangla}\n\n${verse.referenceBn}\n\nShared from Quran App'
+                      : '${verse.arabic}\n\n${verse.english}\n\n${verse.referenceEn}\n\nShared from Quran App';
+                  Share.share(text);
+                },
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
               ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
             verse.arabic,
-            style: const TextStyle(
+            style: GoogleFonts.amiri(
               fontSize: 22,
-              fontFamily: 'Uthmanic',
               color: AppColors.gold,
               height: 1.8,
             ),
@@ -425,3 +434,161 @@ class _DailyVerseCard extends StatelessWidget {
   }
 }
 
+class _CustomAdBanner extends StatelessWidget {
+  final bool isBangla;
+  const _CustomAdBanner({required this.isBangla});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Get.find<SettingsController>();
+    final isDark = settings.isDark;
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('custom_ads')
+          .where('status', isEqualTo: 'active')
+          .where('type', isEqualTo: 'banner')
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox();
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const SizedBox();
+        }
+
+        final doc = snapshot.data!.docs.first;
+        final data = doc.data() as Map<String, dynamic>;
+        final String title = data['title'] ?? '';
+        final String imageUrl = data['imageUrl'] ?? '';
+        final String targetUrl = data['targetUrl'] ?? '';
+
+        if (imageUrl.isEmpty) return const SizedBox();
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                // Ad Image
+                AspectRatio(
+                  aspectRatio: 3.2,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                  ),
+                ),
+                // Gradient overlay
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withValues(alpha: 0.8),
+                          Colors.black.withValues(alpha: 0.2),
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
+                    ),
+                  ),
+                ),
+                // Content
+                Positioned(
+                  left: 16,
+                  bottom: 12,
+                  right: 16,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                isBangla ? 'বিজ্ঞাপন' : 'AD',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (targetUrl.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            isBangla ? 'ভিজিট করুন' : 'Visit',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                // Tappable Area
+                Positioned.fill(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () async {
+                        if (targetUrl.isNotEmpty) {
+                          final uri = Uri.parse(targetUrl);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

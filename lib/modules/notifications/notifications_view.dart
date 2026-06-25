@@ -312,8 +312,8 @@ class NotificationsView extends GetView<NotificationsController> {
           const SizedBox(height: 10),
           Text(
             isBn
-                ? 'নামাজের সময়, দৈনিক হাদিস ও\nনতুন বার্তা এখানে দেখা যাবে'
-                : 'Prayer alerts, daily hadith, and\napp updates will appear here',
+                ? 'নামাজের সময় ও নতুন বার্তা\nএখানে দেখা যাবে'
+                : 'Prayer alerts and app\nupdates will appear here',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: isDark ? AppColors.textGrey : AppColors.textMuted,
@@ -374,8 +374,6 @@ class NotificationsView extends GetView<NotificationsController> {
     switch (type) {
       case 'prayer':
         return Icons.access_time_rounded;
-      case 'hadith':
-        return Icons.menu_book_rounded;
       case 'quran':
         return Icons.auto_stories_rounded;
       default:
@@ -387,8 +385,6 @@ class NotificationsView extends GetView<NotificationsController> {
     switch (type) {
       case 'prayer':
         return AppColors.islamicLight;
-      case 'hadith':
-        return AppColors.gold;
       case 'quran':
         return AppColors.primary;
       default:
@@ -400,8 +396,6 @@ class NotificationsView extends GetView<NotificationsController> {
     switch (type) {
       case 'prayer':
         return isBn ? 'নামাজ' : 'Prayer';
-      case 'hadith':
-        return isBn ? 'হাদিস' : 'Hadith';
       case 'quran':
         return isBn ? 'কুরআন' : 'Quran';
       default:

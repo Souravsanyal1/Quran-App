@@ -21,7 +21,7 @@ class SupportController extends GetxController {
   }
 
   Future<void> launchFacebook() async {
-    final url = Uri.parse('https://facebook.com/quranapp.official');
+    final url = Uri.parse('https://www.facebook.com/share/1F894FaL8E/');
     try {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
         Get.snackbar('Error', 'Could not open Facebook');

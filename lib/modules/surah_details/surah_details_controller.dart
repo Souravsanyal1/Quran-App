@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/constants/app_urls.dart';
 import '../../data/models/ayah_model.dart';
+import '../../data/models/word_model.dart';
 import '../../data/models/bookmark_model.dart';
 import '../../data/models/last_read_model.dart';
 import '../../data/repositories/quran_repository.dart';
@@ -14,6 +16,14 @@ class SurahDetailsController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final RxList<AyahModel> ayahs = <AyahModel>[].obs;
+  final RxMap<int, List<WordModel>> ayahWords = <int, List<WordModel>>{}.obs;
+  final RxBool isWordByWord = false.obs;
+  final RxBool showTranslation = true.obs;
+  final RxBool showPronunciation = true.obs;
+
+  String get currentSurahName => _settings.isBangla 
+      ? (AppUrls.surahNamesBn[surahNumber] ?? surahName) 
+      : surahName;
 
   late final int surahNumber;
   late final String surahName;
@@ -40,6 +50,30 @@ class SurahDetailsController extends GetxController {
     initialAyah = args['initialAyah'];
 
     _loadAyahs();
+    _setupAudioListeners();
+  }
+
+  void _setupAudioListeners() {
+    ever(playingAyahNumber, (int? ayahNum) {
+      if (ayahNum != null && autoPlayNextToggle.value) {
+        scrollToAyah(ayahs.firstWhere((a) => a.number == ayahNum).numberInSurah);
+      }
+    });
+  }
+
+  Future<void> toggleWordByWord() async {
+    isWordByWord.toggle();
+    if (isWordByWord.value && ayahWords.isEmpty) {
+      isLoading.value = true;
+      try {
+        final words = await _repository.getSurahWords(surahNumber);
+        ayahWords.assignAll(words);
+      } catch (e) {
+        Get.log('Error loading words: $e');
+      } finally {
+        isLoading.value = false;
+      }
+    }
   }
 
   Future<void> _loadAyahs() async {
@@ -94,6 +128,15 @@ class SurahDetailsController extends GetxController {
       qariId: _settings.selectedQari.value,
     );
     saveLastRead(ayah.numberInSurah);
+  }
+
+  Future<void> playWordAudio(String? audioUrl) async {
+    if (audioUrl == null || audioUrl.isEmpty) return;
+    try {
+      await _audio.playUrl(audioUrl);
+    } catch (e) {
+      Get.log('Error playing word audio: $e');
+    }
   }
 
   Future<void> stopAudio() => _audio.stopAudio();

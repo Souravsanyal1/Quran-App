@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:get_storage/get_storage.dart';
 import 'notification_model.dart';
 
 class NotificationsController extends GetxController {
@@ -9,7 +9,7 @@ class NotificationsController extends GetxController {
   final RxList<AppNotification> notifications = <AppNotification>[].obs;
   final RxInt unreadCount = 0.obs;
 
-  SharedPreferences? _prefs;
+  final _storage = GetStorage();
 
   @override
   void onInit() {
@@ -17,12 +17,13 @@ class NotificationsController extends GetxController {
     _loadNotifications();
   }
 
-  Future<void> _loadNotifications() async {
-    _prefs = await SharedPreferences.getInstance();
-    final raw = _prefs?.getStringList(_storageKey) ?? [];
-    final loaded = raw.map((s) {
+  void _loadNotifications() {
+    final List<dynamic>? raw = _storage.read(_storageKey);
+    if (raw == null) return;
+
+    final loaded = raw.map((item) {
       try {
-        return AppNotification.fromMap(jsonDecode(s) as Map<String, dynamic>);
+        return AppNotification.fromMap(Map<String, dynamic>.from(item));
       } catch (_) {
         return null;
       }
@@ -34,53 +35,53 @@ class NotificationsController extends GetxController {
     _updateUnreadCount();
   }
 
-  Future<void> _saveNotifications() async {
+  void _saveNotifications() {
     final raw = notifications
-        .map((n) => jsonEncode(n.toMap()))
+        .map((n) => n.toMap())
         .toList();
-    await _prefs?.setStringList(_storageKey, raw);
+    _storage.write(_storageKey, raw);
   }
 
   /// Add a new notification (called from NotificationService)
-  Future<void> addNotification(AppNotification notification) async {
+  void addNotification(AppNotification notification) {
     notifications.insert(0, notification);
     _updateUnreadCount();
-    await _saveNotifications();
+    _saveNotifications();
   }
 
   /// Mark a single notification as read
-  Future<void> markAsRead(String id) async {
+  void markAsRead(String id) {
     final idx = notifications.indexWhere((n) => n.id == id);
     if (idx != -1) {
       notifications[idx].isRead = true;
       notifications.refresh();
       _updateUnreadCount();
-      await _saveNotifications();
+      _saveNotifications();
     }
   }
 
   /// Mark all notifications as read
-  Future<void> markAllAsRead() async {
+  void markAllAsRead() {
     for (final n in notifications) {
       n.isRead = true;
     }
     notifications.refresh();
     unreadCount.value = 0;
-    await _saveNotifications();
+    _saveNotifications();
   }
 
   /// Delete a single notification
-  Future<void> deleteNotification(String id) async {
+  void deleteNotification(String id) {
     notifications.removeWhere((n) => n.id == id);
     _updateUnreadCount();
-    await _saveNotifications();
+    _saveNotifications();
   }
 
   /// Clear all notifications
-  Future<void> clearAll() async {
+  void clearAll() {
     notifications.clear();
     unreadCount.value = 0;
-    await _saveNotifications();
+    _saveNotifications();
   }
 
   void _updateUnreadCount() {

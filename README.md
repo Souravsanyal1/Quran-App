@@ -22,7 +22,7 @@ A premium, production-ready Islamic Music & Quran application built with Flutter
 * **Duas & Azkar**: Categorized list of daily supplications (with copy/share options).
 * **Digital Tasbih**: Clicker counter with limit/round triggers and haptic feedback.
 * **Daily Tracker**: Checklist showing completion rates of daily salahs and Quran readings.
-* **FCM Push Notifications**: Synchronized Firebase topic updates (`all`, `daily_hadith`) with toggles in settings.
+* **FCM Push Notifications**: Synchronized Firebase topic updates (`all`) with toggles in settings.
 * **Theme Support**: Premium dark and light theme aesthetics.
 
 ---

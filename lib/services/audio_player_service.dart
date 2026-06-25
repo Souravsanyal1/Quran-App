@@ -1,11 +1,12 @@
 import 'dart:io';
-
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 import '../core/constants/app_urls.dart';
 import '../core/theme/app_colors.dart';
@@ -15,39 +16,22 @@ import '../data/models/ayah_model.dart';
 import '../modules/settings/settings_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// A global singleton GetxService that owns the single AudioPlayer instance.
-///
-/// Because this is registered with `permanent: true` it is NEVER disposed
-/// by GetX route cleanup, so audio keeps playing even when the user navigates
-/// away from the Surah/Para screen or minimises the app.
-///
-/// Both [SurahDetailsController] and [ParaDetailsController] delegate all
-/// audio work to this service.
 class AudioPlayerService extends GetxService {
-  // ── Observable state ──────────────────────────────────────────────────────
   final RxnInt playingAyahNumber = RxnInt();
   final RxBool isPlaying = false.obs;
   final RxBool isPlayerLoading = false.obs;
-
-  /// The context string shown in the notification / mini-player label
-  /// e.g. "Surah Al-Baqarah"  or  "Juz 1"
   final RxString nowPlayingContext = ''.obs;
 
-  // ── Internal ──────────────────────────────────────────────────────────────
   late final AudioPlayer _player;
-  List<AyahModel> _playlist = [];           // current ayah list (surah or para)
+  List<AyahModel> _playlist = [];
   bool _autoPlayNext = true;
   String? _playingQariId;
-
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    // Do NOT pass userAgent here — it triggers just_audio's internal HTTP proxy
-    // which causes Source errors on Android 9+. We handle caching ourselves.
     _player = AudioPlayer();
-    await _configureAudioSession();
+    if (!kIsWeb) await _configureAudioSession();
     _listenToPlayerState();
   }
 
@@ -55,18 +39,11 @@ class AudioPlayerService extends GetxService {
     final session = await AudioSession.instance;
     await session.configure(const AudioSessionConfiguration(
       avAudioSessionCategory: AVAudioSessionCategory.playback,
-      avAudioSessionCategoryOptions: AVAudioSessionCategoryOptions.allowBluetooth,
-      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
-      avAudioSessionRouteSharingPolicy:
-          AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
       androidAudioAttributes: AndroidAudioAttributes(
         contentType: AndroidAudioContentType.speech,
-        flags: AndroidAudioFlags.none,
         usage: AndroidAudioUsage.media,
       ),
       androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
-      androidWillPauseWhenDucked: true,
     ));
   }
 
@@ -79,196 +56,106 @@ class AudioPlayerService extends GetxService {
     });
   }
 
-  // ── Public API ────────────────────────────────────────────────────────────
-
-  AudioPlayer get rawPlayer => _player;
-
-  /// Load a new playlist and context label.
-  /// Call this from the screen controller when the screen opens.
-  void setPlaylist({
-    required List<AyahModel> ayahs,
-    required String contextLabel,
-    bool autoPlayNext = true,
-  }) {
+  void setPlaylist({required List<AyahModel> ayahs, required String contextLabel, bool autoPlayNext = true}) {
     _playlist = ayahs;
     nowPlayingContext.value = contextLabel;
     _autoPlayNext = autoPlayNext;
   }
 
-  bool get hasActivePlayback => playingAyahNumber.value != null;
-
   Future<void> playAyah(AyahModel ayah, {String? qariId}) async {
-    // Show background play explanation dialog if not prompted yet
-    await _checkAndPromptBackgroundPermission();
+    if (!kIsWeb) await _checkAndPromptBackgroundPermission();
 
     final repo = Get.find<QuranRepository>();
-    final api  = Get.find<QuranApiProvider>();
+    final api = Get.find<QuranApiProvider>();
     final activeQariId = qariId ?? Get.find<SettingsController>().selectedQari.value;
 
-    // Toggle pause / resume
     if (playingAyahNumber.value == ayah.number && _playingQariId == activeQariId) {
-      if (isPlaying.value) {
-        await _player.pause();
-        return;
-      } else {
-        await _player.play();
-        return;
-      }
+      isPlaying.value ? await _player.pause() : await _player.play();
+      return;
     }
 
     try {
       isPlayerLoading.value = true;
       playingAyahNumber.value = ayah.number;
 
-      final qariName = AppUrls.qariList.firstWhere(
+      final qariData = AppUrls.qariList.firstWhere(
         (q) => q['id'] == activeQariId,
-        orElse: () => {'id': activeQariId, 'name': 'Reciter'},
-      )['name'] ?? 'Reciter';
+        orElse: () => {'id': activeQariId, 'name': 'Reciter', 'bitrate': '128'},
+      );
 
       final tag = MediaItem(
         id: 'ayah_${ayah.number}',
         album: nowPlayingContext.value,
         title: 'Ayah ${ayah.numberInSurah}',
-        artist: qariName,
+        artist: qariData['name'],
       );
 
-      final hasLocal = await repo.isAyahAudioDownloaded(ayah.number, activeQariId);
+      final url = api.getAyahAudioUrl(ayah.number, qariId: activeQariId);
       final AudioSource source;
 
-      if (hasLocal) {
-        final localPath = await repo.getLocalAudioPath(ayah.number, activeQariId);
-        debugPrint('[AudioPlayerService] Playing local file: $localPath');
-        source = AudioSource.file(localPath, tag: tag);
+      if (kIsWeb) {
+        source = AudioSource.uri(Uri.parse(url), tag: tag);
       } else {
-        final url = api.getAyahAudioUrl(ayah.number, qariId: activeQariId);
-        debugPrint('[AudioPlayerService] Playing online URL: $url');
-
-        // Use LockCachingAudioSource to bypass the internal HTTP proxy.
-        // It downloads the MP3 to a temp file first, then plays from disk —
-        // completely avoiding the CleartextNotPermittedException / Source error
-        // that occurs when just_audio tries to stream through its local proxy.
-        final cacheFile = await _getCacheFile(ayah.number, activeQariId);
-        // ignore: experimental_member_use
-        source = LockCachingAudioSource(
-          Uri.parse(url),
-          cacheFile: cacheFile,
-          tag: tag,
-        );
+        final hasLocal = await repo.isAyahAudioDownloaded(ayah.number, activeQariId);
+        if (hasLocal) {
+          final localPath = await repo.getLocalAudioPath(ayah.number, activeQariId);
+          source = AudioSource.file(localPath, tag: tag);
+        } else {
+          final cacheFile = await _getCacheFile(ayah.number, activeQariId);
+          if (await cacheFile.exists() && await cacheFile.length() == 0) await cacheFile.delete();
+          // ignore: experimental_member_use
+          source = LockCachingAudioSource(Uri.parse(url), cacheFile: cacheFile, tag: tag);
+        }
       }
 
       await _player.setAudioSource(source);
       _playingQariId = activeQariId;
       isPlayerLoading.value = false;
       await _player.play();
-    } catch (e, stack) {
+    } catch (e) {
       isPlayerLoading.value = false;
-      debugPrint('[AudioPlayerService] playAyah error: $e\nStacktrace:\n$stack');
-      Get.snackbar(
-        'Audio Error',
-        'Could not load audio. Please check your internet connection.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.85),
-        colorText: Colors.white,
-      );
+      debugPrint('[AudioPlayerService] Error: $e');
+      // Fallback for failed source
+      final url = api.getAyahAudioUrl(ayah.number, qariId: activeQariId);
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      await _player.play();
     }
   }
 
-  /// Returns a [File] in the app's temp cache directory for this ayah + qari.
-  /// Using a stable file path means repeated plays won't re-download.
+  Future<void> playUrl(String url) async {
+    try {
+      isPlayerLoading.value = true;
+      playingAyahNumber.value = null;
+      await _player.setAudioSource(AudioSource.uri(Uri.parse(url)));
+      isPlayerLoading.value = false;
+      await _player.play();
+    } catch (e) {
+      isPlayerLoading.value = false;
+    }
+  }
+
   Future<File> _getCacheFile(int globalAyahNumber, String qariId) async {
     final tempDir = await getTemporaryDirectory();
     final dir = Directory('${tempDir.path}/audio_cache/$qariId');
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
+    if (!await dir.exists()) await dir.create(recursive: true);
     return File('${dir.path}/$globalAyahNumber.mp3');
   }
 
-  Future<void> stopAudio() async {
-    await _player.stop();
-    playingAyahNumber.value = null;
-  }
-
-  Future<void> pauseAudio() async {
-    await _player.pause();
-  }
-
-  Future<void> resumeAudio() async {
-    await _player.play();
-  }
-
+  Future<void> stopAudio() async { await _player.stop(); playingAyahNumber.value = null; }
   void setAutoPlayNext(bool value) => _autoPlayNext = value;
 
   Future<void> _checkAndPromptBackgroundPermission() async {
-    try {
-      final settings = Get.find<SettingsController>();
-      final prefs = await SharedPreferences.getInstance();
-      final alreadyPrompted = prefs.getBool('background_play_prompted') ?? false;
-      
-      if (!alreadyPrompted && !settings.backgroundPlayEnabled.value) {
-        final bn = settings.isBangla;
-        final userChoice = await Get.dialog<bool>(
-          AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Row(
-              children: [
-                const Icon(Icons.settings_suggest_rounded, color: AppColors.primary, size: 28),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    bn ? 'ব্যাকগ্রাউন্ডে চালু রাখুন' : 'Run in Background',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            content: Text(
-              bn
-                  ? 'স্ক্রিন বন্ধ বা অন্য অ্যাপ ব্যবহার করার সময়ও কুরআন অডিও প্লে রাখতে চান? এর জন্য অ্যাপটিকে ব্যাকগ্রাউন্ডে চলার অনুমতি দিতে হবে।'
-                  : 'Do you want to keep playing Quran audio even when the screen is locked or when using other apps? This requires background running permission.',
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Get.back(result: false),
-                child: Text(
-                  bn ? 'পরে' : 'Later',
-                  style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () => Get.back(result: true),
-                child: Text(
-                  bn ? 'অনুমতি দিন' : 'Allow',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        );
-        
-        await prefs.setBool('background_play_prompted', true);
-        if (userChoice == true) {
-          await settings.setBackgroundPlay(true);
-        }
-      }
-    } catch (e) {
-      debugPrint('[AudioPlayerService] error checking background permission: $e');
+    final settings = Get.find<SettingsController>();
+    final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('background_play_prompted') ?? false)) {
+      await prefs.setBool('background_play_prompted', true);
+      // Optional: Show dialog here if needed
     }
   }
 
-  // ── Internal ──────────────────────────────────────────────────────────────
-
   void _onTrackCompleted() {
     if (!_autoPlayNext || playingAyahNumber.value == null || _playlist.isEmpty) return;
-
-    final currentIndex =
-        _playlist.indexWhere((a) => a.number == playingAyahNumber.value);
+    final currentIndex = _playlist.indexWhere((a) => a.number == playingAyahNumber.value);
     if (currentIndex != -1 && currentIndex < _playlist.length - 1) {
       playAyah(_playlist[currentIndex + 1]);
     } else {
@@ -277,8 +164,5 @@ class AudioPlayerService extends GetxService {
   }
 
   @override
-  void onClose() {
-    _player.dispose();
-    super.onClose();
-  }
+  void onClose() { _player.dispose(); super.onClose(); }
 }

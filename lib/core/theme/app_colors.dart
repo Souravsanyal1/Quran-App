@@ -9,6 +9,7 @@ class AppColors {
   static const Color primaryDark = Color(0xFFCC6F00);
   static const Color primaryLight = Color(0xFFFFB84D);
   static const Color primaryGlow = Color(0x33FF8A00);
+  static const Color secondary = Color(0xFF673AB7); // Added secondary color
 
   // ── Islamic / Accent ─────────────────────────────────────────────────────
   static const Color islamic = Color(0xFF1B5E20);

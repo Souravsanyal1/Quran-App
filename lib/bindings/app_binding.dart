@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../data/repositories/quran_repository.dart';
 import '../data/providers/quran_api_provider.dart';
 import '../modules/settings/settings_controller.dart';
+import '../modules/auth/auth_controller.dart';
 import '../modules/notifications/notifications_controller.dart';
 import '../modules/prayer_time/prayer_time_controller.dart';
 import '../services/audio_player_service.dart';
@@ -26,6 +27,9 @@ class AppBinding extends Bindings {
 
     // Settings (needed globally for theme/language)
     Get.put<SettingsController>(SettingsController(), permanent: true);
+
+    // Auth Controller
+    Get.put<AuthController>(AuthController(), permanent: true);
 
     // Notifications (needed globally so FCM messages can be stored from anywhere)
     Get.put<NotificationsController>(NotificationsController(), permanent: true);

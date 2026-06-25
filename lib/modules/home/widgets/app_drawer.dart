@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/app_routes.dart';
 import '../../../modules/settings/settings_controller.dart';
+import '../../auth/auth_controller.dart';
 import '../home_controller.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -11,6 +14,7 @@ class AppDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final home = Get.find<HomeController>();
+    final auth = Get.find<AuthController>();
 
     return Obx(() {
       final bool bn = settings.isBangla;
@@ -133,16 +137,11 @@ class AppDrawer extends StatelessWidget {
                       label: bn ? 'কিবলা দিক' : 'Qibla Direction',
                       onTap: () { Get.back(); home.goToQibla(); },
                     ),
-                    _DrawerItem(
-                      icon: Icons.self_improvement_rounded,
-                      label: bn ? 'নামাজ শিখুন' : 'Learn Salah',
-                      onTap: () { Get.back(); home.goToSalahGuide(); },
-                    ),
                   ]),
-                  _DrawerSection(title: bn ? 'শিক্ষা' : 'Learning', children: [
+                  _DrawerSection(title: bn ? 'শিক্ষা ও গাইড' : 'Learning & Guide', children: [
                     _DrawerItem(
                       icon: Icons.school_rounded,
-                      label: bn ? 'নতুন মুসলিম গাইড' : 'New Muslim Guide',
+                      label: bn ? 'নামাজ ও ইসলাম শিক্ষা' : 'Salah & Islamic Learning',
                       onTap: () { Get.back(); home.goToNewMuslimGuide(); },
                     ),
                     _DrawerItem(
@@ -187,6 +186,19 @@ class AppDrawer extends StatelessWidget {
                       label: bn ? 'ডেভেলপার তথ্য' : 'Developer Info',
                       onTap: () { Get.back(); home.goToDeveloperInfo(); },
                     ),
+                    Obx(() {
+                      if (auth.isAdmin.value) {
+                        return _DrawerItem(
+                          icon: Icons.admin_panel_settings_rounded,
+                          label: bn ? 'এডমিন প্যানেল' : 'Admin Panel',
+                          onTap: () {
+                            Get.back();
+                            auth.goToAdmin();
+                          },
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
                   ]),
                 ],
               ),

@@ -86,6 +86,18 @@ class QuranApiProvider {
     });
   }
 
+  /// Fetch word-by-word data for a Surah from Quran.com
+  Future<Response> fetchWordsBySurah(int surahNumber) async {
+    final url = AppUrls.wordsBySurah.replaceFirst('{number}', surahNumber.toString());
+    return await _dio.get(url, queryParameters: {
+      'words': 'true',
+      'word_fields': 'text_uthmani,location,audio_url',
+      // Include both English (131) and Bengali (161) word translations
+      'translation_fields': '131,161', 
+      'per_page': 300,
+    });
+  }
+
   /// Monthly calendar of prayer times by latitude/longitude, year and month
   Future<Response> fetchMonthlyPrayerTimes({
     required double latitude,

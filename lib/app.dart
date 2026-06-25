@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 
 import 'bindings/app_binding.dart';
@@ -34,7 +35,7 @@ class QuranApp extends StatelessWidget {
       themeMode: initialThemeMode,
 
       // Routing
-      initialRoute: AppRoutes.splash,
+      initialRoute: kIsWeb ? AppRoutes.login : AppRoutes.splash,
       getPages: AppPages.pages,
 
       // Global dependencies

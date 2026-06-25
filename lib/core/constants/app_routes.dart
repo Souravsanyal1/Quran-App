@@ -3,6 +3,8 @@ class AppRoutes {
   AppRoutes._();
 
   static const String splash = '/';
+  static const String login = '/login';
+  static const String admin = '/admin';
   static const String onboarding = '/onboarding';
   static const String home = '/home';
 
@@ -44,4 +46,7 @@ class AppRoutes {
 
   // Map
   static const String locationMap = '/location-map';
+
+  // Admin Dashboard
+  static const String adminDashboard = '/admin-dashboard';
 }

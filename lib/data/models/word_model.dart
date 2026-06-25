@@ -19,13 +19,26 @@ class WordModel {
 
   factory WordModel.fromJson(Map<String, dynamic> json) {
     // Handling Quran.com v4 word structure
-    final translation = json['translation'] as Map<String, dynamic>?;
+    final translations = json['translations'] as List<dynamic>?;
     final transliteration = json['transliteration'] as Map<String, dynamic>?;
+
+    String? transEn;
+    String? transBn;
+
+    if (translations != null) {
+      for (var t in translations) {
+        if (t['resource_id'] == 131) transEn = t['text'];
+        if (t['resource_id'] == 161) transBn = t['text'];
+      }
+      // Fallback if resource IDs are different or missing
+      if (transEn == null && translations.isNotEmpty) transEn = translations[0]['text'];
+    }
     
     return WordModel(
       id: json['id'] ?? 0,
-      text: json['text'] ?? '',
-      translationEn: translation?['text'],
+      text: json['text_uthmani'] ?? json['text'] ?? '',
+      translationEn: transEn,
+      translationBn: transBn,
       transliterationEn: transliteration?['text'],
       audioUrl: json['audio_url'] != null ? 'https://audio.qurancdn.com/${json['audio_url']}' : null,
     );

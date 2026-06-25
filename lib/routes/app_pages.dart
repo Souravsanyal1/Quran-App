@@ -2,10 +2,15 @@ import 'package:get/get.dart';
 
 import '../modules/splash/splash_view.dart';
 import '../modules/splash/splash_controller.dart';
+import '../modules/auth/login_view.dart';
+import '../modules/auth/auth_controller.dart';
+import '../modules/admin/admin_view.dart';
 import '../modules/onboarding/onboarding_view.dart';
 import '../modules/onboarding/onboarding_controller.dart';
 import '../modules/home/home_view.dart';
 import '../modules/home/home_controller.dart';
+import '../modules/admin_dashboard/admin_dashboard_view.dart';
+import '../modules/admin_dashboard/admin_dashboard_binding.dart';
 import '../modules/quran/quran_view.dart';
 import '../modules/quran/quran_controller.dart';
 import '../modules/surah_details/surah_details_view.dart';
@@ -49,6 +54,15 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.put(SplashController());
       }),
+    ),
+    GetPage(
+      name: AppRoutes.login,
+      page: () => const LoginView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => AuthController())),
+    ),
+    GetPage(
+      name: AppRoutes.admin,
+      page: () => const AdminView(),
     ),
     GetPage(
       name: AppRoutes.onboarding,
@@ -160,6 +174,12 @@ class AppPages {
       page: () => const DeveloperInfoView(),
       binding: BindingsBuilder(() => Get.lazyPut(() => DeveloperInfoController())),
       transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminDashboard,
+      page: () => const AdminDashboardView(),
+      binding: AdminDashboardBinding(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

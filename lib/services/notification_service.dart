@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -102,9 +104,24 @@ class NotificationService {
       await _requestExactAlarmPermission();
 
       // 4. Handle foreground FCM messages
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         final notification = message.notification;
+        final data = message.data;
+        final String? imageUrl = data['imageUrl'] ?? data['image'];
+
         if (notification != null) {
+          BigPictureStyleInformation? bigPictureStyleInformation;
+          
+          if (imageUrl != null && imageUrl.isNotEmpty) {
+            final String filePath = await _downloadAndSaveFile(imageUrl, 'notification_img');
+            bigPictureStyleInformation = BigPictureStyleInformation(
+              FilePathAndroidBitmap(filePath),
+              largeIcon: FilePathAndroidBitmap(filePath),
+              contentTitle: notification.title,
+              summaryText: notification.body,
+            );
+          }
+
           _localNotifications.show(
             id: notification.hashCode,
             title: notification.title,
@@ -115,6 +132,7 @@ class NotificationService {
                 channel.name,
                 channelDescription: channel.description,
                 icon: '@mipmap/ic_launcher',
+                styleInformation: bigPictureStyleInformation,
               ),
               iOS: const DarwinNotificationDetails(
                 presentAlert: true,
@@ -126,6 +144,7 @@ class NotificationService {
           _storeNotification(
             title: notification.title ?? 'New Notification',
             body: notification.body ?? '',
+            imageUrl: imageUrl,
             type: _detectType(message.data),
           );
         }
@@ -138,6 +157,7 @@ class NotificationService {
           _storeNotification(
             title: notification.title ?? 'New Notification',
             body: notification.body ?? '',
+            imageUrl: message.data['imageUrl'] ?? message.data['image'],
             type: _detectType(message.data),
           );
           Get.toNamed('/notifications');
@@ -203,7 +223,6 @@ class NotificationService {
 
   String _detectType(Map<String, dynamic> data) {
     if (data.containsKey('prayer')) return 'prayer';
-    if (data.containsKey('hadith')) return 'hadith';
     if (data.containsKey('quran')) return 'quran';
     return 'fcm';
   }
@@ -211,6 +230,7 @@ class NotificationService {
   void _storeNotification({
     required String title,
     required String body,
+    String? imageUrl,
     String type = 'fcm',
   }) {
     try {
@@ -219,10 +239,20 @@ class NotificationService {
         id: '${DateTime.now().millisecondsSinceEpoch}',
         title: title,
         body: body,
+        imageUrl: imageUrl,
         receivedAt: DateTime.now(),
         type: type,
       ));
     } catch (_) {}
+  }
+
+  Future<String> _downloadAndSaveFile(String url, String fileName) async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final String filePath = '${directory.path}/$fileName';
+    final http.Response response = await http.get(Uri.parse(url));
+    final File file = File(filePath);
+    await file.writeAsBytes(response.bodyBytes);
+    return filePath;
   }
 
   Future<void> _initFCMInBackground() async {
@@ -248,10 +278,8 @@ class NotificationService {
     try {
       if (enabled) {
         await _fcm.subscribeToTopic('all');
-        await _fcm.subscribeToTopic('daily_hadith');
       } else {
         await _fcm.unsubscribeFromTopic('all');
-        await _fcm.unsubscribeFromTopic('daily_hadith');
       }
     } catch (e) {
       _logger.e('Error toggling FCM subscriptions: $e');

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/constants/app_icons.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
 import 'developer_info_controller.dart';
@@ -123,7 +125,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: 'Email',
                   subtitle: 'joysanyal1999@gmail.com',
-                  icon: Icons.email_rounded,
+                  svgString: AppIcons.gmail,
                   color: Colors.redAccent,
                   isDark: isDark,
                   cardColor: cardColor,
@@ -137,7 +139,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: bn ? 'পোর্টফোলিও' : 'Portfolio',
                   subtitle: 'souravs-portfollio.vercel.app',
-                  icon: Icons.language_rounded,
+                  svgString: AppIcons.portfolio,
                   color: Colors.blueAccent,
                   isDark: isDark,
                   cardColor: cardColor,
@@ -151,7 +153,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: 'GitHub',
                   subtitle: 'github.com/Souravsanyal1',
-                  icon: Icons.code_rounded,
+                  svgString: AppIcons.github,
                   color: isDark ? Colors.white : Colors.black87,
                   isDark: isDark,
                   cardColor: cardColor,
@@ -165,7 +167,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: 'LinkedIn',
                   subtitle: 'linkedin.com/in/sourav-sanyal-joy',
-                  icon: Icons.business_center_rounded,
+                  svgString: AppIcons.linkedin,
                   color: const Color(0xFF0077B5),
                   isDark: isDark,
                   cardColor: cardColor,
@@ -179,8 +181,8 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: 'X / Twitter',
                   subtitle: 'x.com/Souravisms',
-                  icon: Icons.tag_rounded,
-                  color: Colors.cyan,
+                  svgString: AppIcons.twitterX,
+                  color: isDark ? Colors.white : Colors.black,
                   isDark: isDark,
                   cardColor: cardColor,
                   textColor: textColor,
@@ -193,7 +195,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 _buildSocialTile(
                   title: 'Facebook',
                   subtitle: 'facebook.com/sourav.sanyal.developer',
-                  icon: Icons.facebook_rounded,
+                  svgString: AppIcons.facebook,
                   color: const Color(0xFF1877F2),
                   isDark: isDark,
                   cardColor: cardColor,
@@ -226,7 +228,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
   Widget _buildSocialTile({
     required String title,
     required String subtitle,
-    required IconData icon,
+    required String svgString,
     required Color color,
     required bool isDark,
     required Color cardColor,
@@ -248,15 +250,16 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
+              child: SvgPicture.string(
+                svgString,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                width: 24,
+                height: 24,
               ),
             ),
             const SizedBox(width: 16),

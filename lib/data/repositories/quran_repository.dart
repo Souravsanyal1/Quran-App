@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../providers/quran_api_provider.dart';
 import '../models/surah_model.dart';
 import '../models/ayah_model.dart';
+import '../models/word_model.dart';
 import '../models/bookmark_model.dart';
 import '../models/last_read_model.dart';
 
@@ -14,12 +15,14 @@ class QuranRepository {
   static const String _surahListBox = 'surah_list_v2';
   static const String _surahDataBox = 'surah_data_v2';
   static const String _paraDataBox  = 'para_data_v2';
+  static const String _wordsDataBox = 'words_data_v2';
   static const String _bookmarksBox = 'bookmarks_v2';
   static const String _lastReadBox  = 'last_read_v2';
 
   late Box _surahListCache;
   late Box _surahDataCache;
   late Box _paraDataCache;
+  late Box _wordsDataCache;
   late Box _bookmarksCache;
   late Box _lastReadCache;
 
@@ -31,6 +34,7 @@ class QuranRepository {
     _surahListCache = await Hive.openBox(_surahListBox);
     _surahDataCache = await Hive.openBox(_surahDataBox);
     _paraDataCache  = await Hive.openBox(_paraDataBox);
+    _wordsDataCache = await Hive.openBox(_wordsDataBox);
     _bookmarksCache = await Hive.openBox(_bookmarksBox);
     _lastReadCache  = await Hive.openBox(_lastReadBox);
     _initialized = true;
@@ -66,10 +70,11 @@ class QuranRepository {
   ///   [0] = quran-uthmani (Arabic)
   ///   [1] = bn.bengali     (Bangla)
   ///   [2] = en.asad        (English)
+  ///   [3] = en.transliteration (Pronunciation)
   Future<List<AyahModel>> getSurahAyahs(int surahNumber) async {
     await init();
     try {
-      final cacheKey = 'surah_$surahNumber';
+      final cacheKey = 'surah_v4_$surahNumber';
       final cached = _surahDataCache.get(cacheKey);
       if (cached != null) {
         return _parseAyahsFromCache(jsonDecode(cached as String));
@@ -86,6 +91,43 @@ class QuranRepository {
     return [];
   }
 
+  /// Returns a map of Ayah number -> List of WordModel
+  Future<Map<int, List<WordModel>>> getSurahWords(int surahNumber) async {
+    await init();
+    try {
+      final cacheKey = 'words_$surahNumber';
+      final cached = _wordsDataCache.get(cacheKey);
+      if (cached != null) {
+        return _parseWordsFromCache(jsonDecode(cached as String));
+      }
+
+      final response = await _api.fetchWordsBySurah(surahNumber);
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        await _wordsDataCache.put(cacheKey, jsonEncode(data));
+        return _parseWordsFromCache(data);
+      }
+    } catch (e) {
+      _logger.e('getSurahWords($surahNumber): $e');
+    }
+    return {};
+  }
+
+  Map<int, List<WordModel>> _parseWordsFromCache(Map<String, dynamic> data) {
+    final Map<int, List<WordModel>> result = {};
+    final List<dynamic> verses = data['verses'] ?? [];
+
+    for (var verse in verses) {
+      final int verseNum = verse['verse_number'] ?? 0;
+      final List<dynamic> wordsJson = verse['words'] ?? [];
+      final List<WordModel> words = wordsJson
+          .map((w) => WordModel.fromJson(Map<String, dynamic>.from(w)))
+          .toList();
+      result[verseNum] = words;
+    }
+    return result;
+  }
+
   List<AyahModel> _parseAyahsFromCache(Map<String, dynamic> data) {
     final List<dynamic> editions = data['data'] ?? [];
     if (editions.isEmpty) return [];
@@ -98,6 +140,9 @@ class QuranRepository {
     final englishAyahs = editions.length > 2
         ? List<Map<String, dynamic>>.from(editions[2]['ayahs'] ?? [])
         : <Map<String, dynamic>>[];
+    final translitAyahs = editions.length > 3
+        ? List<Map<String, dynamic>>.from(editions[3]['ayahs'] ?? [])
+        : <Map<String, dynamic>>[];
 
     return arabicAyahs.asMap().entries.map((entry) {
       final i = entry.key;
@@ -108,6 +153,7 @@ class QuranRepository {
         surahNumber: surahNum,
         text: arabic['text'] ?? '',
         textBangla: i < banglaAyahs.length ? banglaAyahs[i]['text'] : null,
+        textBanglaTranslit: i < translitAyahs.length ? translitAyahs[i]['text'] : null,
         textEnglish: i < englishAyahs.length ? englishAyahs[i]['text'] : null,
         page: arabic['page'] ?? 0,
         juz: arabic['juz'] ?? 0,
