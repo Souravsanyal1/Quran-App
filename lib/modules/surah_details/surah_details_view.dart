@@ -207,7 +207,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildAyahItem(AyahModel ayah, SettingsController settings) {
