@@ -309,6 +309,7 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'high_importance_channel',
           'Announcements',
+          channelDescription: 'General app announcements',
           importance: Importance.high,
           priority: Priority.high,
           styleInformation: bigPicture,
