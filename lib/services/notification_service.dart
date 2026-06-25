@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -55,7 +56,7 @@ class NotificationService {
       const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
       await _localNotifications.initialize(
-        settings: initSettings,
+        initSettings,
         onDidReceiveNotificationResponse: (response) {
           Get.toNamed('/notifications');
         },
@@ -124,10 +125,10 @@ class NotificationService {
           }
 
           _localNotifications.show(
-            id: notification.hashCode,
-            title: notification.title,
-            body: notification.body,
-            notificationDetails: NotificationDetails(
+            notification.hashCode,
+            notification.title,
+            notification.body,
+            NotificationDetails(
               android: AndroidNotificationDetails(
                 channel.id,
                 channel.name,
@@ -177,9 +178,71 @@ class NotificationService {
     }
   }
 
+  void _listenToFirestoreBroadcasts() {
+    if (kIsWeb) return; // Only mobile needs to listen for local notification triggers
+    
+    final startTime = DateTime.now();
+    FirebaseFirestore.instance
+        .collection('broadcast_notifications')
+        .where('sentAt', isGreaterThan: startTime)
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null) {
+            _showLocalNotificationFromData(data);
+            _storeNotification(
+              title: data['title'] ?? 'Announcement',
+              body: data['body'] ?? '',
+              imageUrl: data['imageUrl'],
+              type: 'fcm',
+            );
+          }
+        }
+      }
+    });
+  }
+
+  Future<void> _showLocalNotificationFromData(Map<String, dynamic> data) async {
+    final String title = data['title'] ?? 'New Notification';
+    final String body = data['body'] ?? '';
+    final String? imageUrl = data['imageUrl'];
+
+    BigPictureStyleInformation? bigPicture;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        final String filePath = await _downloadAndSaveFile(imageUrl, 'broadcast_img_${DateTime.now().millisecond}');
+        bigPicture = BigPictureStyleInformation(
+          FilePathAndroidBitmap(filePath),
+          largeIcon: FilePathAndroidBitmap(filePath),
+        );
+      } catch (e) {
+        debugPrint('Error downloading broadcast image: $e');
+      }
+    }
+
+    _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'Announcements',
+          channelDescription: 'General app announcements',
+          importance: Importance.high,
+          priority: Priority.high,
+          styleInformation: bigPicture,
+        ),
+        iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      ),
+    );
+  }
+
   /// Request SCHEDULE_EXACT_ALARM permission on Android 12+ (API 31+)
   Future<void> _requestExactAlarmPermission() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb || !Platform.isAndroid) return;
     try {
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -195,7 +258,7 @@ class NotificationService {
 
   /// Request battery optimization exemption so background notifications are reliable
   Future<void> requestBatteryOptimization() async {
-    if (!Platform.isAndroid) return;
+    if (kIsWeb || !Platform.isAndroid) return;
     try {
       final status = await Permission.ignoreBatteryOptimizations.status;
       if (!status.isGranted) {
@@ -209,6 +272,7 @@ class NotificationService {
 
   /// Request notifications permission at runtime (especially Android 13+)
   Future<bool> requestNotificationPermission() async {
+    if (kIsWeb) return true;
     if (Platform.isAndroid) {
       final status = await Permission.notification.status;
       if (!status.isGranted) {
@@ -259,66 +323,6 @@ class NotificationService {
     return filePath;
   }
 
-  void _listenToFirestoreBroadcasts() {
-    final startTime = DateTime.now();
-    FirebaseFirestore.instance
-        .collection('broadcast_notifications')
-        .where('sentAt', isGreaterThan: startTime)
-        .snapshots()
-        .listen((snapshot) {
-      for (var change in snapshot.docChanges) {
-        if (change.type == DocumentChangeType.added) {
-          final data = change.doc.data();
-          if (data != null) {
-            _showLocalNotificationFromData(data);
-            _storeNotification(
-              title: data['title'] ?? 'Announcement',
-              body: data['body'] ?? '',
-              imageUrl: data['imageUrl'],
-              type: 'fcm',
-            );
-          }
-        }
-      }
-    });
-  }
-
-  Future<void> _showLocalNotificationFromData(Map<String, dynamic> data) async {
-    final String title = data['title'] ?? 'New Notification';
-    final String body = data['body'] ?? '';
-    final String? imageUrl = data['imageUrl'];
-
-    BigPictureStyleInformation? bigPicture;
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      try {
-        final String filePath = await _downloadAndSaveFile(imageUrl, 'broadcast_img_${DateTime.now().millisecond}');
-        bigPicture = BigPictureStyleInformation(
-          FilePathAndroidBitmap(filePath),
-          largeIcon: FilePathAndroidBitmap(filePath),
-        );
-      } catch (e) {
-        debugPrint('Error downloading broadcast image: $e');
-      }
-    }
-
-    await _localNotifications.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'high_importance_channel',
-          'Announcements',
-          channelDescription: 'General app announcements',
-          importance: Importance.high,
-          priority: Priority.high,
-          styleInformation: bigPicture,
-        ),
-        iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
-      ),
-    );
-  }
-
   Future<void> _initFCMInBackground() async {
     try {
       final settings = await _fcm.requestPermission(
@@ -364,8 +368,8 @@ class NotificationService {
 
   /// Schedules weekly local notifications for the 5 prayers for the next 7 days.
   Future<void> scheduleWeeklyAzanNotifications(List<Map<String, dynamic>> weeklyTimings) async {
-    if (!_initialized) {
-      _logger.w('NotificationService not yet initialized — skipping azan scheduling. Will be rescheduled after init.');
+    if (kIsWeb || !_initialized) {
+      _logger.w('NotificationService not yet initialized or on Web — skipping azan scheduling.');
       return;
     }
     await cancelAzanNotifications();
@@ -483,12 +487,12 @@ class NotificationService {
               ? 'ওজু করে রেডি হোন এবং এখনই ${namesBnPossessive[k]} নামাজ আদায় করুন।'
               : 'Perform wudu and offer $k prayer now. Do not delay!';
 
-          await _localNotifications.zonedSchedule(
-            id: notifId,
-            title: title,
-            body: body,
-            scheduledDate: tzPrayerTime,
-            notificationDetails: notifDetails,
+          _localNotifications.zonedSchedule(
+            notifId,
+            title,
+            body,
+            tzPrayerTime,
+            notifDetails,
             androidScheduleMode: scheduleMode,
           );
           _logger.i('Scheduled Azan for $k (Day $dayOffset) at $tzPrayerTime (ID: $notifId)');
@@ -505,12 +509,12 @@ class NotificationService {
                 ? 'আর মাত্র ৩০ মিনিট বাকি! ওজু করুন এবং প্রস্তুত হন।'
                 : 'Only 30 minutes left! Perform wudu and get ready.';
 
-            await _localNotifications.zonedSchedule(
-              id: reminderId,
-              title: reminderTitle,
-              body: reminderBody,
-              scheduledDate: tzReminderTime,
-              notificationDetails: notifDetails,
+            _localNotifications.zonedSchedule(
+              reminderId,
+              reminderTitle,
+              reminderBody,
+              tzReminderTime,
+              notifDetails,
               androidScheduleMode: scheduleMode,
             );
             _logger.i('Scheduled Reminder for $k (Day $dayOffset) at $tzReminderTime (ID: $reminderId)');
@@ -524,13 +528,14 @@ class NotificationService {
 
   /// Cancels all scheduled Azan and reminder notifications.
   Future<void> cancelAzanNotifications() async {
+    if (kIsWeb) return;
     for (int i = 0; i < 7; i++) {
       final List<int> ids = [
         1001 + (i * 10), 1002 + (i * 10), 1003 + (i * 10), 1004 + (i * 10), 1005 + (i * 10),
         2001 + (i * 10), 2002 + (i * 10), 2003 + (i * 10), 2004 + (i * 10), 2005 + (i * 10),
       ];
       for (var id in ids) {
-        await _localNotifications.cancel(id: id);
+        await _localNotifications.cancel(id);
       }
     }
     _logger.i('Cancelled all scheduled Azan and reminder notifications');
@@ -542,6 +547,7 @@ class NotificationService {
 
   /// Schedules daily rotating dua reminders for the next 7 days.
   Future<void> scheduleDuaReminder(TimeOfDay time) async {
+    if (kIsWeb) return;
     await cancelDuaReminder();
 
     bool bn = true;
@@ -568,7 +574,7 @@ class NotificationService {
       'রিজিকের দোয়া: "اللَّهُمَّ ارْزُقْنِي رِزْقًا حَلَالًا" — হে আল্লাহ, আমাকে হালাল রিজিক দাও।',
       'ক্ষমার দোয়া: "أَسْتَغْفِرُ اللَّهَ" — আমি আল্লাহর কাছে ক্ষমা চাই।',
       'শান্তির দোয়া: "اللَّهُمَّ أَنْتَ السَّلَامُ" — হে আল্লাহ, তুমিই শান্তি।',
-      'হেদায়েতের দোয়া: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً" — আমাদের দুনিয়া ও আখিরাতে কল্যাণ দাও।',
+      'হেদায়েতের দোয়া: "رَبَّনَا آتِنَا فِي الدُّنْيَا حَسَنَةً" — আমাদের দুনিয়া ও আখিরাতে কল্যাণ দাও।',
     ];
 
     final List<String> duasEn = [
@@ -598,12 +604,12 @@ class NotificationService {
       final int idx = scheduledDate.day % duasBn.length;
       final int notifId = _duaNotifIdBase + i;
 
-      await _localNotifications.zonedSchedule(
-        id: notifId,
-        title: bn ? '📿 দৈনিক দোয়ার স্মরণ' : '📿 Daily Dua Reminder',
-        body: bn ? duasBn[idx] : duasEn[idx],
-        scheduledDate: tzScheduled,
-        notificationDetails: const NotificationDetails(
+      _localNotifications.zonedSchedule(
+        notifId,
+        bn ? '📿 দৈনিক দোয়ার স্মরণ' : '📿 Daily Dua Reminder',
+        bn ? duasBn[idx] : duasEn[idx],
+        tzScheduled,
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             'dua_channel',
             'Daily Dua Reminder',
@@ -628,8 +634,9 @@ class NotificationService {
 
   /// Cancels all scheduled daily dua reminders.
   Future<void> cancelDuaReminder() async {
+    if (kIsWeb) return;
     for (int i = 0; i < 7; i++) {
-      await _localNotifications.cancel(id: _duaNotifIdBase + i);
+      await _localNotifications.cancel(_duaNotifIdBase + i);
     }
     _logger.i('Cancelled all scheduled dua reminders');
   }
