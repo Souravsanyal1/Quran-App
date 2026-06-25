@@ -51,7 +51,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             child: const CircularProgressIndicator(
               strokeWidth: 3,
               color: AppColors.primary,
-            ).animate(onPlay: (c) => controller.isEditMode.value ? null : c.repeat()).rotate(duration: 2.seconds),
+            ).animate(onPlay: (c) => controller.isEditMode.value ? null : c.repeat()).rotate(duration: const Duration(seconds: 2)),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -62,7 +62,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               fontWeight: FontWeight.w600,
               letterSpacing: 1,
             ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(duration: 1.seconds).fadeOut(delay: 1.seconds),
+          ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(duration: const Duration(seconds: 1)).fadeOut(delay: const Duration(seconds: 1)),
         ],
       ),
     );
