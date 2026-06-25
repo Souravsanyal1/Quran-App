@@ -14,12 +14,26 @@
   <link rel="manifest" href="manifest.json">
   <style>
     body {
-      background-color: #09090b; /* Zinc/Neutral Dark */
+      background-color: #09090b !important; /* Force Zinc/Neutral Dark */
       margin: 0;
+    }
+    #loading-indicator {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #FFB300;
+      font-family: sans-serif;
     }
   </style>
 </head>
 <body>
+  <div id="loading-indicator">
+    <div>
+      <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Nexora Cloud Engine</div>
+      <div style="text-align: center;">Loading...</div>
+    </div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

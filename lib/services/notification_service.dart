@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -167,6 +168,9 @@ class NotificationService {
       // 6. Run FCM init in background
       _initFCMInBackground();
 
+      // 7. Real-time Firestore Broadcast Listener (Workaround for Cloud Functions)
+      _listenToFirestoreBroadcasts();
+
       _initialized = true;
     } catch (e) {
       _logger.e('Error during local notification init: $e');
@@ -253,6 +257,65 @@ class NotificationService {
     final File file = File(filePath);
     await file.writeAsBytes(response.bodyBytes);
     return filePath;
+  }
+
+  void _listenToFirestoreBroadcasts() {
+    final startTime = DateTime.now();
+    FirebaseFirestore.instance
+        .collection('broadcast_notifications')
+        .where('sentAt', isGreaterThan: startTime)
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null) {
+            _showLocalNotificationFromData(data);
+            _storeNotification(
+              title: data['title'] ?? 'Announcement',
+              body: data['body'] ?? '',
+              imageUrl: data['imageUrl'],
+              type: 'fcm',
+            );
+          }
+        }
+      }
+    });
+  }
+
+  Future<void> _showLocalNotificationFromData(Map<String, dynamic> data) async {
+    final String title = data['title'] ?? 'New Notification';
+    final String body = data['body'] ?? '';
+    final String? imageUrl = data['imageUrl'];
+
+    BigPictureStyleInformation? bigPicture;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        final String filePath = await _downloadAndSaveFile(imageUrl, 'broadcast_img_${DateTime.now().millisecond}');
+        bigPicture = BigPictureStyleInformation(
+          FilePathAndroidBitmap(filePath),
+          largeIcon: FilePathAndroidBitmap(filePath),
+        );
+      } catch (e) {
+        debugPrint('Error downloading broadcast image: $e');
+      }
+    }
+
+    await _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'Announcements',
+          importance: Importance.high,
+          priority: Priority.high,
+          styleInformation: bigPicture,
+        ),
+        iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
+      ),
+    );
   }
 
   Future<void> _initFCMInBackground() async {

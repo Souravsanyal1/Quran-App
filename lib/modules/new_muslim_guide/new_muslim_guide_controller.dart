@@ -23,8 +23,8 @@ class SalahStep {
   final String descEn;
   final String descBn;
   final String? arabic;
-  final String? translitEn;
   final String? translitBn;
+  final String? meaningBn;
 
   const SalahStep({
     required this.stepNumber,
@@ -33,60 +33,8 @@ class SalahStep {
     required this.descEn,
     required this.descBn,
     this.arabic,
-    this.translitEn,
     this.translitBn,
-  });
-}
-
-class RakahBreakdown {
-  final int fard;
-  final int sunnahMuakkadah;
-  final int sunnahGhairMuakkadah;
-  final int nafl;
-  final int witr;
-
-  const RakahBreakdown({
-    this.fard = 0,
-    this.sunnahMuakkadah = 0,
-    this.sunnahGhairMuakkadah = 0,
-    this.nafl = 0,
-    this.witr = 0,
-  });
-
-  int get total => fard + sunnahMuakkadah + sunnahGhairMuakkadah + nafl + witr;
-}
-
-class PrayerRakahInfo {
-  final String nameEn;
-  final String nameBn;
-  final String timeEn;
-  final String timeBn;
-  final RakahBreakdown breakdown;
-  final String descEn;
-  final String descBn;
-
-  const PrayerRakahInfo({
-    required this.nameEn,
-    required this.nameBn,
-    required this.timeEn,
-    required this.timeBn,
-    required this.breakdown,
-    required this.descEn,
-    required this.descBn,
-  });
-}
-
-class MistakeInfo {
-  final String titleEn;
-  final String titleBn;
-  final String correctionEn;
-  final String correctionBn;
-
-  const MistakeInfo({
-    required this.titleEn,
-    required this.titleBn,
-    required this.correctionEn,
-    required this.correctionBn,
+    this.meaningBn,
   });
 }
 
@@ -94,244 +42,117 @@ class NewMuslimGuideController extends GetxController {
   final RxInt currentSalahStep = 0.obs;
 
   final List<WuduStep> wuduSteps = const [
-    WuduStep(
-      stepNumber: 1,
-      titleEn: 'Intention (Niyyah)',
-      titleBn: 'নিয়ত করা',
-      descEn: 'Make a silent intention to perform Wudu for purification, and say "Bismillah" (In the name of Allah).',
-      descBn: 'ওযু করার জন্য মনে মনে নিয়ত করুন এবং বলুন "বিসমিল্লাহ"।',
-    ),
-    WuduStep(
-      stepNumber: 2,
-      titleEn: 'Washing Hands',
-      titleBn: 'হাত ধোয়া',
-      descEn: 'Wash both hands up to the wrists three times, ensuring water reaches between the fingers.',
-      descBn: 'দুই হাতের কবজি পর্যন্ত ভালো করে ৩ বার ধৌত করুন। আঙুলের ফাঁকে ভালো করে পানি পৌঁছান।',
-    ),
-    WuduStep(
-      stepNumber: 3,
-      titleEn: 'Rinsing the Mouth',
-      titleBn: 'কুলি করা',
-      descEn: 'Take water in your right hand, put it into your mouth, rinse thoroughly, and spit it out. Repeat three times.',
-      descBn: 'ডান হাতে পানি নিয়ে মুখের ভেতর দিন এবং ভালো করে গড়গড়া করে কুলি করুন। এভাবে ৩ বার করুন।',
-    ),
-    WuduStep(
-      stepNumber: 4,
-      titleEn: 'Inhaling Water in Nose',
-      titleBn: 'নাকে পানি দেওয়া',
-      descEn: 'Take water in your right hand, sniff it into your nose, and expel it with your left hand. Repeat three times.',
-      descBn: 'ডান হাত দিয়ে নাকে হালকা পানি টেনে দিন এবং বাম হাত দিয়ে নাক পরিষ্কার করুন। এভাবে ৩ বার করুন।',
-    ),
-    WuduStep(
-      stepNumber: 5,
-      titleEn: 'Washing the Face',
-      titleBn: 'মুখমণ্ডল ধোয়া',
-      descEn: 'Wash the entire face three times, from the hairline to the chin, and from ear to ear.',
-      descBn: 'কপাল থেকে থুতনি এবং দুই কানের লতি পর্যন্ত পুরো মুখমণ্ডল ৩ বার ভালো করে ধৌত করুন।',
-    ),
-    WuduStep(
-      stepNumber: 6,
-      titleEn: 'Washing Arms',
-      titleBn: 'হাত কনুই পর্যন্ত ধোয়া',
-      descEn: 'Wash both arms up to the elbows three times, starting with the right arm first and then the left.',
-      descBn: 'প্রথমে ডান হাত এবং পরে বাম হাত কনুই পর্যন্ত ভালো করে ৩ বার ধৌত করুন।',
-    ),
-    WuduStep(
-      stepNumber: 7,
-      titleEn: 'Wiping the Head (Masah)',
-      titleBn: 'মাথা মাসেহ করা',
-      descEn: 'Wet your hands, run them from the front of the head to the back, then wipe the inside of your ears with your index fingers and the back of your ears with your thumbs. Perform once.',
-      descBn: 'দুই হাত ভিজিয়ে কপাল থেকে পেছনের দিক পর্যন্ত পুরো মাথা এবং তর্জনী ও বুড়ো আঙুল দিয়ে কানের ভেতর ও বাইরে ১ বার মাসেহ করুন।',
-    ),
-    WuduStep(
-      stepNumber: 8,
-      titleEn: 'Washing Feet',
-      titleBn: 'পা টাখনু পর্যন্ত ধোয়া',
-      descEn: 'Wash both feet up to the ankles three times, starting with the right foot and ensuring water flows between the toes.',
-      descBn: 'প্রথমে ডান পা এবং পরে বাম পা টাখনু (গিরা) পর্যন্ত ভালো করে ৩ বার ধৌত করুন। পায়ের আঙুলের ফাঁকে ভালো করে পানি পৌঁছান।',
-    ),
+    WuduStep(stepNumber: 1, titleEn: 'Intention', titleBn: 'নিয়ত', descEn: 'Say Bismillah.', descBn: 'বিসমিল্লাহ বলে শুরু করা।'),
+    WuduStep(stepNumber: 2, titleEn: 'Hands', titleBn: 'হাত ধোয়া', descEn: 'Wash hands 3 times.', descBn: 'কবজি পর্যন্ত ৩ বার হাত ধোয়া।'),
+    WuduStep(stepNumber: 3, titleEn: 'Mouth', titleBn: 'কুলি করা', descEn: 'Rinse mouth 3 times.', descBn: '৩ বার কুলি করা।'),
+    WuduStep(stepNumber: 4, titleEn: 'Nose', titleBn: 'নাক পরিষ্কার', descEn: 'Clean nose 3 times.', descBn: '৩ বার নাকে পানি দিয়ে পরিষ্কার করা।'),
+    WuduStep(stepNumber: 5, titleEn: 'Face', titleBn: 'মুখমণ্ডল', descEn: 'Wash face 3 times.', descBn: 'পুরো মুখমণ্ডল ৩ বার ধোয়া।'),
+    WuduStep(stepNumber: 6, titleEn: 'Arms', titleBn: 'হাত ধোয়া', descEn: 'Wash arms to elbows 3 times.', descBn: 'কনুই পর্যন্ত ৩ বার হাত ধোয়া।'),
+    WuduStep(stepNumber: 7, titleEn: 'Head', titleBn: 'মাসেহ', descEn: 'Wipe head once.', descBn: 'মাথা ও কান ১ বার মাসেহ করা।'),
+    WuduStep(stepNumber: 8, titleEn: 'Feet', titleBn: 'পা ধোয়া', descEn: 'Wash feet 3 times.', descBn: 'টাখনু পর্যন্ত ৩ বার পা ধোয়া।'),
   ];
 
   final List<SalahStep> salahSteps = const [
     SalahStep(
       stepNumber: 1,
-      titleEn: 'Niyyah (Intention)',
-      titleBn: 'নিয়ত (Niyyah)',
-      descEn: 'Stand facing the Qiblah. Focus your mind and heart on the prayer you are about to perform.',
-      descBn: 'কিবলামুখী হয়ে দাঁড়ান এবং মনে মনে যে নামাজ পড়ছেন তার নিয়ত করুন।',
+      titleEn: 'Takbir', titleBn: 'তাকবিরে তাহরিমা',
+      descEn: 'Raise hands to ears and say Allahu Akbar.',
+      descBn: 'হাত কান পর্যন্ত উঠিয়ে "আল্লাহু আকবার" বলে হাত বাঁধুন।',
+      arabic: 'اللَّهُ أَكْبَرُ',
+      translitBn: 'আল্লাহু আকবার',
+      meaningBn: 'আল্লাহ মহান।',
     ),
     SalahStep(
       stepNumber: 2,
-      titleEn: 'Takbeeratul Ihram',
-      titleBn: 'তাকবিরে তাহরিমা',
-      descEn: 'Raise your hands and say "Allahu Akbar".',
-      descBn: 'হাত কান পর্যন্ত উঠিয়ে বলুন "আল্লাহু আকবার"।',
-      arabic: 'اللَّهُ أَكْبَرُ',
-      translitEn: 'Allahu Akbar',
-      translitBn: 'আল্লাহু আকবার',
+      titleEn: 'Sana', titleBn: 'ছানা পাঠ',
+      descEn: 'Recite Sana after starting.',
+      descBn: 'হাত বাঁধার পর প্রথম রাকাতে এটি পড়তে হয়।',
+      arabic: 'سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ وَتَبَارَكَ اسْمُكَ وَتَعَالَى جَدُّكَ وَلَا إِلَهَ غَيْرُكَ',
+      translitBn: 'সুবহানাকা আল্লাহুম্মা ওয়া বিহামদিকা ওয়া তাবারাকাসমুকা ওয়া তাআলা জাদ্দুকা ওয়া লা ইলাহা গাইরুকা।',
+      meaningBn: 'হে আল্লাহ! আমি আপনার পবিত্রতা বর্ণনা করছি এবং আপনার প্রশংসা করছি। আপনার নাম বরকতময়, আপনার মর্যাদা অতি উচ্চ এবং আপনি ব্যতীত আর কোন উপাস্য নেই।',
     ),
     SalahStep(
       stepNumber: 3,
-      titleEn: 'Qiyam & Recitation',
-      titleBn: 'কিয়াম ও তিলওয়াত',
-      descEn: 'Recite Surah Al-Fatihah followed by another Surah.',
-      descBn: 'সূরা আল-ফাতেহা এবং অন্য একটি ছোট সূরা তিলওয়াত করুন।',
-      arabic: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ...',
-      translitEn: 'Bismillahir Rahmanir Rahim...',
-      translitBn: 'বিসমিল্লাহির রাহমানির রাহিম...',
+      titleEn: 'Fatihah', titleBn: 'সূরা ফাতিহা',
+      descEn: 'Recite Surah Al-Fatihah.',
+      descBn: 'নামাজের প্রতিটি রাকাতে এটি পড়া বাধ্যতামূলক।',
+      arabic: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ ۞ الرَّحْمَنِ الرَّحِيمِ ۞ مَالِكِ يَوْمِ الدِّينِ ۞ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ ۞ اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ ۞ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ',
+      translitBn: 'আলহামদু লিল্লাহি রাব্বিল আলামিন। আর রাহমানির রাহিম। মালিকি ইয়াওমিদ্দিন। ইয়্যাকা নাবুদু ওয়া ইয়্যাকা নাস্তায়িন। ইহদিনাস সিরাতাল মুস্তাকিম। সিরাতাল্লাজিনা আনআমতা আলাইহিম, গাইরিল মাগদুবি আলাইহিম ওয়ালাদ্দল্লিন।',
+      meaningBn: 'সব প্রশংসা জগতসমূহের প্রতিপালক আল্লাহর জন্য। যিনি পরম দয়ালু ও অতি দয়ালু। বিচার দিবসের মালিক। আমরা কেবল আপনারই ইবাদত করি এবং কেবল আপনারই সাহায্য চাই...',
     ),
     SalahStep(
       stepNumber: 4,
-      titleEn: 'Ruku (Bowing)',
-      titleBn: 'রুকু (নত হওয়া)',
-      descEn: 'Bow down and recite the glorification 3 times.',
-      descBn: 'রুকুতে গিয়ে ৩ বার তাসবীহ পাঠ করুন।',
+      titleEn: 'Ruku', titleBn: 'রুকু (নত হওয়া)',
+      descEn: 'Bow down and say Tasbih 3 times.',
+      descBn: 'কোমর বাঁকিয়ে দুই হাঁটু ধরে ৩ বার এটি পড়ুন।',
       arabic: 'سُبْحَانَ رَبِّيَ الْعَظِيمِ',
-      translitEn: 'Subhana Rabbiyal-Azeem',
       translitBn: 'সুবহানা রাব্বিয়াল আজীম',
+      meaningBn: 'আমার মহান প্রতিপালকের পবিত্রতা বর্ণনা করছি।',
     ),
     SalahStep(
       stepNumber: 5,
-      titleEn: 'Sajdah (Prostration)',
-      titleBn: 'সেজদাহ',
-      descEn: 'Prostrate and recite the glorification 3 times.',
-      descBn: 'সেজদায় গিয়ে ৩ বার তাসবীহ পাঠ করুন।',
+      titleEn: 'Sajdah', titleBn: 'সিজদাহ',
+      descEn: 'Prostrate and say Tasbih 3 times.',
+      descBn: 'মাটিতে কপাল ঠেকিয়ে ৩ বার এটি পড়ুন।',
       arabic: 'سُبْحَانَ رَبِّيَ الْأَعْلَى',
-      translitEn: 'Subhana Rabbiyal-A\'la',
       translitBn: 'সুবহানা রাব্বিয়াল আলা',
+      meaningBn: 'আমার সর্বোচ্চ প্রতিপালকের পবিত্রতা বর্ণনা করছি।',
     ),
-  ];
-
-  final List<PrayerRakahInfo> prayers = const [
-    PrayerRakahInfo(
-      nameEn: 'Fajr',
-      nameBn: 'ফজর',
-      timeEn: 'Dawn',
-      timeBn: 'ভোর',
-      breakdown: RakahBreakdown(sunnahMuakkadah: 2, fard: 2),
-      descEn: '2 Sunnah + 2 Fard',
-      descBn: '২ রাকাত সুন্নত + ২ রাকাত ফরজ',
-    ),
-    PrayerRakahInfo(
-      nameEn: 'Dhuhr',
-      nameBn: 'যোহর',
-      timeEn: 'Noon',
-      timeBn: 'দুপুর',
-      breakdown: RakahBreakdown(sunnahMuakkadah: 6, fard: 4, nafl: 2),
-      descEn: '4 Sunnah + 4 Fard + 2 Sunnah + 2 Nafl',
-      descBn: '৪ সুন্নত + ৪ ফরজ + ২ সুন্নত + ২ নফল',
-    ),
-    PrayerRakahInfo(
-      nameEn: 'Asr',
-      nameBn: 'আসর',
-      timeEn: 'Afternoon',
-      timeBn: 'বিকাল',
-      breakdown: RakahBreakdown(sunnahGhairMuakkadah: 4, fard: 4),
-      descEn: '4 Sunnah + 4 Fard',
-      descBn: '৪ সুন্নত + ৪ ফরজ',
-    ),
-    PrayerRakahInfo(
-      nameEn: 'Maghrib',
-      nameBn: 'মাগরিব',
-      timeEn: 'Sunset',
-      timeBn: 'সন্ধ্যা',
-      breakdown: RakahBreakdown(fard: 3, sunnahMuakkadah: 2, nafl: 2),
-      descEn: '3 Fard + 2 Sunnah + 2 Nafl',
-      descBn: '৩ ফরজ + ২ সুন্নত + ২ নফল',
-    ),
-    PrayerRakahInfo(
-      nameEn: 'Isha',
-      nameBn: 'ইশা',
-      timeEn: 'Night',
-      timeBn: 'রাত',
-      breakdown: RakahBreakdown(fard: 4, sunnahMuakkadah: 2, witr: 3),
-      descEn: '4 Fard + 2 Sunnah + 3 Witr',
-      descBn: '৪ ফরজ + ২ সুন্নত + ৩ বিতর',
-    ),
-  ];
-
-  final List<MistakeInfo> commonMistakes = const [
-    MistakeInfo(
-      titleEn: 'Moving too fast',
-      titleBn: 'তাড়াহুড়ো করা',
-      correctionEn: 'Perform every movement with calmness and stillness (Tumaneenah).',
-      correctionBn: 'নামাজের প্রতিটি রুকন অত্যন্ত ধীরস্থিরভাবে আদায় করুন।',
-    ),
-    MistakeInfo(
-      titleEn: 'Looking around',
-      titleBn: 'এদিকে ওদিকে তাকানো',
-      correctionEn: 'Keep your eyes fixed on the spot where your head touches the ground during prostration.',
-      correctionBn: 'সেজদার জায়গায় দৃষ্টি স্থির রাখুন।',
-    ),
-    MistakeInfo(
-      titleEn: 'Resting forearms on ground',
-      titleBn: 'সেজদায় কনুই মাটিতে রাখা',
-      correctionEn: 'Keep your elbows and forearms raised off the ground during Sajdah (for men).',
-      correctionBn: 'সেজদা করার সময় দুই হাতের কনুই মাটি থেকে উপরে তুলে রাখুন।',
+    SalahStep(
+      stepNumber: 6,
+      titleEn: 'Tashahhud', titleBn: 'তাশাহহুদ (আত্তাহিয়্যাতু)',
+      descEn: 'Sit and recite in 2nd and last Rakah.',
+      descBn: 'নামাজের বৈঠকে বসে এটি পড়তে হয়।',
+      arabic: 'التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ السَّلَامُ عَلَيْكَ أَيُّهَا النَّبِيُّ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ...',
+      translitBn: 'আত্তাহিয়্যাতু লিল্লাহি ওয়াস সালাওয়াতু ওয়াত তাইয়্যিবাতু, আসসালামু আলাইকা আইয়ুহান নাবিয়্যু ওয়া রাহমাতুল্লাহি ওয়া বারাকাতুহু...',
+      meaningBn: 'সমস্ত মৌখিক, শারীরিক ও আর্থিক ইবাদত আল্লাহর জন্য। হে নবী! আপনার উপর শান্তি, আল্লাহর রহমত ও বরকত বর্ষিত হোক...',
     ),
   ];
 
   final List<Map<String, String>> shortSurahs = const [
     {
-      'nameEn': 'Al-Fatihah',
-      'nameBn': 'আল-ফাতিহা',
-      'arabic': 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ (১) الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ (২) الرَّحْمَٰنِ الرَّحِيمِ (৩) مَالِكِ يَوْمِ الدِّينِ (৪) إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ (৫) اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ (৬) صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ (৭)',
-      'descEn': 'Essential for every Rak\'ah of Salah.',
-      'descBn': 'নামাজের প্রতিটি রাকাতে এটি পাঠ করা আবশ্যক।',
+      'nameBn': 'সূরা আল-ইখলাস',
+      'arabic': 'قُلْ هُوَ اللَّهُ أَحَدٌ ۞ اللَّهُ الصَّمَدُ ۞ لَمْ يَلِدْ وَلَمْ يُولَدْ ۞ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ',
+      'translit': 'কুল হুওয়াল্লাহু আহাদ। আল্লাহু সামাদ। লাম ইয়ালিদ ওয়া লাম ইউলাদ। ওয়া লাম ইয়াকুল্লাহু কুফুয়ান আহাদ।',
+      'meaning': 'বলুন, তিনিই আল্লাহ, এক-অদ্বিতীয়। আল্লাহ কারো মুখাপেক্ষী নন, সবাই তাঁর মুখাপেক্ষী। তিনি কাউকে জন্ম দেননি এবং তাঁকেও জন্ম দেয়া হয়নি। এবং তাঁর সমতুল্য কেউ নেই।',
     },
     {
-      'nameEn': 'Al-Ikhlas',
-      'nameBn': 'আল-ইখলাস',
-      'arabic': 'قُلْ هُوَ اللَّهُ أَحَدٌ (১) اللَّهُ الصَّمَدُ (২) لَمْ يَلِدْ وَلَمْ يُولَدْ (৩) وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ (৪)',
-      'descEn': 'Declaration of Allah\'s Oneness.',
-      'descBn': 'আল্লাহর একত্ববাদের ঘোষণা। এটি কুরআনের এক-তৃতীয়াংশের সমান।',
-    },
-    {
-      'nameEn': 'Al-Falaq',
-      'nameBn': 'আল-ফালাক',
-      'arabic': 'قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ (১) مِن شَرِّ مَا خَلَقَ (২) وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ (৩) وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ (৪) وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ (৫)',
-      'descEn': 'Seeking protection from outer evils.',
-      'descBn': 'বাইরের অনিষ্ট থেকে আল্লাহর কাছে আশ্রয় চাওয়ার সূরা।',
-    },
-    {
-      'nameEn': 'An-Nas',
-      'nameBn': 'আন-নাস',
-      'arabic': 'قُلْ أَعُوذُ بِرَبِّ النَّاسِ (১) مَلِكِ النَّاسِ (২) إِلَٰهِ النَّاسِ (৩) مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ (৪) الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ (৫) مِنَ الْجِنَّةِ وَالنَّاسِ (৬)',
-      'descEn': 'Seeking protection from inner whispers.',
-      'descBn': 'শয়তানের কুপ্ররোচনা থেকে আল্লাহর কাছে আশ্রয় চাওয়ার সূরা।',
+      'nameBn': 'সূরা আল-কাউসার',
+      'arabic': 'إِنَّا أَعْطَيْنَاكَ الْكَوْوثرَ ۞ فَصَلِّ لِرَبِّكَ وَانْحَرْ ۞ إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ',
+      'translit': 'ইন্না আ’তাইনা কাল কাউসার। ফাসাল্লি লিরাব্বিকা ওয়ানহার। ইন্না শানিআকা হুওয়াল আবতার।',
+      'meaning': 'নিশ্চয় আমি আপনাকে কাউসার দান করেছি। অতএব আপনার প্রতিপালকের উদ্দেশ্যে নামাজ পড়ুন এবং কোরবানি করুন। নিশ্চয় আপনার শত্রুই নির্বংশ।',
     },
   ];
 
-  final List<Map<String, String>> adabEtiquette = const [
-    {
-      'titleEn': 'Eating',
-      'titleBn': 'খাওয়ার আদব',
-      'descEn': 'Say "Bismillah", eat with right hand, and say "Alhamdulillah" after finishing.',
-      'descBn': 'বিসমিল্লাহ বলে শুরু করা, ডান হাতে খাওয়া এবং শেষে আলহামদুলিল্লাহ বলা।',
-    },
-    {
-      'titleEn': 'Sleeping',
-      'titleBn': 'শোয়ার আদব',
-      'descEn': 'Perform Wudu, sleep on the right side, and recite the sleeping dua.',
-      'descBn': 'ওযু করা, ডান কাতে শোয়া এবং শোয়ার দোয়া পাঠ করা।',
-    },
-    {
-      'titleEn': 'Speaking',
-      'titleBn': 'কথা বলার আদব',
-      'descEn': 'Speak the truth, be kind, and avoid backbiting or lying.',
-      'descBn': 'সত্য কথা বলা, নম্রভাবে কথা বলা এবং গীবত বা মিথ্যা পরিহার করা।',
-    },
+  final List<PrayerRakahInfo> prayers = const [
+    PrayerRakahInfo(nameEn: 'Fajr', nameBn: 'ফজর', timeEn: 'Dawn', timeBn: 'ভোর', breakdown: RakahBreakdown(sunnahMuakkadah: 2, fard: 2), descEn: '2 Sunnah, 2 Fard', descBn: '২ রাকাত সুন্নত, ২ রাকাত ফরজ।'),
+    PrayerRakahInfo(nameEn: 'Dhuhr', nameBn: 'যোহর', timeEn: 'Noon', timeBn: 'দুপুর', breakdown: RakahBreakdown(sunnahMuakkadah: 6, fard: 4, nafl: 2), descEn: '4+2 Sunnah, 4 Fard, 2 Nafl', descBn: '৪+২ রাকাত সুন্নত, ৪ রাকাত ফরজ, ২ রাকাত নফল।'),
+    PrayerRakahInfo(nameEn: 'Asr', nameBn: 'আসর', timeEn: 'Afternoon', timeBn: 'বিকাল', breakdown: RakahBreakdown(fard: 4, sunnahGhairMuakkadah: 4), descEn: '4 Fard, 4 Sunnah', descBn: '৪ রাকাত ফরজ, ৪ রাকাত সুন্নতে গাইরে মুয়াক্কাদাহ।'),
+    PrayerRakahInfo(nameEn: 'Maghrib', nameBn: 'মাগরিব', timeEn: 'Sunset', timeBn: 'সন্ধ্যা', breakdown: RakahBreakdown(fard: 3, sunnahMuakkadah: 2, nafl: 2), descEn: '3 Fard, 2 Sunnah, 2 Nafl', descBn: '৩ রাকাত ফরজ, ২ রাকাত সুন্নত, ২ রাকাত নফল।'),
+    PrayerRakahInfo(nameEn: 'Isha', nameBn: 'ইশা', timeEn: 'Night', timeBn: 'রাত', breakdown: RakahBreakdown(fard: 4, sunnahMuakkadah: 2, witr: 3), descEn: '4 Fard, 2 Sunnah, 3 Witr', descBn: '৪ রাকাত ফরজ, ২ রাকাত সুন্নত, ৩ রাকাত বিতর।'),
   ];
 
-  void nextSalahStep() {
-    if (currentSalahStep.value < salahSteps.length - 1) {
-      currentSalahStep.value++;
-    }
-  }
+  final List<MistakeInfo> commonMistakes = const [
+    MistakeInfo(titleEn: 'Fast Speed', titleBn: 'তাড়াহুড়ো করা', correctionEn: 'Pray slowly.', correctionBn: 'নামাজের প্রতিটি কাজ ধীরস্থিরভাবে আদায় করুন।'),
+    MistakeInfo(titleEn: 'Eyes position', titleBn: 'দৃষ্টি এদিক সেদিক করা', correctionEn: 'Look at Sajdah spot.', correctionBn: 'সেজদার জায়গায় দৃষ্টি স্থির রাখুন।'),
+  ];
 
-  void prevSalahStep() {
-    if (currentSalahStep.value > 0) {
-      currentSalahStep.value--;
-    }
-  }
+  void nextSalahStep() { if (currentSalahStep.value < salahSteps.length - 1) currentSalahStep.value++; }
+  void prevSalahStep() { if (currentSalahStep.value > 0) currentSalahStep.value--; }
+}
+
+class PrayerRakahInfo {
+  final String nameEn; final String nameBn; final String timeEn; final String timeBn;
+  final RakahBreakdown breakdown; final String descEn; final String descBn;
+  const PrayerRakahInfo({required this.nameEn, required this.nameBn, required this.timeEn, required this.timeBn, required this.breakdown, required this.descEn, required this.descBn});
+}
+
+class RakahBreakdown {
+  final int fard; final int sunnahMuakkadah; final int sunnahGhairMuakkadah; final int nafl; final int witr;
+  const RakahBreakdown({this.fard = 0, this.sunnahMuakkadah = 0, this.sunnahGhairMuakkadah = 0, this.nafl = 0, this.witr = 0});
+}
+
+class MistakeInfo {
+  final String titleEn; final String titleBn; final String correctionEn; final String correctionBn;
+  const MistakeInfo({required this.titleEn, required this.titleBn, required this.correctionEn, required this.correctionBn});
 }
