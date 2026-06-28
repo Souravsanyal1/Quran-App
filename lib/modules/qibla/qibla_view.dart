@@ -18,7 +18,7 @@ class QiblaView extends StatelessWidget {
     final c = Get.find<QiblaController>();
     final isDark = settings.isDark;
 
-    // Premium Zinc/Dark theme based on image
+    // Premium Zinc/Dark theme based on request (No green)
     final Color dialBg = isDark ? const Color(0xFF09090B) : const Color(0xFFFFFBF0);
     final Color cardBg = isDark ? const Color(0xFF18181B) : const Color(0xFFFFF4E0);
     final Color orangeColor = AppColors.primary;
@@ -28,7 +28,7 @@ class QiblaView extends StatelessWidget {
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        leading: const AppBackButton(color: Colors.white),
+        leading: const AppBackButton(color: Colors.white), // Always White back button
         backgroundColor: isDark ? const Color(0xFF09090B) : AppColors.primary,
         elevation: 0,
         centerTitle: true,
@@ -51,12 +51,14 @@ class QiblaView extends StatelessWidget {
         final data = c.direction.value;
         if (data == null) return _buildShimmerLoading(isDark);
 
-        final double qiblaOffset = data.qiblah;
+        // data.direction: Device heading (0-360)
+        // data.qiblah: Qibla bearing from North (0-360)
+        // offset: qiblah - direction (Angle to rotate needle from Top)
         final double deviceHeading = data.direction;
+        final double qiblaBearing = data.qiblah;
+        final double offset = qiblaBearing - deviceHeading;
         
-        // Final Bearing of Qibla from North
-        final double qiblaBearing = (qiblaOffset + deviceHeading) % 360;
-        final bool isAligned = qiblaOffset.abs() < 5 || qiblaOffset.abs() > 355;
+        final bool isAligned = offset.abs() < 5 || offset.abs() > 355;
         c.handleAlignmentVibration(isAligned);
 
         return Container(
@@ -76,14 +78,16 @@ class QiblaView extends StatelessWidget {
                 children: [
                   const SizedBox(height: 10),
                   
+                  // Location Info
                   _buildLocationCard(c, cardBg, orangeColor, settings, isDark, textColor),
                   
                   const SizedBox(height: 20),
 
+                  // Stats Info
                   Row(
                     children: [
                       Expanded(child: _buildStatCard(
-                        settings.isBangla ? 'কিবলার দিক' : 'Qibla Direction',
+                        settings.isBangla ? 'কিবলার দিক' : 'Qibla Bearing',
                         '${qiblaBearing.round()}°',
                         settings.isBangla ? 'উত্তর থেকে' : 'From North',
                         Icons.explore_outlined, cardBg, orangeColor, textColor, isDark
@@ -114,7 +118,7 @@ class QiblaView extends StatelessWidget {
                           ),
                         ),
                         
-                        // 1. Rotating Compass Plate (N points North)
+                        // 1. Rotating Compass Dial (Stays aligned with Earth's North)
                         TweenAnimationBuilder<double>(
                           tween: Tween<double>(begin: 0, end: (deviceHeading * (math.pi / 180) * -1)),
                           duration: const Duration(milliseconds: 300),
@@ -138,6 +142,7 @@ class QiblaView extends StatelessWidget {
                                     _buildCardinalLabel('S', 180, orangeColor, isDark),
                                     _buildCardinalLabel('W', 270, orangeColor, isDark),
                                     
+                                    // Ticks
                                     ...List.generate(72, (i) => Transform.rotate(
                                       angle: (i * 5) * (math.pi / 180),
                                       child: Align(
@@ -156,9 +161,9 @@ class QiblaView extends StatelessWidget {
                           },
                         ),
 
-                        // 2. Needle (Fixed relative to Phone, points to Kaaba)
+                        // 2. Needle (Rotating relative to phone to point at Makkah)
                         TweenAnimationBuilder<double>(
-                          tween: Tween<double>(begin: 0, end: (qiblaOffset * (math.pi / 180))),
+                          tween: Tween<double>(begin: 0, end: (offset * (math.pi / 180))),
                           duration: const Duration(milliseconds: 500),
                           curve: Curves.easeOut,
                           builder: (context, angle, child) {
@@ -167,6 +172,7 @@ class QiblaView extends StatelessWidget {
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
+                                  // Kaaba Icon at the tip
                                   Positioned(
                                     top: -5,
                                     child: Container(
@@ -175,6 +181,7 @@ class QiblaView extends StatelessWidget {
                                       child: Image.network('https://img.icons8.com/color/48/kaaba.png', width: 24, height: 24),
                                     ),
                                   ),
+                                  // 3D Orange Needle
                                   Container(
                                     width: 200, height: 200,
                                     child: CustomPaint(painter: LuxuryNeedlePainter(color: orangeColor)),
@@ -185,6 +192,7 @@ class QiblaView extends StatelessWidget {
                           },
                         ),
                         
+                        // Center Pin
                         Container(
                           width: 20, height: 20,
                           decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: orangeColor, width: 3)),
@@ -195,6 +203,7 @@ class QiblaView extends StatelessWidget {
 
                   const SizedBox(height: 40),
                   
+                  // Instruction Card
                   _buildBottomInstruction(cardBg, orangeColor, settings, textColor, isDark),
                   
                   const SizedBox(height: 20),
