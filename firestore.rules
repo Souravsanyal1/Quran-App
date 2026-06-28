@@ -40,6 +40,10 @@ service cloud.firestore {
     // User profiles
     match /users/{userId} {
       allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      match /notifications/{notificationId} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      }
     }
 
     // Admins collection (Public read to allow isAdmin check to work efficiently)
