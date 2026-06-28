@@ -40,6 +40,8 @@ class _PosturePainter extends CustomPainter {
 
     switch (posture) {
       case PrayerPosture.standing:
+        _drawStanding(canvas, w, h, armsFolded: false);
+        break;
       case PrayerPosture.qiyam:
         _drawStanding(canvas, w, h, armsFolded: true);
         break;

@@ -74,7 +74,7 @@ class NamazGuideView extends GetView<NamazGuideController> {
                       child: LinearProgressIndicator(
                         value: controller.progress,
                         minHeight: 8,
-                        backgroundColor: AppColors.primary.withOpacity(0.12),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                         valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                       ),
                     ),
@@ -99,9 +99,9 @@ class NamazGuideView extends GetView<NamazGuideController> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.06),
+                          color: AppColors.primary.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+                          border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
                         ),
                         child: PostureIllustration(
                           posture: step.posture,
@@ -145,7 +145,7 @@ class NamazGuideView extends GetView<NamazGuideController> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.06),
+                            color: AppColors.primary.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Column(
