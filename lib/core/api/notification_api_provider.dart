@@ -33,7 +33,7 @@ class NotificationApiProvider {
 
       // Combine and sort
       final all = [...personal, ...broadcast];
-      all.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+      all.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       
       return all;
     } catch (e) {
