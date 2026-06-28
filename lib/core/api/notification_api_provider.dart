@@ -3,7 +3,8 @@ import 'package:logger/logger.dart';
 import '../../data/models/notification_model.dart' as app_notification_model;
 
 class NotificationApiProvider {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Use a getter to ensure we always use the initialized instance
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
   final Logger _logger = Logger();
 
   NotificationApiProvider();
@@ -45,15 +46,11 @@ class NotificationApiProvider {
   /// Marks a specific notification as read.
   Future<void> markNotificationAsRead(String userId, String notificationId) async {
     try {
-      // Check personal collection first
       final docRef = _firestore.collection('users').doc(userId).collection('notifications').doc(notificationId);
       final doc = await docRef.get();
       
       if (doc.exists) {
         await docRef.update({'isRead': true});
-      } else {
-        // Broadcast notifications marking as read is more complex (usually per-user state)
-        // For simplicity, we just ignore for now or handle locally in the app
       }
     } catch (e) {
       _logger.e('Error marking notification as read: $e');

@@ -1,41 +1,28 @@
-/// All API base URLs used in the app
-/// All API base URLs used in the app
+/// All API base URLs and static data used in the app
 class AppUrls {
   AppUrls._();
 
-  // ── Backend API ───────────────────────────────────────────────────────────
-  // TODO: Replace with your actual backend API base URL
+  // ── Backend API (Support & Admin) ──────────────────────────────────────────
   static const String backendBaseUrl = 'https://your-backend-api.com/api/v1/';
-
-  // Support Endpoints
   static const String supportTickets = 'support-tickets';
   static const String supportTicketById = 'support-tickets/{ticketId}';
   static const String supportMessages = 'support-tickets/{ticketId}/messages';
   static const String updateTicketStatus = 'support-tickets/{ticketId}/status';
   static const String uploadImage = 'upload-image';
-
-  // Notification Endpoints
-  static const String notifications = 'notifications';
-  static const String notificationsRead = 'notifications/{notificationId}/read';
-  static const String notificationsMarkAllRead = 'notifications/mark-all-read';
-  static const String notificationsDelete = 'notifications/{notificationId}';
   static const String notificationsBroadcast = 'broadcast-notifications';
-
 
   // ── Quran API ─────────────────────────────────────────────────────────────
   static const String quranBase = 'https://api.alquran.cloud/v1';
   static const String quranSurahList = '$quranBase/surah';
   static const String quranSurah = '$quranBase/surah/{number}/editions/quran-uthmani,bn.bengali,en.asad,en.transliteration';
-  // Note: juz/editions endpoint returns 404; use two separate calls
   static const String quranParaArabic = '$quranBase/juz/{number}/quran-uthmani';
   static const String quranParaBangla = '$quranBase/juz/{number}/bn.bengali';
 
   // ── Audio CDN ────────────────────────────────────────────────────────────
   // EveryAyah - High Quality & Stable
   static const String everyAyahBase = 'https://everyayah.com/data';
-  // Per-ayah audio (Usage: $everyAyahBase/{qari_id}/{global_ayah_number}.mp3)
   
-  // Legacy Islamic Network Base
+  // Legacy Islamic Network Base (Fallback)
   static const String audioBase = 'https://cdn.islamic.network/quran/audio-surah/128';
   static const String ayahAudioBase = 'https://cdn.islamic.network/quran/audio/128';
 
@@ -51,28 +38,24 @@ class AppUrls {
   static const String quranComBaseV4 = 'https://api.quran.com/api/v4';
   static const String wordsBySurah = '$quranComBaseV4/verses/by_chapter/{number}';
   static const String tafsirList = '$quranComBaseV4/resources/tafsirs';
-  static const String tafsirContent = '$quranComBaseV4/quran/tafsirs/{tafsir_id}';
 
-  // ── Hadith API (Sunnah.com & Open) ────────────────────────────────────────
-  static const String sunnahApiBase = 'https://api.sunnah.com/v1'; // Needs API Key
+  // ── Hadith API ────────────────────────────────────────────────────────────
   static const String hadithBase = 'https://api.hadith.gading.dev';
   static const String hadithBooks = '$hadithBase/books';
   static const String hadithByBook = '$hadithBase/books/{book}';
 
   // ── Dua (Hisn-ul-Muslim) ──────────────────────────────────────────────────
-  static const String hisnMuslimBase = 'https://hisnmuslim.com/api/en'; // JSON format
-  
-  // ── Geolocation & Maps ──────────────────────────────────────────────────
+  static const String hisnMuslimBase = 'https://hisnmuslim.com/api/en';
+
+  // ── Geolocation & External ───────────────────────────────────────────────
   static const String ipLocation = 'https://ipapi.co/json/';
   static const String reverseGeocode = 'https://nominatim.openstreetmap.org/reverse';
-  
-  // ── AI & Quotes ──────────────────────────────────────────────────
   static const String quotesBase = 'https://islamic-quotes.vercel.app/api';
   static const String randomQuote = '$quotesBase/quotes/random';
 
   // ── Default Qari Identifiers ──────────────────────────────────────────────
   static const String defaultQari = 'ar.alafasy';
-  static const String defaultQariId = 'ar.alafasy'; // Mishary Rashid Alafasy
+  static const String defaultQariId = 'ar.alafasy';
   static const List<Map<String, String>> qariList = [
     {'id': 'ar.alafasy', 'name': 'Mishary Rashid Alafasy', 'bitrate': '128'},
     {'id': 'ar.abdullahbasfar', 'name': 'Abdullah Basfar', 'bitrate': '64'},

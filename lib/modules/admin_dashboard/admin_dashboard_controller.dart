@@ -9,7 +9,7 @@ import '../../data/repositories/notification_repository.dart';
 class AdminDashboardController extends GetxController {
   final SupportRepository _supportRepository;
   final NotificationRepository _notificationRepository;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   AdminDashboardController(this._supportRepository, this._notificationRepository);
 

@@ -18,18 +18,18 @@ class QiblaView extends StatelessWidget {
     final c = Get.find<QiblaController>();
     final isDark = settings.isDark;
 
-    // Custom Luxury Colors
-    final Color dialBg = isDark ? const Color(0xFF0D1B13) : const Color(0xFFFFFBF0);
-    final Color cardBg = isDark ? const Color(0xFF14241B) : const Color(0xFFFFF4E0);
+    // Custom Luxury Colors - Dark Mode is now Zinc/Black, not green
+    final Color dialBg = isDark ? const Color(0xFF18181B) : const Color(0xFFFFFBF0);
+    final Color cardBg = isDark ? const Color(0xFF27272A) : const Color(0xFFFFF4E0);
     final Color orangeColor = AppColors.primary;
-    final Color scaffoldBg = isDark ? const Color(0xFF08120D) : const Color(0xFFFFF9E6);
+    final Color scaffoldBg = isDark ? const Color(0xFF09090B) : const Color(0xFFFFF9E6);
     final Color textColor = isDark ? Colors.white : const Color(0xFF4A3428);
 
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
         leading: const AppBackButton(color: Colors.white),
-        backgroundColor: isDark ? const Color(0xFF0D1B13) : AppColors.primary,
+        backgroundColor: isDark ? const Color(0xFF09090B) : AppColors.primary,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -51,9 +51,7 @@ class QiblaView extends StatelessWidget {
         final data = c.direction.value;
         if (data == null) return _buildShimmerLoading(isDark);
 
-        // data.qiblah is the offset from device heading to Kaaba
         final double qiblaOffset = data.qiblah;
-        // data.direction is the heading from North
         final double deviceHeading = data.direction;
         
         final bool isAligned = qiblaOffset.abs() < 5 || qiblaOffset.abs() > 355;
@@ -62,48 +60,53 @@ class QiblaView extends StatelessWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                
-                // 1. Top Location Card
-                _buildLocationCard(c, cardBg, orangeColor, settings, isDark, textColor),
-                
-                const SizedBox(height: 20),
+          decoration: BoxDecoration(
+            gradient: isDark ? const LinearGradient(
+              colors: [Color(0xFF09090B), Color(0xFF020202)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ) : null,
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  
+                  _buildLocationCard(c, cardBg, orangeColor, settings, isDark, textColor),
+                  
+                  const SizedBox(height: 20),
 
-                // 2. Middle Stats Row
-                Row(
-                  children: [
-                    Expanded(child: _buildStatCard(
-                      settings.isBangla ? 'কিবলার দিক' : 'Qibla Direction',
-                      '${(qiblaOffset + deviceHeading) % 360 >= 0 ? ((qiblaOffset + deviceHeading) % 360).round() : ((qiblaOffset + deviceHeading) % 360 + 360).round()}°',
-                      settings.isBangla ? 'উত্তর থেকে' : 'From North',
-                      Icons.explore_outlined, cardBg, orangeColor, textColor, isDark
-                    )),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard(
-                      settings.isBangla ? 'কাবা থেকে দূরত্ব' : 'Distance to Kaaba',
-                      '${c.distanceToKaaba.value.toStringAsFixed(0)} km',
-                      settings.isBangla ? 'প্রায়' : 'Approx',
-                      Icons.location_on_outlined, cardBg, orangeColor, textColor, isDark
-                    )),
-                  ],
-                ),
+                  Row(
+                    children: [
+                      Expanded(child: _buildStatCard(
+                        settings.isBangla ? 'কিবলার দিক' : 'Qibla Direction',
+                        '${(qiblaOffset + deviceHeading) % 360 >= 0 ? ((qiblaOffset + deviceHeading) % 360).round() : ((qiblaOffset + deviceHeading) % 360 + 360).round()}°',
+                        settings.isBangla ? 'উত্তর থেকে' : 'From North',
+                        Icons.explore_outlined, cardBg, orangeColor, textColor, isDark
+                      )),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildStatCard(
+                        settings.isBangla ? 'কাবা থেকে দূরত্ব' : 'Distance to Kaaba',
+                        '${c.distanceToKaaba.value.toStringAsFixed(0)} km',
+                        settings.isBangla ? 'প্রায়' : 'Approx',
+                        Icons.location_on_outlined, cardBg, orangeColor, textColor, isDark
+                      )),
+                    ],
+                  ),
 
-                const SizedBox(height: 40),
+                  const SizedBox(height: 40),
 
-                // 3. Main Compass
-                _buildCompassUI(data, isAligned, dialBg, orangeColor, isDark),
+                  _buildCompassUI(data, isAligned, dialBg, orangeColor, isDark),
 
-                const SizedBox(height: 40),
-                
-                // 4. Bottom Instruction Card
-                _buildBottomInstruction(cardBg, orangeColor, settings, textColor, isDark),
-                
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 40),
+                  
+                  _buildBottomInstruction(cardBg, orangeColor, settings, textColor, isDark),
+                  
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         );
@@ -177,7 +180,6 @@ class QiblaView extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Outer decorative ring
           Container(
             width: 310, height: 310,
             decoration: BoxDecoration(
@@ -186,7 +188,6 @@ class QiblaView extends StatelessWidget {
             ),
           ),
           
-          // Rotating Compass Plate (N points to North)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: (data.direction * (math.pi / 180) * -1)),
             duration: const Duration(milliseconds: 300),
@@ -228,7 +229,6 @@ class QiblaView extends StatelessWidget {
             },
           ),
 
-          // Rotating Needle (Points to Qibla relative to phone)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0, end: (data.qiblah * (math.pi / 180))),
             duration: const Duration(milliseconds: 500),
