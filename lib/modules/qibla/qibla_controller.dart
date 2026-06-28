@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_qiblah/flutter_qiblah.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:vibration/vibration.dart';
 
 class QiblaController extends GetxController {
@@ -94,6 +95,21 @@ class QiblaController extends GetxController {
 
   Future<void> _getAddressFromLatLng(double lat, double lng) async {
     try {
+      // Use native geocoding first (more reliable on mobile)
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final city = p.locality ?? p.subAdministrativeArea ?? p.administrativeArea ?? '';
+        final country = p.country ?? '';
+        currentAddress.value = city.isNotEmpty ? '$city, $country' : country;
+        return;
+      }
+    } catch (e) {
+      Get.log('Native geocoding failed, trying fallback API: $e');
+    }
+
+    try {
+      // Fallback to Nominatim API if native fails
       final dio = Dio();
       final response = await dio.get(
         'https://nominatim.openstreetmap.org/reverse',
@@ -107,12 +123,12 @@ class QiblaController extends GetxController {
       );
       if (response.statusCode == 200) {
         final address = response.data['address'];
-        final city = address['city'] ?? address['town'] ?? address['state'] ?? 'Unknown';
+        final city = address['city'] ?? address['town'] ?? address['village'] ?? address['state'] ?? 'Unknown';
         final country = address['country'] ?? '';
         currentAddress.value = '$city, $country';
       }
     } catch (e) {
-      currentAddress.value = 'Locally Detected';
+      currentAddress.value = 'Detection Error';
     }
   }
 
