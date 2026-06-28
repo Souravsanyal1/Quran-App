@@ -18,11 +18,11 @@ class QiblaView extends StatelessWidget {
     final c = Get.find<QiblaController>();
     final isDark = settings.isDark;
 
-    // Custom Luxury Colors - Dark Mode is now Zinc/Black, not green
-    final Color dialBg = isDark ? const Color(0xFF18181B) : const Color(0xFFFFFBF0);
-    final Color cardBg = isDark ? const Color(0xFF27272A) : const Color(0xFFFFF4E0);
+    // Premium Zinc/Dark theme based on image
+    final Color dialBg = isDark ? const Color(0xFF09090B) : const Color(0xFFFFFBF0);
+    final Color cardBg = isDark ? const Color(0xFF18181B) : const Color(0xFFFFF4E0);
     final Color orangeColor = AppColors.primary;
-    final Color scaffoldBg = isDark ? const Color(0xFF09090B) : const Color(0xFFFFF9E6);
+    final Color scaffoldBg = isDark ? const Color(0xFF020202) : const Color(0xFFFFF9E6);
     final Color textColor = isDark ? Colors.white : const Color(0xFF4A3428);
 
     return Scaffold(
@@ -54,6 +54,8 @@ class QiblaView extends StatelessWidget {
         final double qiblaOffset = data.qiblah;
         final double deviceHeading = data.direction;
         
+        // Final Bearing of Qibla from North
+        final double qiblaBearing = (qiblaOffset + deviceHeading) % 360;
         final bool isAligned = qiblaOffset.abs() < 5 || qiblaOffset.abs() > 355;
         c.handleAlignmentVibration(isAligned);
 
@@ -82,7 +84,7 @@ class QiblaView extends StatelessWidget {
                     children: [
                       Expanded(child: _buildStatCard(
                         settings.isBangla ? 'কিবলার দিক' : 'Qibla Direction',
-                        '${(qiblaOffset + deviceHeading) % 360 >= 0 ? ((qiblaOffset + deviceHeading) % 360).round() : ((qiblaOffset + deviceHeading) % 360 + 360).round()}°',
+                        '${qiblaBearing.round()}°',
                         settings.isBangla ? 'উত্তর থেকে' : 'From North',
                         Icons.explore_outlined, cardBg, orangeColor, textColor, isDark
                       )),
@@ -98,7 +100,98 @@ class QiblaView extends StatelessWidget {
 
                   const SizedBox(height: 40),
 
-                  _buildCompassUI(data, isAligned, dialBg, orangeColor, isDark),
+                  // COMPASS UI
+                  Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Static outer ring
+                        Container(
+                          width: 310, height: 310,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: orangeColor.withOpacity(0.15), width: 1),
+                          ),
+                        ),
+                        
+                        // 1. Rotating Compass Plate (N points North)
+                        TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0, end: (deviceHeading * (math.pi / 180) * -1)),
+                          duration: const Duration(milliseconds: 300),
+                          builder: (context, angle, child) {
+                            return Transform.rotate(
+                              angle: angle,
+                              child: Container(
+                                width: 290, height: 290,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: dialBg,
+                                  border: Border.all(color: orangeColor.withOpacity(0.8), width: 3),
+                                  boxShadow: [
+                                    BoxShadow(color: isAligned ? orangeColor.withOpacity(0.3) : Colors.black26, blurRadius: 30, spreadRadius: 5),
+                                  ],
+                                ),
+                                child: Stack(
+                                  children: [
+                                    _buildCardinalLabel('N', 0, orangeColor, isDark, isN: true),
+                                    _buildCardinalLabel('E', 90, orangeColor, isDark),
+                                    _buildCardinalLabel('S', 180, orangeColor, isDark),
+                                    _buildCardinalLabel('W', 270, orangeColor, isDark),
+                                    
+                                    ...List.generate(72, (i) => Transform.rotate(
+                                      angle: (i * 5) * (math.pi / 180),
+                                      child: Align(
+                                        alignment: Alignment.topCenter,
+                                        child: Container(
+                                          height: i % 6 == 0 ? 12 : 5, width: 1.5,
+                                          margin: const EdgeInsets.only(top: 8),
+                                          color: orangeColor.withOpacity(i % 6 == 0 ? 0.8 : 0.3),
+                                        ),
+                                      ),
+                                    )),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        // 2. Needle (Fixed relative to Phone, points to Kaaba)
+                        TweenAnimationBuilder<double>(
+                          tween: Tween<double>(begin: 0, end: (qiblaOffset * (math.pi / 180))),
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeOut,
+                          builder: (context, angle, child) {
+                            return Transform.rotate(
+                              angle: angle,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Positioned(
+                                    top: -5,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(color: isAligned ? orangeColor : (isDark ? Colors.black87 : Colors.white), shape: BoxShape.circle, border: Border.all(color: orangeColor)),
+                                      child: Image.network('https://img.icons8.com/color/48/kaaba.png', width: 24, height: 24),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 200, height: 200,
+                                    child: CustomPaint(painter: LuxuryNeedlePainter(color: orangeColor)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        
+                        Container(
+                          width: 20, height: 20,
+                          decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: orangeColor, width: 3)),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 40),
                   
@@ -175,97 +268,6 @@ class QiblaView extends StatelessWidget {
     );
   }
 
-  Widget _buildCompassUI(QiblahDirection data, bool isAligned, Color dialBg, Color orange, bool isDark) {
-    return Center(
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 310, height: 310,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: orange.withOpacity(0.2), width: 1),
-            ),
-          ),
-          
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: (data.direction * (math.pi / 180) * -1)),
-            duration: const Duration(milliseconds: 300),
-            builder: (context, angle, child) {
-              return Transform.rotate(
-                angle: angle,
-                child: Container(
-                  width: 290, height: 290,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: dialBg,
-                    border: Border.all(color: orange.withOpacity(0.8), width: 3),
-                    boxShadow: [
-                      BoxShadow(color: isAligned ? orange.withOpacity(0.3) : Colors.black26, blurRadius: 30, spreadRadius: 5),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      _buildCardinalLabel('N', 0, orange, isDark, isN: true),
-                      _buildCardinalLabel('E', 90, orange, isDark),
-                      _buildCardinalLabel('S', 180, orange, isDark),
-                      _buildCardinalLabel('W', 270, orange, isDark),
-                      
-                      ...List.generate(72, (i) => Transform.rotate(
-                        angle: (i * 5) * (math.pi / 180),
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                            height: i % 6 == 0 ? 12 : 5, width: 1.5,
-                            margin: const EdgeInsets.only(top: 8),
-                            color: orange.withOpacity(i % 6 == 0 ? 0.8 : 0.3),
-                          ),
-                        ),
-                      )),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: (data.qiblah * (math.pi / 180))),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOut,
-            builder: (context, angle, child) {
-              return Transform.rotate(
-                angle: angle,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Positioned(
-                      top: -5,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(color: isAligned ? orange : Colors.black87, shape: BoxShape.circle, border: Border.all(color: orange)),
-                        child: Image.network('https://img.icons8.com/color/48/kaaba.png', width: 24, height: 24),
-                      ),
-                    ),
-                    Container(
-                      width: 200, height: 200,
-                      child: CustomPaint(painter: LuxuryNeedlePainter(color: orange)),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          
-          Container(
-            width: 20, height: 20,
-            decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: orange, width: 3)),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCardinalLabel(String label, double angle, Color color, bool isDark, {bool isN = false}) {
     return Transform.rotate(
       angle: angle * (math.pi / 180),
@@ -307,8 +309,8 @@ class QiblaView extends StatelessWidget {
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(s.isBangla ? 'কিবলার দিকে মুখ করুন' : 'Face towards the Kaaba', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(s.isBangla ? 'তীরচিহ্নটি কাবার সাথে মিলিয়ে নিন' : 'Align the arrow with the Kaaba icon', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+              Text(s.isBangla ? 'কিবলার দিকে মুখ করুন' : 'Face towards the Kaaba', style: TextStyle(color: isDark ? Colors.white : textColor, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(s.isBangla ? 'তীরচিহ্নটি কাবার সাথে মিলিয়ে নিন' : 'Align the arrow with the Kaaba icon', style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.5), fontSize: 12)),
             ],
           )),
           Icon(Icons.accessibility_new_rounded, color: isDark ? Colors.white24 : textColor.withOpacity(0.1), size: 40),
