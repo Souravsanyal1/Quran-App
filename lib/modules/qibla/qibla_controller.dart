@@ -3,7 +3,6 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_qiblah/flutter_qiblah.dart';
-import 'dart:math' as math;
 import 'package:vibration/vibration.dart';
 
 class QiblaController extends GetxController {
@@ -31,44 +30,64 @@ class QiblaController extends GetxController {
     errorMessage.value = null;
 
     try {
-      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       isLocationEnabled.value = serviceEnabled;
       if (!serviceEnabled) {
+        errorMessage.value = 'লোকেশন সার্ভিস বন্ধ আছে। দয়া করে সেটিংস থেকে চালু করুন।';
         isLoading.value = false;
         return;
       }
 
+      // Check for location permission
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           hasPermission.value = false;
+          errorMessage.value = 'লোকেশন পারমিশন প্রয়োজন।';
           isLoading.value = false;
           return;
         }
       }
 
-      hasPermission.value = true;
-
-      final bool? hasSensor = await FlutterQiblah.androidDeviceSensorSupport();
-      if (hasSensor == false) {
-        errorMessage.value = 'কম্পাস সেন্সর পাওয়া যায়নি';
+      if (permission == LocationPermission.deniedForever) {
+        hasPermission.value = false;
+        errorMessage.value = 'লোকেশন পারমিশন স্থায়ীভাবে বন্ধ। দয়া করে সেটিংস থেকে পারমিশন দিন।';
         isLoading.value = false;
         return;
       }
 
-      final Position position = await Geolocator.getCurrentPosition();
+      hasPermission.value = true;
+
+      // Check for sensor support
+      final bool? hasSensor = await FlutterQiblah.androidDeviceSensorSupport();
+      if (hasSensor == false) {
+        errorMessage.value = 'আপনার ফোনে কম্পাস সেন্সর (Magnetometer) পাওয়া যায়নি।';
+        isLoading.value = false;
+        return;
+      }
+
+      // Get high accuracy position for distance calculation
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      
       latLong.value = '${position.latitude.toStringAsFixed(4)}° N, ${position.longitude.toStringAsFixed(4)}° E';
       
+      // Fetch city name
       _getAddressFromLatLng(position.latitude, position.longitude);
       
+      // Calculate distance to Kaaba
       distanceToKaaba.value = Geolocator.distanceBetween(
         position.latitude, position.longitude, 21.422487, 39.826206
       ) / 1000;
 
+      // Start the stream
       _startQiblaStream();
 
     } catch (e) {
+      errorMessage.value = 'একটি ত্রুটি হয়েছে: $e';
       isLoading.value = false;
     }
   }
@@ -102,6 +121,9 @@ class QiblaController extends GetxController {
     _subscription = FlutterQiblah.qiblahStream.listen((data) {
       direction.value = data;
       if (isLoading.value) isLoading.value = false;
+    }, onError: (e) {
+      errorMessage.value = 'সেন্সর ডাটা পেতে সমস্যা হচ্ছে। ফোনটি সমতলে রেখে দেখুন।';
+      isLoading.value = false;
     });
   }
 
