@@ -70,9 +70,9 @@ class _PosturePainter extends CustomPainter {
   // ---------------- Prayer mat ----------------
   void _drawMat(Canvas canvas, double w, double h) {
     final matRect = Rect.fromLTWH(w * 0.08, h * 0.86, w * 0.84, h * 0.12);
-    final matFill = Paint()..color = color.withOpacity(0.08);
+    final matFill = Paint()..color = color.withValues(alpha: 0.08);
     final matBorder = Paint()
-      ..color = color.withOpacity(0.55)
+      ..color = color.withValues(alpha: 0.55)
       ..style = PaintingStyle.stroke
       ..strokeWidth = w * 0.012;
     final rrect = RRect.fromRectAndRadius(matRect, Radius.circular(w * 0.03));
@@ -83,7 +83,7 @@ class _PosturePainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(innerRect, Radius.circular(w * 0.02)),
       Paint()
-        ..color = color.withOpacity(0.3)
+        ..color = color.withValues(alpha: 0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = w * 0.006,
     );
@@ -121,7 +121,7 @@ class _PosturePainter extends CustomPainter {
   // ---------------- Standing figure ----------------
   void _drawStanding(Canvas canvas, double w, double h, {required bool armsFolded, bool armsRaised = false}) {
     final cx = w * 0.5;
-    final robeFill = Paint()..color = color.withOpacity(0.14);
+    final robeFill = Paint()..color = color.withValues(alpha: 0.14);
     final robeOutline = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -177,7 +177,7 @@ class _PosturePainter extends CustomPainter {
 
   // ---------------- Ruku (bowing) ----------------
   void _drawRuku(Canvas canvas, double w, double h) {
-    final robeFill = Paint()..color = color.withOpacity(0.14);
+    final robeFill = Paint()..color = color.withValues(alpha: 0.14);
     final robeOutline = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -214,7 +214,7 @@ class _PosturePainter extends CustomPainter {
 
   // ---------------- Sujud (prostration) ----------------
   void _drawSujud(Canvas canvas, double w, double h) {
-    final robeFill = Paint()..color = color.withOpacity(0.14);
+    final robeFill = Paint()..color = color.withValues(alpha: 0.14);
     final robeOutline = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
@@ -253,7 +253,7 @@ class _PosturePainter extends CustomPainter {
   void _drawSitting(Canvas canvas, double w, double h, {required bool pointFinger, required bool turnHead}) {
     final cx = w * 0.5;
     final headX = turnHead ? cx - w * 0.1 : cx;
-    final robeFill = Paint()..color = color.withOpacity(0.14);
+    final robeFill = Paint()..color = color.withValues(alpha: 0.14);
     final robeOutline = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
