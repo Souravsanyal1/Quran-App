@@ -33,6 +33,40 @@ class SupportRepository {
         .map((snapshot) => snapshot.docs.map((doc) => _messageFromDoc(doc)).toList());
   }
 
+  Stream<SupportTicket?> streamTicket(String ticketId) {
+    return _firestore.collection('support_tickets').doc(ticketId)
+        .snapshots()
+        .map((doc) => doc.exists ? _ticketFromDoc(doc) : null);
+  }
+
+  Future<void> updateTypingStatus(String ticketId, bool isTyping, {bool isAdmin = false}) async {
+    await _firestore.collection('support_tickets').doc(ticketId).update({
+      isAdmin ? 'isAdminTyping' : 'isUserTyping': isTyping,
+    });
+  }
+
+  Future<void> markMessagesAsRead(String ticketId, {bool isAdmin = false}) async {
+    final senderToMark = isAdmin ? 'user' : 'admin';
+    final messages = await _firestore.collection('support_tickets')
+        .doc(ticketId)
+        .collection('messages')
+        .where('senderType', isEqualTo: senderToMark)
+        .where('isRead', isEqualTo: false)
+        .get();
+
+    final batch = _firestore.batch();
+    for (var doc in messages.docs) {
+      batch.update(doc.reference, {'isRead': true});
+    }
+    
+    // Also reset unread count on ticket if admin is reading
+    if (isAdmin) {
+      batch.update(_firestore.collection('support_tickets').doc(ticketId), {'unreadCount': 0});
+    }
+
+    await batch.commit();
+  }
+
   Future<SupportTicket> createFirestoreTicket(SupportTicket ticket) async {
     final docRef = _firestore.collection('support_tickets').doc();
     final newTicket = SupportTicket(
@@ -44,6 +78,8 @@ class SupportRepository {
       description: ticket.description,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      isUserTyping: false,
+      isAdminTyping: false,
     );
     await docRef.set(_ticketToMap(newTicket));
     return newTicket;
@@ -59,8 +95,13 @@ class SupportRepository {
     });
 
     // Update ticket last message and timestamp
+    String lastMsg = message.message;
+    if (lastMsg.isEmpty && message.imageUrl != null) {
+      lastMsg = "📷 Image";
+    }
+
     await ticketRef.update({
-      'lastMessage': message.message,
+      'lastMessage': lastMsg,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
@@ -99,6 +140,8 @@ class SupportRepository {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastMessage: data['lastMessage'],
+      isUserTyping: data['isUserTyping'] ?? false,
+      isAdminTyping: data['isAdminTyping'] ?? false,
     );
   }
 
@@ -128,6 +171,8 @@ class SupportRepository {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
       'lastMessage': t.lastMessage,
+      'isUserTyping': t.isUserTyping,
+      'isAdminTyping': t.isAdminTyping,
     };
   }
 }

@@ -15,6 +15,8 @@ class SupportTicket {
   final String? lastMessage;
   final int unreadCount;
   final String? assignedAdminId;
+  final bool isUserTyping;
+  final bool isAdminTyping;
 
   SupportTicket({
     required this.id,
@@ -30,6 +32,8 @@ class SupportTicket {
     this.lastMessage,
     this.unreadCount = 0,
     this.assignedAdminId,
+    this.isUserTyping = false,
+    this.isAdminTyping = false,
   });
 
   factory SupportTicket.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,8 @@ class SupportTicket {
       lastMessage: json['lastMessage'] as String?,
       unreadCount: json['unreadCount'] as int? ?? 0,
       assignedAdminId: json['assignedAdminId'] as String?,
+      isUserTyping: json['isUserTyping'] as bool? ?? false,
+      isAdminTyping: json['isAdminTyping'] as bool? ?? false,
     );
   }
 
@@ -73,6 +79,8 @@ class SupportTicket {
       'lastMessage': lastMessage,
       'unreadCount': unreadCount,
       'assignedAdminId': assignedAdminId,
+      'isUserTyping': isUserTyping,
+      'isAdminTyping': isAdminTyping,
     };
   }
 }

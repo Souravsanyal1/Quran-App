@@ -21,14 +21,21 @@ class SupportChatView extends GetView<SupportController> {
         children: [
           Expanded(
             child: Obx(() {
-              if (controller.currentMessages.isEmpty && !controller.isLoading.value) {
+              if (controller.isLoading.value && controller.currentMessages.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (controller.currentMessages.isEmpty) {
                 return _buildEmptyChat();
               }
               return ListView.builder(
                 controller: controller.scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: controller.currentMessages.length,
+                itemCount: controller.currentMessages.length + (controller.isAdminTyping.value ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index == controller.currentMessages.length) {
+                    return _buildTypingIndicator();
+                  }
+
                   final message = controller.currentMessages[index];
                   final isMe = message.senderType == 'user';
                   final showDate = index == 0 || 
@@ -77,7 +84,35 @@ class SupportChatView extends GetView<SupportController> {
         );
       }),
       actions: [
-        IconButton(icon: const Icon(Icons.more_vert_rounded), onPressed: () {}),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert_rounded),
+          onSelected: (value) {
+            if (value == 'whatsapp') controller.launchWhatsApp();
+            if (value == 'facebook') controller.launchFacebook();
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'whatsapp',
+              child: Row(
+                children: [
+                  Icon(Icons.chat_bubble_outline_rounded, color: Colors.green, size: 20),
+                  SizedBox(width: 12),
+                  Text('WhatsApp Support'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'facebook',
+              child: Row(
+                children: [
+                  Icon(Icons.facebook_rounded, color: Colors.blue, size: 20),
+                  SizedBox(width: 12),
+                  Text('Facebook Page'),
+                ],
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -106,6 +141,37 @@ class SupportChatView extends GetView<SupportController> {
             _formatDate(date),
             style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10, fontWeight: FontWeight.bold),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypingIndicator() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(top: 4, bottom: 2, right: 64),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
+            bottomLeft: Radius.circular(4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Admin is typing", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+            const SizedBox(width: 8),
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white24),
+            ),
+          ],
         ),
       ),
     );
@@ -140,6 +206,7 @@ class SupportChatView extends GetView<SupportController> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              _buildQuickReplies(),
               if (controller.selectedImage.value != null)
                 _buildImagePreview(),
               Row(
@@ -186,6 +253,34 @@ class SupportChatView extends GetView<SupportController> {
         ),
       );
     });
+  }
+
+  Widget _buildQuickReplies() {
+    final suggestions = [
+      "How to download?",
+      "Prayer times error",
+      "Feature request",
+      "Assalamu Alaikum",
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: suggestions.map((text) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ActionChip(
+            label: Text(text, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            backgroundColor: Colors.white.withOpacity(0.05),
+            onPressed: () {
+              controller.messageController.text = text;
+              controller.sendMessage();
+            },
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+        )).toList(),
+      ),
+    );
   }
 
   Widget _buildImagePreview() {
@@ -285,7 +380,10 @@ class _MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   DateFormat('hh:mm a').format(message.timestamp), 
-                  style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.3))
+                  style: TextStyle(
+                    fontSize: 10, 
+                    color: theme.brightness == Brightness.dark ? Colors.white30 : Colors.black38,
+                  )
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),

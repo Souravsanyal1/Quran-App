@@ -197,6 +197,9 @@ class NotificationsController extends GetxController {
   }
 
   Future<void> markAsRead(String notificationId) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
     try {
       final index = allNotifications.indexWhere((n) => n.id == notificationId);
       if (index != -1) {
@@ -204,7 +207,7 @@ class NotificationsController extends GetxController {
         allNotifications.refresh();
         _applyFilters();
         _updateUnreadCount();
-        await _repository.markAsRead(notificationId);
+        await _repository.markAsRead(user.uid, notificationId);
       }
     } catch (e) {
       // Revert on error if necessary
@@ -255,7 +258,10 @@ class NotificationsController extends GetxController {
     );
 
     try {
-      await _repository.deleteNotification(notificationId);
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _repository.deleteNotification(user.uid, notificationId);
+      }
     } catch (e) {
       // Revert if API fails? Usually, for deletion, we just try our best.
     }

@@ -16,240 +16,293 @@ class QiblaView extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final c = Get.find<QiblaController>();
+    final isDark = settings.isDark;
+
+    // Custom Luxury Colors based on the image and user request
+    final Color dialBg = isDark ? const Color(0xFF0D1B13) : const Color(0xFFFFFBF0);
+    final Color cardBg = isDark ? const Color(0xFF14241B) : const Color(0xFFFFF4E0);
+    final Color goldColor = const Color(0xFFFFD700);
+    final Color scaffoldBg = isDark ? const Color(0xFF08120D) : const Color(0xFFFFF9E6);
+    final Color textColor = isDark ? Colors.white : const Color(0xFF4A3428);
 
     return Scaffold(
-      backgroundColor: settings.isDark ? AppColors.bgDark : AppColors.bgLight,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        leading: const AppBackButton(color: Colors.white),
-        backgroundColor: AppColors.primary,
+        leading: AppBackButton(color: isDark ? Colors.white : Colors.black87),
+        backgroundColor: isDark ? const Color(0xFF0D1B13) : AppColors.primary,
         elevation: 0,
+        centerTitle: true,
         title: Text(
-          settings.isBangla ? 'কিবলা কম্পাস' : 'Qibla Finder',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+          settings.isBangla ? 'কিবলা কম্পাস' : 'Qibla Compass',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold, 
+            color: isDark ? Colors.white : Colors.white, 
+            fontSize: 16
+          ),
         ),
       ),
       body: Obx(() {
-        if (c.isLoading.value) return _buildShimmerLoading(settings.isDark);
+        if (c.isLoading.value) return _buildShimmerLoading(isDark);
         
-        if (!c.isLocationEnabled.value) {
-          return _buildErrorState(
-            settings.isBangla ? 'লোকেশন বন্ধ আছে' : 'Location Service Disabled',
-            settings.isBangla ? 'সঠিক দিক পেতে আপনার ফোনের লোকেশন চালু করুন।' : 'Enable location to find the Qibla direction.',
-            Icons.location_off_rounded,
-            c.requestPermission,
-            settings.isBangla ? 'লোকেশন চালু করুন' : 'Enable Location',
-          );
-        }
-
-        if (!c.hasPermission.value) {
-          return _buildErrorState(
-            settings.isBangla ? 'পারমিশন প্রয়োজন' : 'Permission Required',
-            settings.isBangla ? 'অ্যাপটি ব্যবহারের জন্য লোকেশন পারমিশন দিন।' : 'Location permission is required to find Qibla.',
-            Icons.security_rounded,
-            c.requestPermission,
-            settings.isBangla ? 'পারমিশন দিন' : 'Grant Permission',
-          );
-        }
-
         final data = c.direction.value;
-        if (data == null) return _buildShimmerLoading(settings.isDark);
+        if (data == null) return _buildShimmerLoading(isDark);
 
-        final qiblaBearing = data.qiblah;
-        final compassDirection = data.direction;
-        
-        // Check if user is aligned within 5 degrees
-        final bool isAligned = (qiblaBearing - compassDirection).abs() < 5;
+        final double qiblaOffset = data.qiblah;
+        final bool isAligned = qiblaOffset.abs() < 5 || qiblaOffset.abs() > 355;
         c.handleAlignmentVibration(isAligned);
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              
-              // Distance & Angle Info
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: settings.isDark ? AppColors.cardDark : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+        return Container(
+          width: double.infinity,
+          height: double.infinity,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                
+                // 1. Top Location Card
+                _buildLocationCard(c, cardBg, goldColor, settings, isDark, textColor),
+                
+                const SizedBox(height: 20),
+
+                // 2. Middle Stats Row (Bearing & Distance)
+                Row(
                   children: [
-                    _buildInfoColumn(
-                      settings.isBangla ? 'দূরত্ব' : 'Distance',
+                    Expanded(child: _buildStatCard(
+                      settings.isBangla ? 'কিবলার দিক' : 'Qibla Direction',
+                      '${data.qiblah.round()}°',
+                      settings.isBangla ? 'উত্তর থেকে' : 'From North',
+                      Icons.explore_outlined, cardBg, goldColor, textColor
+                    )),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(
+                      settings.isBangla ? 'কাবা থেকে দূরত্ব' : 'Distance to Kaaba',
                       '${c.distanceToKaaba.value.toStringAsFixed(0)} km',
-                      Icons.straighten_rounded,
-                    ),
-                    Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.2)),
-                    _buildInfoColumn(
-                      settings.isBangla ? 'কোণ' : 'Bearing',
-                      '${qiblaBearing.round()}°',
-                      Icons.explore_rounded,
-                    ),
+                      settings.isBangla ? 'প্রায়' : 'Approx',
+                      Icons.location_on_outlined, cardBg, goldColor, textColor
+                    )),
                   ],
                 ),
-              ),
 
-              const SizedBox(height: 60),
+                const SizedBox(height: 40),
 
-              // Kaaba Compass UI
-              Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Compass Plate (Static Background)
-                    Container(
-                      width: 300,
-                      height: 300,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: settings.isDark ? AppColors.surfaceDark : Colors.white,
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isAligned 
-                              ? AppColors.primary.withOpacity(0.3) 
-                              : Colors.black.withOpacity(0.1),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: List.generate(360, (index) {
-                          if (index % 30 != 0) return const SizedBox.shrink();
-                          return Transform.rotate(
-                            angle: index * (math.pi / 180),
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: Container(
-                                margin: const EdgeInsets.only(top: 10),
-                                height: index % 90 == 0 ? 15 : 8,
-                                width: 2,
-                                color: AppColors.primary.withOpacity(0.5),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
+                // 3. Main Compass
+                _buildCompassUI(data, isAligned, dialBg, goldColor, isDark),
 
-                    // Rotating Kaaba & Needle
-                    Transform.rotate(
-                      angle: (qiblaBearing - compassDirection) * (math.pi / 180),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Direction Needle
-                          Container(
-                            width: 220,
-                            height: 220,
-                            child: CustomPaint(
-                              painter: CompassNeedlePainter(
-                                color: isAligned ? AppColors.emerald : AppColors.primary,
-                              ),
-                            ),
-                          ),
-                          
-                          // Kaaba Icon at the Qibla position
-                          Positioned(
-                            top: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isAligned ? AppColors.emerald : AppColors.primary,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 10,
-                                  ),
-                                ],
-                              ),
-                              child: Image.network(
-                                'https://img.icons8.com/color/96/kaaba.png',
-                                width: 40,
-                                height: 40,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Center Pin
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: const BoxDecoration(
-                        color: Colors.black,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 60),
-              
-              // Alignment Status
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isAligned ? AppColors.emerald.withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: isAligned ? AppColors.emerald : Colors.grey.withOpacity(0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isAligned ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-                      color: isAligned ? AppColors.emerald : Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      isAligned 
-                        ? (settings.isBangla ? 'কিবলা সঠিক আছে' : 'Aligned with Qibla')
-                        : (settings.isBangla ? 'ফোনটি ঘুরিয়ে কিবলা খুঁজুন' : 'Rotate phone to find Qibla'),
-                      style: TextStyle(
-                        color: isAligned ? AppColors.emerald : Colors.grey,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 40),
+                
+                // 4. Bottom Instruction Card
+                _buildBottomInstruction(cardBg, goldColor, settings, textColor),
+                
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       }),
     );
   }
 
-  Widget _buildInfoColumn(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.primary, size: 20),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary)),
-      ],
+  Widget _buildLocationCard(QiblaController c, Color bg, Color gold, SettingsController s, bool isDark, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : AppColors.primary.withOpacity(0.1)),
+        boxShadow: isDark ? [] : [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: gold.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.location_on, color: gold, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(s.isBangla ? 'আপনার অবস্থান' : 'Your Location', style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.6), fontSize: 12)),
+                Text(c.currentAddress.value, style: TextStyle(color: isDark ? Colors.white : textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(c.latLong.value, style: TextStyle(color: isDark ? Colors.white.withOpacity(0.4) : textColor.withOpacity(0.4), fontSize: 11)),
+              ],
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network('https://img.icons8.com/color/96/kaaba.png', width: 50, height: 50),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, String sub, IconData icon, Color bg, Color gold, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: gold, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 11), maxLines: 1)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(value, style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+          Text(sub, style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 10)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompassUI(QiblahDirection data, bool isAligned, Color dialBg, Color gold, bool isDark) {
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer Decorative Ring
+          Container(
+            width: 310, height: 310,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: gold.withOpacity(0.2), width: 1),
+            ),
+          ),
+          
+          // Rotating Compass Plate
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: (data.direction * (math.pi / 180) * -1)),
+            duration: const Duration(milliseconds: 300),
+            builder: (context, angle, child) {
+              return Transform.rotate(
+                angle: angle,
+                child: Container(
+                  width: 290, height: 290,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: dialBg,
+                    border: Border.all(color: gold.withOpacity(0.6), width: 3),
+                    boxShadow: [
+                      BoxShadow(color: isAligned ? gold.withOpacity(0.2) : Colors.black26, blurRadius: 30, spreadRadius: 5),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Cardinal Directions
+                      _buildCardinalLabel('N', 0, gold, isN: true),
+                      _buildCardinalLabel('E', 90, gold),
+                      _buildCardinalLabel('S', 180, gold),
+                      _buildCardinalLabel('W', 270, gold),
+                      
+                      // Ticks
+                      ...List.generate(72, (i) => Transform.rotate(
+                        angle: (i * 5) * (math.pi / 180),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            height: i % 6 == 0 ? 12 : 5, width: 1.5,
+                            margin: const EdgeInsets.only(top: 8),
+                            color: gold.withOpacity(i % 6 == 0 ? 0.8 : 0.3),
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Qibla Pointer & Needle
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0, end: (data.qiblah * (math.pi / 180) * -1)),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+            builder: (context, angle, child) {
+              return Transform.rotate(
+                angle: angle,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Kaaba Indicator on circle
+                    Positioned(
+                      top: -5,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(color: isAligned ? gold : Colors.black87, shape: BoxShape.circle, border: Border.all(color: gold)),
+                        child: Image.network('https://img.icons8.com/color/48/kaaba.png', width: 24, height: 24),
+                      ),
+                    ),
+                    // 3D Golden Needle
+                    Container(
+                      width: 200, height: 200,
+                      child: CustomPaint(painter: LuxuryNeedlePainter(color: gold)),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          
+          // Center Pin
+          Container(
+            width: 20, height: 20,
+            decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: gold, width: 3)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardinalLabel(String label, double angle, Color color, {bool isN = false}) {
+    return Transform.rotate(
+      angle: angle * (math.pi / 180),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 25),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isN) Icon(Icons.arrow_drop_up, color: Colors.red, size: 14),
+              Text(label, style: TextStyle(color: isN ? Colors.red : (label == 'S' || label == 'E' || label == 'W' ? Colors.white70 : Colors.white), fontWeight: FontWeight.w900, fontSize: 18)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomInstruction(Color bg, Color gold, SettingsController s, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: gold, size: 30),
+          const SizedBox(width: 16),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(s.isBangla ? 'কিবলার দিকে মুখ করুন' : 'Face towards the Kaaba', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(s.isBangla ? 'তীরচিহ্নটি কাবার সাথে মিলিয়ে নিন' : 'Align the arrow with the Kaaba icon', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+            ],
+          )),
+          const Icon(Icons.accessibility_new_rounded, color: Colors.white24, size: 40),
+        ],
+      ),
     );
   }
 
@@ -257,95 +310,42 @@ class QiblaView extends StatelessWidget {
     return Shimmer.fromColors(
       baseColor: isDark ? Colors.white10 : Colors.grey[300]!,
       highlightColor: isDark ? Colors.white24 : Colors.grey[100]!,
-      child: Column(
-        children: [
-          const SizedBox(height: 40),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            height: 100,
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
-          ),
-          const SizedBox(height: 60),
-          Container(
-            width: 300,
-            height: 300,
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          ),
-          const SizedBox(height: 60),
-          Container(
-            width: 200,
-            height: 44,
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String title, String desc, IconData icon, VoidCallback onAction, String btnText) {
-    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 80, color: Colors.grey.withOpacity(0.3)),
-            const SizedBox(height: 24),
-            Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text(desc, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: onAction,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(btnText),
-            ),
-          ],
-        ),
+        padding: const EdgeInsets.all(20.0),
+        child: Column(children: [const SizedBox(height: 60), Container(height: 100, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20))), const SizedBox(height: 60), Container(width: 290, height: 290, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle))]),
       ),
     );
   }
 }
 
-class CompassNeedlePainter extends CustomPainter {
+class LuxuryNeedlePainter extends CustomPainter {
   final Color color;
-  CompassNeedlePainter({required this.color});
+  LuxuryNeedlePainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
+    final paint = Paint()..color = color;
     final path = Path();
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
+    final cx = size.width / 2;
+    final cy = size.height / 2;
 
-    // Draw a sharp needle pointing Up (towards Kaaba)
-    path.moveTo(centerX, 0); // Top tip
-    path.lineTo(centerX - 10, centerY); // Left middle
-    path.lineTo(centerX, centerY + 20); // Bottom tip
-    path.lineTo(centerX + 10, centerY); // Right middle
+    // Modern Sharp Triangle Needle (3D style)
+    path.moveTo(cx, 10);
+    path.lineTo(cx - 15, cy);
+    path.lineTo(cx + 15, cy);
     path.close();
-
     canvas.drawPath(path, paint);
     
-    // Draw shadow/depth
-    final darkPaint = Paint()..color = Colors.black.withOpacity(0.1);
-    final darkPath = Path();
-    darkPath.moveTo(centerX, 0);
-    darkPath.lineTo(centerX, centerY + 20);
-    darkPath.lineTo(centerX + 10, centerY);
-    darkPath.close();
-    canvas.drawPath(darkPath, darkPaint);
+    // Shadow for 3D effect
+    final shadowPaint = Paint()..color = Colors.black.withOpacity(0.3);
+    final shadowPath = Path();
+    shadowPath.moveTo(cx, 10);
+    shadowPath.lineTo(cx, cy);
+    shadowPath.lineTo(cx + 15, cy);
+    shadowPath.close();
+    canvas.drawPath(shadowPath, shadowPaint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

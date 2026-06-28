@@ -1,121 +1,105 @@
-import 'package:dio/dio.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
-import '../constants/app_urls.dart';
 import '../../data/models/notification_model.dart' as app_notification_model;
 
 class NotificationApiProvider {
-  final Dio _dio;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Logger _logger = Logger();
 
-  NotificationApiProvider() : _dio = Dio(BaseOptions(
-    baseUrl: AppUrls.backendBaseUrl,
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 30),
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'QuranApp/1.0.0 (Flutter Mobile)',
-    },
-  )) {
-    _dio.interceptors.add(LogInterceptor(
-      requestBody: true,
-      responseBody: true,
-      logPrint: (o) => _logger.d(o.toString()),
-    ));
-  }
+  NotificationApiProvider();
 
   /// Fetches notifications for a specific user.
   Future<List<app_notification_model.AppNotification>> getNotifications(String userId) async {
-    if (AppUrls.backendBaseUrl.contains('your-backend-api.com')) {
-      _logger.w('⚠️ API URL not configured! Please update backendBaseUrl in app_urls.dart');
-      return []; // Return empty list instead of crashing
-    }
-
     try {
-      final response = await _dio.get(
-        AppUrls.notifications,
-        queryParameters: {'userId': userId},
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? [];
-        return data.map((json) => app_notification_model.AppNotification.fromJson(json)).toList();
-      } else {
-        return [];
-      }
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 404) {
-        _logger.w('Notifications endpoint not found (404). Returning empty list.');
-        return [];
-      }
-      _logger.e('Error fetching notifications: $e');
-      rethrow;
+      // 1. Get personal notifications
+      final personalQuery = await _firestore.collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .orderBy('sentAt', descending: true)
+          .limit(50)
+          .get();
+      
+      final personal = personalQuery.docs.map((doc) => 
+        app_notification_model.AppNotification.fromJson({...doc.data(), 'id': doc.id})).toList();
+
+      // 2. Get broadcast notifications
+      final broadcastQuery = await _firestore.collection('broadcast_notifications')
+          .orderBy('sentAt', descending: true)
+          .limit(50)
+          .get();
+      
+      final broadcast = broadcastQuery.docs.map((doc) => 
+        app_notification_model.AppNotification.fromJson({...doc.data(), 'id': doc.id})).toList();
+
+      // Combine and sort
+      final all = [...personal, ...broadcast];
+      all.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+      
+      return all;
     } catch (e) {
-      _logger.e('Unexpected error: $e');
+      _logger.e('Error fetching notifications from Firestore: $e');
       return [];
     }
   }
 
   /// Marks a specific notification as read.
-  Future<void> markNotificationAsRead(String notificationId) async {
+  Future<void> markNotificationAsRead(String userId, String notificationId) async {
     try {
-      final url = AppUrls.notificationsRead.replaceFirst('{notificationId}', notificationId);
-      final response = await _dio.patch(url);
-      if (response.statusCode != 200) {
-        throw Exception('Failed to mark notification as read: ${response.statusCode}');
+      // Check personal collection first
+      final docRef = _firestore.collection('users').doc(userId).collection('notifications').doc(notificationId);
+      final doc = await docRef.get();
+      
+      if (doc.exists) {
+        await docRef.update({'isRead': true});
+      } else {
+        // Broadcast notifications marking as read is more complex (usually per-user state)
+        // For simplicity, we just ignore for now or handle locally in the app
       }
     } catch (e) {
       _logger.e('Error marking notification as read: $e');
-      rethrow;
     }
   }
 
   /// Marks all notifications for a user as read.
   Future<void> markAllNotificationsAsRead(String userId) async {
     try {
-      final response = await _dio.patch(
-        AppUrls.notificationsMarkAllRead,
-        data: {'userId': userId},
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Failed to mark all notifications as read: ${response.statusCode}');
+      final batch = _firestore.batch();
+      final notifications = await _firestore.collection('users').doc(userId).collection('notifications')
+          .where('isRead', isEqualTo: false)
+          .get();
+      
+      for (var doc in notifications.docs) {
+        batch.update(doc.reference, {'isRead': true});
       }
+      
+      await batch.commit();
     } catch (e) {
       _logger.e('Error marking all notifications as read: $e');
-      rethrow;
     }
   }
 
   /// Deletes a specific notification.
-  Future<void> deleteNotification(String notificationId) async {
+  Future<void> deleteNotification(String userId, String notificationId) async {
     try {
-      final url = AppUrls.notificationsDelete.replaceFirst('{notificationId}', notificationId);
-      final response = await _dio.delete(url);
-      if (response.statusCode != 204) { // 204 No Content for successful deletion
-        throw Exception('Failed to delete notification: ${response.statusCode}');
-      }
+      await _firestore.collection('users').doc(userId).collection('notifications').doc(notificationId).delete();
     } catch (e) {
       _logger.e('Error deleting notification: $e');
-      rethrow;
     }
   }
 
   /// Sends a broadcast notification (Admin specific).
   Future<void> sendBroadcastNotification(String title, String body, {String? imageUrl}) async {
     try {
-      final response = await _dio.post(
-        AppUrls.notificationsBroadcast,
-        data: {
-          'title': title,
-          'body': body,
-          'imageUrl': imageUrl,
-          'target': 'all', // Or specific user IDs
-          'status': 'queued',
-        },
-      );
-      if (response.statusCode != 201) {
-        throw Exception('Failed to send broadcast notification: ${response.statusCode}');
-      }
+      await _firestore.collection('broadcast_notifications').add({
+        'title': title,
+        'body': body,
+        'imageUrl': imageUrl,
+        'type': 'broadcast',
+        'sentAt': FieldValue.serverTimestamp(),
+        'isRead': false,
+      });
     } catch (e) {
-      _logger.e('Error sending broadcast notification: $e');
+      _logger.e('Error sending broadcast notification via Firestore: $e');
       rethrow;
     }
   }

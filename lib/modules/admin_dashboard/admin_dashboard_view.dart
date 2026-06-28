@@ -566,8 +566,13 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   : ListView.builder(
                       controller: chatController.scrollController,
                       padding: const EdgeInsets.all(20),
-                      itemCount: chatController.messages.length,
-                      itemBuilder: (context, index) => _AdminMessageBubble(message: chatController.messages[index], isMe: chatController.messages[index].senderType == 'admin'),
+                      itemCount: chatController.messages.length + (chatController.isUserTyping.value ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == chatController.messages.length) {
+                          return _buildUserTypingIndicator();
+                        }
+                        return _AdminMessageBubble(message: chatController.messages[index], isMe: chatController.messages[index].senderType == 'admin');
+                      },
                     )),
               ),
               Container(
@@ -891,6 +896,37 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       ),
     );
   }
+
+  Widget _buildUserTypingIndicator() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 4, right: 60),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: const BoxDecoration(
+          color: Color(0xff1A1A24),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+            bottomRight: Radius.circular(16),
+            bottomLeft: Radius.circular(4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('User is typing', style: TextStyle(color: Colors.white38, fontSize: 12)),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primary.withOpacity(0.3)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _AdminMessageBubble extends StatelessWidget {
@@ -935,7 +971,10 @@ class _AdminMessageBubble extends StatelessWidget {
               ],
             ),
           ),
-          Text(DateFormat('hh:mm a').format(message.timestamp), style: TextStyle(fontSize: 10, color: Colors.white.withOpacity(0.3))),
+          Text(
+            DateFormat('hh:mm a').format(message.timestamp), 
+            style: const TextStyle(fontSize: 10, color: Colors.white30),
+          ),
         ],
       ).animate().fadeIn(duration: 200.ms),
     );

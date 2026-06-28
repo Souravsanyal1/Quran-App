@@ -10,16 +10,16 @@ class NotificationRepository {
     return _apiProvider.getNotifications(userId);
   }
 
-  Future<void> markAsRead(String notificationId) {
-    return _apiProvider.markNotificationAsRead(notificationId);
+  Future<void> markAsRead(String userId, String notificationId) {
+    return _apiProvider.markNotificationAsRead(userId, notificationId);
   }
 
   Future<void> markAllAsRead(String userId) {
     return _apiProvider.markAllNotificationsAsRead(userId);
   }
 
-  Future<void> deleteNotification(String notificationId) {
-    return _apiProvider.deleteNotification(notificationId);
+  Future<void> deleteNotification(String userId, String notificationId) {
+    return _apiProvider.deleteNotification(userId, notificationId);
   }
 
   Future<void> sendBroadcast(String title, String body, {String? imageUrl}) {

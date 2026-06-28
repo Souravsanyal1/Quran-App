@@ -25,20 +25,53 @@ class AdminChatController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool isSubmitting = false.obs;
   final Rxn<File> selectedImage = Rxn<File>();
+  final RxBool isUserTyping = false.obs;
 
   late final String currentTicketId;
   late final String currentUserName;
-  Timer? _pollingTimer;
+  StreamSubscription? _messagesSubscription;
+  StreamSubscription? _ticketSubscription;
+  Timer? _typingTimer;
 
   void setupChat(String ticketId, String userName) {
     currentTicketId = ticketId;
     currentUserName = userName;
     _listenToMessages();
+    _listenToTicketMetadata();
+    _repository.markMessagesAsRead(ticketId, isAdmin: true);
+    
+    messageController.addListener(_onMessageChanged);
+  }
+
+  void _onMessageChanged() {
+    if (_typingTimer?.isActive ?? false) _typingTimer!.cancel();
+
+    _repository.updateTypingStatus(currentTicketId, true, isAdmin: true);
+
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      _repository.updateTypingStatus(currentTicketId, false, isAdmin: true);
+    });
+  }
+
+  void _listenToTicketMetadata() {
+    _ticketSubscription?.cancel();
+    _ticketSubscription = _repository.streamTicket(currentTicketId).listen((ticket) {
+      if (ticket != null) {
+        isUserTyping.value = ticket.isUserTyping;
+      }
+    });
   }
 
   void _listenToMessages() {
-    _pollingTimer?.cancel();
-    _repository.streamMessages(currentTicketId).listen((fetchedMessages) {
+    _messagesSubscription?.cancel();
+    _messagesSubscription = _repository.streamMessages(currentTicketId).listen((fetchedMessages) {
+      // If new messages from user, mark as read
+      if (fetchedMessages.length > messages.length) {
+        final last = fetchedMessages.last;
+        if (last.senderType == 'user') {
+          _repository.markMessagesAsRead(currentTicketId, isAdmin: true);
+        }
+      }
       messages.assignAll(fetchedMessages);
       _scrollToBottom();
     }, onError: (e) {
@@ -128,7 +161,9 @@ class AdminChatController extends GetxController {
 
   @override
   void onClose() {
-    _pollingTimer?.cancel();
+    _messagesSubscription?.cancel();
+    _ticketSubscription?.cancel();
+    _typingTimer?.cancel();
     messageController.dispose();
     scrollController.dispose();
     super.onClose();

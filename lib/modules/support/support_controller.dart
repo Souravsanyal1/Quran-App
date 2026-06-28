@@ -33,11 +33,16 @@ class SupportController extends GetxController {
   final RxBool isSubmitting = false.obs;
   final Rxn<SupportTicket> activeTicket = Rxn<SupportTicket>();
   final Rxn<File> selectedImage = Rxn<File>();
+  final RxBool isAdminTyping = false.obs;
   
   // Controllers
   final messageController = TextEditingController();
   final subjectController = TextEditingController();
   final descriptionController = TextEditingController();
+
+  StreamSubscription? _ticketSubscription;
+  StreamSubscription? _messagesSubscription;
+  Timer? _typingTimer;
   
   // Use a getter to ensure we always have a valid controller attached to the view
   ScrollController? _scrollController;
@@ -56,6 +61,23 @@ class SupportController extends GetxController {
     super.onInit();
     _listenToMyTickets();
     _listenToPersonalNotifications();
+
+    // Debounce message input for typing indicator
+    messageController.addListener(_onMessageChanged);
+  }
+
+  void _onMessageChanged() {
+    if (activeTicket.value == null) return;
+    
+    if (_typingTimer?.isActive ?? false) _typingTimer!.cancel();
+
+    _repository.updateTypingStatus(activeTicket.value!.id, true);
+
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      if (activeTicket.value != null) {
+        _repository.updateTypingStatus(activeTicket.value!.id, false);
+      }
+    });
   }
 
   void _listenToMyTickets() {
@@ -147,14 +169,39 @@ class SupportController extends GetxController {
     activeTicket.value = ticket;
     currentMessages.clear();
     _listenToCurrentMessages(ticket.id);
+    _listenToTicketMetadata(ticket.id);
+    _repository.markMessagesAsRead(ticket.id);
+  }
+
+  void _listenToTicketMetadata(String ticketId) {
+    _ticketSubscription?.cancel();
+    _ticketSubscription = _repository.streamTicket(ticketId).listen((ticket) {
+      if (ticket != null) {
+        isAdminTyping.value = ticket.isAdminTyping;
+        // Update active ticket with fresh data (status, etc)
+        activeTicket.value = ticket;
+      }
+    });
   }
 
   void _listenToCurrentMessages(String ticketId) {
-    _pollingTimer?.cancel();
-    _repository.streamMessages(ticketId).listen((messages) {
+    _messagesSubscription?.cancel();
+    _messagesSubscription = _repository.streamMessages(ticketId).listen((messages) {
+      // Check if new message arrived
+      if (messages.length > currentMessages.length) {
+        final last = messages.last;
+        if (last.senderType == 'admin') {
+          _playReceiveSound();
+          _repository.markMessagesAsRead(ticketId);
+        }
+      }
       currentMessages.assignAll(messages);
       _scrollToBottom();
     });
+  }
+
+  void _playReceiveSound() {
+    // Implement if needed
   }
 
   Future<void> sendMessage() async {
@@ -268,26 +315,31 @@ class SupportController extends GetxController {
   }
 
   Future<void> launchWhatsApp() async {
-    final url = Uri.parse('https://wa.me/8801340989509'); // Updated Number
+    const phone = "8801340989509";
+    final url = Uri.parse('https://wa.me/$phone');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      Get.snackbar('Error', 'WhatsApp not installed. Launching web...', snackPosition: SnackPosition.BOTTOM);
-      final webUrl = Uri.parse('https://web.whatsapp.com/send?phone=8801340989509');
+      Get.snackbar('Support', 'WhatsApp not found. Opening web support...', snackPosition: SnackPosition.BOTTOM);
+      final webUrl = Uri.parse('https://api.whatsapp.com/send?phone=$phone');
       await launchUrl(webUrl, mode: LaunchMode.externalApplication);
     }
   }
 
   Future<void> launchFacebook() async {
-    final url = Uri.parse('https://www.facebook.com/yourpage'); // Add your Facebook page link here
+    final url = Uri.parse('https://www.facebook.com/groups/quranappsupport'); // Replace with your actual group/page
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      Get.snackbar('Support', 'Could not open Facebook.', snackPosition: SnackPosition.BOTTOM);
     }
   }
 
   @override
   void onClose() {
-    _pollingTimer?.cancel();
+    _ticketSubscription?.cancel();
+    _messagesSubscription?.cancel();
+    _typingTimer?.cancel();
     messageController.dispose();
     subjectController.dispose();
     descriptionController.dispose();
