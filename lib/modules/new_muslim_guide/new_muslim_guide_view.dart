@@ -16,7 +16,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
     final isDark = settings.isDark;
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
         body: NestedScrollView(
@@ -48,6 +48,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                   Tab(icon: const Icon(Icons.favorite_rounded, size: 18), text: isBn ? 'কালেমা ও ঈমান' : 'Shahada & Iman'),
                   Tab(icon: const Icon(Icons.checklist_rounded, size: 18), text: isBn ? 'লাইফস্টাইল' : 'Lifestyle'),
                   Tab(icon: const Icon(Icons.water_drop_rounded, size: 18), text: isBn ? 'ওযুর নিয়ম' : 'Wudu Steps'),
+                  Tab(icon: const Icon(Icons.mosque_rounded, size: 18), text: isBn ? 'নামাজের নিয়ম' : 'Salah Steps'),
                   Tab(icon: const Icon(Icons.menu_book_rounded, size: 18), text: isBn ? 'ছোট সূরা' : 'Short Surahs'),
                   Tab(icon: const Icon(Icons.restaurant_rounded, size: 18), text: isBn ? 'হালাল-হারাম' : 'Halal & Haram'),
                 ],
@@ -63,6 +64,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                 _buildShahadaAndPillars(context, settings),
                 _buildLifestyle(context, settings),
                 _buildWuduSteps(context, settings),
+                _buildSalahSteps(context, settings),
                 _buildShortSurahs(context, settings),
                 _buildHalalHaram(context, settings),
               ],
@@ -390,6 +392,237 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSalahSteps(BuildContext context, SettingsController settings) {
+    final isDark = settings.isDark;
+    final isBn = settings.isBangla;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _welcomeHeader(
+            settings,
+            'Salah Steps & Rakah Rules',
+            'নামাজ আদায়ের নিয়ম ও রাকাতসমূহ',
+            'Salah (prayer) is performed in units called Rakahs. Below you will learn how each Rakah is structured and how to complete them.',
+            'নামাজ কয়েকটি নির্দিষ্ট ইউনিটে বিভক্ত যাকে "রাকাত" বলা হয়। নামাজের প্রতিটি রাকাত কিভাবে সম্পন্ন করতে হয় এবং রাকাতের বিবরণ নিচে দেওয়া হলো।',
+          ),
+          
+          // Section 1: Rakah Completion rules
+          Row(
+            children: [
+              Container(
+                width: 3.5,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isBn ? 'রাকাত শেষ করার নিয়মাবলি' : 'How to Complete Each Rakah',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...controller.rakahRules.map((rule) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.03))
+                        .withValues(alpha: isDark ? 0.12 : 0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isBn ? rule['titleBn']! : rule['titleEn']!,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isBn ? rule['descBn']! : rule['descEn']!,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: isDark ? AppColors.textWhite : AppColors.textDark,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          
+          const SizedBox(height: 16),
+          
+          // Section 2: Postures step-by-step
+          Row(
+            children: [
+              Container(
+                width: 3.5,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isBn ? 'নামাজ আদায়ের ধাপসমূহ' : 'Salah Posture Steps',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...controller.salahSteps.map((step) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 14),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.04))
+                        .withValues(alpha: isDark ? 0.15 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary, width: 1.5),
+                      ),
+                      child: Text(
+                        step.stepNumber.toString(),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isBn ? step.titleBn : step.titleEn,
+                            style: TextStyle(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppColors.textWhite : AppColors.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            isBn ? step.descBn : step.descEn,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.75),
+                              height: 1.45,
+                            ),
+                          ),
+                          if (step.arabic != null) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    step.arabic!,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Uthmanic',
+                                      fontSize: settings.arabicFontSize.value - 2,
+                                      color: AppColors.primary,
+                                      height: 1.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    isBn ? 'উচ্চারণ: ${step.translit}' : 'Transliteration: ${step.translit}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                      color: AppColors.textGrey,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  if (step.meaning != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      isBn ? 'অর্থ: ${step.meaning}' : 'Meaning: ${step.meaning}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark ? AppColors.textWhite : AppColors.textDark,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
