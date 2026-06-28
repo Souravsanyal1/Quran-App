@@ -14,12 +14,24 @@ class SettingsView extends GetView<SettingsController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Obx(() => IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: controller.isDark ? AppColors.textWhite : AppColors.textDark,
+            size: 20,
+          ),
+          onPressed: () => Get.back(),
+        )),
         title: Obx(() => Text(
           controller.isBangla ? 'সেটিংস' : 'Settings',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: controller.isDark ? AppColors.textWhite : AppColors.textDark,
+          ),
         )),
         centerTitle: true,
-        elevation: 0,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -193,14 +205,20 @@ class SettingsView extends GetView<SettingsController> {
                 ),
                 // Live preview container
                 Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.cardDark : AppColors.cardLight,
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: isDark
+                          ? [AppColors.bgDark, AppColors.bgDark2]
+                          : [AppColors.bgLight, AppColors.bgLight2],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                      width: 0.5,
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                      width: 1,
                     ),
                   ),
                   child: Column(
@@ -208,20 +226,29 @@ class SettingsView extends GetView<SettingsController> {
                     children: [
                       Text(
                         bn ? 'ফন্ট সাইজ প্রিভিউ:' : 'Font Size Preview:',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textGrey,
+                          color: isDark ? AppColors.textGrey : AppColors.deepOrange,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Text(
                         'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Uthmanic',
                           fontSize: controller.arabicFontSize.value,
-                          color: AppColors.primary,
+                          color: isDark ? AppColors.gold : AppColors.deepOrange,
+                          height: 1.5,
+                          shadows: [
+                            Shadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -381,12 +408,12 @@ class SettingsView extends GetView<SettingsController> {
         decoration: BoxDecoration(
           color: controller.isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
           ),
           border: Border.all(
             color: controller.isDark ? AppColors.borderDark : AppColors.borderLight,
-            width: 0.5,
+            width: 0.8,
           ),
         ),
         child: Column(
@@ -423,24 +450,43 @@ class SettingsView extends GetView<SettingsController> {
                 children: AppUrls.qariList.map((qari) {
                   final isSelected = controller.selectedQari.value == qari['id'];
                   return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
+                    margin: const EdgeInsets.only(bottom: 10),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.1)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : (controller.isDark ? AppColors.cardDark : AppColors.cardLight),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.primary
                             : (controller.isDark ? AppColors.borderDark : AppColors.borderLight),
-                        width: isSelected ? 1 : 0.5,
+                        width: isSelected ? 1.2 : 0.8,
                       ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          : null,
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                      leading: Icon(
-                        Icons.record_voice_over_rounded,
-                        color: isSelected ? AppColors.primary : AppColors.textGrey,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.15)
+                              : (controller.isDark ? AppColors.surfaceDark : AppColors.surfaceLight),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.record_voice_over_rounded,
+                          color: isSelected ? AppColors.primary : AppColors.textGrey,
+                          size: 18,
+                        ),
                       ),
                       title: Text(
                         qari['name']!,
@@ -448,12 +494,12 @@ class SettingsView extends GetView<SettingsController> {
                           color: isSelected
                               ? AppColors.primary
                               : (controller.isDark ? AppColors.textWhite : AppColors.textDark),
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                           fontSize: 14,
                         ),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 20)
                           : null,
                       onTap: () {
                         controller.setQari(qari['id']!);
@@ -479,15 +525,35 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.primary,
-          letterSpacing: 1.5,
-        ),
+      padding: const EdgeInsets.fromLTRB(4, 24, 4, 12),
+      child: Row(
+        children: [
+          Container(
+            width: 3.5,
+            height: 14,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.4),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primary,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -501,16 +567,27 @@ class _SettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          width: 0.5,
+          width: 0.8,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.05))
+                .withValues(alpha: isDark ? 0.2 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(children: children),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(children: children),
+      ),
     );
   }
 }
@@ -536,12 +613,24 @@ class _SettingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
-        width: 36,
-        height: 36,
+        width: 38,
+        height: 38,
         decoration: BoxDecoration(
-          color: AppColors.primary.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: 0.2),
+              AppColors.primary.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 0.8,
+          ),
         ),
         child: Icon(icon, color: AppColors.primary, size: 18),
       ),
@@ -549,20 +638,33 @@ class _SettingsTile extends StatelessWidget {
         title,
         style: TextStyle(
           color: isDark ? AppColors.textWhite : AppColors.textDark,
-          fontSize: 14,
+          fontSize: 14.5,
           fontWeight: FontWeight.w600,
+          letterSpacing: 0.1,
         ),
       ),
       subtitle: subtitle != null
-          ? Text(subtitle!, style: const TextStyle(color: AppColors.textMuted, fontSize: 12))
+          ? Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: Text(
+                subtitle!,
+                style: const TextStyle(
+                  color: AppColors.textGrey,
+                  fontSize: 11.5,
+                  height: 1.3,
+                ),
+              ),
+            )
           : null,
       trailing: trailing ??
           (onTap != null
               ? Icon(
-                  Icons.keyboard_arrow_right_rounded,
-                  color: isDark ? AppColors.textGrey : AppColors.textMuted,
+                  Icons.arrow_forward_ios_rounded,
+                  color: isDark ? AppColors.textMuted : AppColors.textGrey,
+                  size: 14,
                 )
               : null),
     );
   }
 }
+

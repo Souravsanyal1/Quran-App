@@ -1,11 +1,10 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
 import 'support_controller.dart';
@@ -208,7 +207,7 @@ class SupportChatView extends GetView<SupportController> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildQuickReplies(),
-              if (controller.selectedImage.value != null)
+              if (controller.selectedImageBytes.value != null)
                 _buildImagePreview(),
               Row(
                 children: [
