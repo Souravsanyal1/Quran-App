@@ -13,6 +13,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final isBn = settings.isBangla;
+    final isDark = settings.isDark;
 
     return DefaultTabController(
       length: 5,
@@ -21,17 +22,28 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
         body: NestedScrollView(
           headerSliverBuilder: (context, _) => [
             SliverAppBar(
-              leading: const AppBackButton(),
-              title: Text(isBn ? 'নতুন মুসলিম গাইড' : 'New Muslim Guide'),
+              backgroundColor: isDark ? AppColors.bgDark : AppColors.surfaceLight,
+              leading: AppBackButton(color: isDark ? AppColors.textWhite : AppColors.textDark),
+              title: Text(
+                isBn ? 'নতুন মুসলিম গাইড' : 'New Muslim Guide',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textWhite : AppColors.textDark,
+                ),
+              ),
               pinned: true,
               floating: true,
               forceElevated: true,
+              elevation: 0.5,
+              shadowColor: isDark ? AppColors.borderDark : AppColors.borderLight,
               bottom: TabBar(
                 isScrollable: true,
-                indicatorColor: Colors.white,
+                indicatorColor: AppColors.primary,
                 indicatorWeight: 3,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: isDark ? AppColors.textGrey : AppColors.textMuted,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
                 tabs: [
                   Tab(icon: const Icon(Icons.favorite_rounded, size: 18), text: isBn ? 'কালেমা ও ঈমান' : 'Shahada & Iman'),
                   Tab(icon: const Icon(Icons.checklist_rounded, size: 18), text: isBn ? 'লাইফস্টাইল' : 'Lifestyle'),
@@ -44,7 +56,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
           ],
           body: Obx(() {
             if (controller.isLoading.value) {
-              return  ShimmerList(itemCount: 5, height: 120);
+              return ShimmerList(itemCount: 5, height: 120);
             }
             return TabBarView(
               children: [
@@ -65,22 +77,60 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
   Widget _welcomeHeader(SettingsController settings, String titleEn, String titleBn, String subEn, String subBn) {
     final isBn = settings.isBangla;
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.75)],
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.8),
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Text(isBn ? titleBn : titleEn, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          Text(isBn ? subBn : subEn, style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4)),
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              Icons.auto_awesome_outlined,
+              size: 80,
+              color: Colors.white.withValues(alpha: 0.12),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isBn ? titleBn : titleEn,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isBn ? subBn : subEn,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -103,41 +153,63 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
             'আসসালামু আলাইকুম! আল্লাহ আপনাকে সবচেয়ে বড় নিয়ামত দিয়েছেন। এই গাইড আপনাকে একজন মুসলিম হিসেবে প্রথম পদক্ষেপগুলোতে সাহায্য করবে, ইনশাআল্লাহ।',
           ),
           ...controller.essentialBeliefs.map((belief) {
-            return Card(
+            return Container(
               margin: const EdgeInsets.only(bottom: 16),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight, width: 0.5),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.05))
+                        .withValues(alpha: isDark ? 0.15 : 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(22.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       isBn ? belief['titleBn']! : belief['titleEn']!,
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16.5, letterSpacing: 0.2),
                     ),
                     if (belief.containsKey('arabic')) ...[
                       const SizedBox(height: 16),
                       Text(
                         belief['arabic']!,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: 'Uthmanic', fontSize: settings.arabicFontSize.value, color: AppColors.primary, height: 1.8),
+                        style: TextStyle(
+                          fontFamily: 'Uthmanic',
+                          fontSize: settings.arabicFontSize.value,
+                          color: AppColors.primary,
+                          height: 1.8,
+                          shadows: [
+                            Shadow(
+                              color: AppColors.primary.withValues(alpha: 0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         isBn ? 'উচ্চারণ: ${belief['translitBn']}' : 'Transliteration: ${belief['translitEn'] ?? belief['translitBn']}',
-                        style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, color: AppColors.textGrey),
+                        style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: AppColors.textGrey),
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     Text(
                       isBn ? belief['meaningBn'] ?? belief['descBn']! : (belief['descEn'] ?? belief['meaningEn'] ?? belief['titleEn']!),
-                      style: TextStyle(fontSize: 14, color: isDark ? AppColors.textWhite : AppColors.textDark, height: 1.4),
+                      style: TextStyle(fontSize: 14, color: isDark ? AppColors.textWhite : AppColors.textDark, height: 1.5),
                       textAlign: belief.containsKey('arabic') ? TextAlign.center : TextAlign.left,
                     ),
                   ],
@@ -145,10 +217,17 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
               ),
             );
           }),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Row(
             children: [
-              Container(width: 4, height: 20, color: AppColors.primary),
+              Container(
+                width: 3.5,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
               const SizedBox(width: 8),
               Text(
                 isBn ? 'ইসলামের ৫টি মূল স্তম্ভ' : 'The 5 Pillars of Islam',
@@ -156,7 +235,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           _buildPillarItem(settings, '1', Icons.record_voice_over_rounded, isBn ? 'শাহাদাহ (ঈমান)' : 'Shahadah (Faith)', isBn ? 'আল্লাহর একত্ববাদ ও রাসূলের উপর বিশ্বাস স্থাপন।' : 'Belief in oneness of Allah and His messenger.'),
           _buildPillarItem(settings, '2', Icons.mosque_rounded, isBn ? 'সালাত (নামাজ)' : 'Salah (Prayer)', isBn ? 'প্রতিদিন ৫ ওয়াক্ত নামাজ আদায় করা।' : 'Performing the five daily prayers.'),
           _buildPillarItem(settings, '3', Icons.volunteer_activism_rounded, isBn ? 'যাকাত (দান)' : 'Zakat (Almsgiving)', isBn ? 'সম্পদশালীদের জন্য প্রতি বছর নির্দিষ্ট অংশ দান।' : 'Giving portion of wealth to needy annually.'),
@@ -180,14 +259,24 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
       itemCount: controller.dailyLifestyle.length,
       itemBuilder: (context, index) {
         final item = controller.dailyLifestyle[index];
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 16),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight, width: 0.5),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.05))
+                    .withValues(alpha: isDark ? 0.15 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -197,10 +286,13 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: const Icon(Icons.check_circle_outline_rounded, color: AppColors.primary, size: 20),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         isBn ? item['titleBn']! : item['titleEn']!,
@@ -222,7 +314,6 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
     );
   }
 
-
   Widget _buildShortSurahs(BuildContext context, SettingsController settings) {
     final isDark = settings.isDark;
     final isBn = settings.isBangla;
@@ -232,26 +323,68 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
       itemCount: controller.shortSurahs.length,
       itemBuilder: (context, index) {
         final surah = controller.shortSurahs[index];
-        return Card(
+        return Container(
           margin: const EdgeInsets.only(bottom: 16),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: isDark ? AppColors.borderDark : AppColors.borderLight, width: 0.5),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isDark ? AppColors.borderDark : AppColors.borderLight,
+              width: 0.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.05))
+                    .withValues(alpha: isDark ? 0.15 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(isBn ? surah['nameBn']! : (surah['nameEn'] ?? 'Surah'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center),
+                Text(
+                  isBn ? surah['nameBn']! : (surah['nameEn'] ?? 'Surah'),
+                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 17),
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 16),
-                Text(surah['arabic']!, textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Uthmanic', fontSize: settings.arabicFontSize.value, color: AppColors.primary, height: 1.8)),
+                Text(
+                  surah['arabic']!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Uthmanic',
+                    fontSize: settings.arabicFontSize.value,
+                    color: AppColors.primary,
+                    height: 1.8,
+                    shadows: [
+                      Shadow(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
-                Text(isBn ? 'উচ্চারণ: ${surah['translit']}' : 'Transliteration: ${surah['translit']}', style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: AppColors.textGrey), textAlign: TextAlign.center),
-                const SizedBox(height: 8),
-                Text(isBn ? 'অর্থ: ${surah['meaning']}' : 'Meaning: ${surah['meaning']}', style: const TextStyle(fontSize: 13, height: 1.4), textAlign: TextAlign.center),
+                Text(
+                  isBn ? 'উচ্চারণ: ${surah['translit']}' : 'Transliteration: ${surah['translit']}',
+                  style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: AppColors.textGrey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  isBn ? 'অর্থ: ${surah['meaning']}' : 'Meaning: ${surah['meaning']}',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.45,
+                    color: isDark ? AppColors.textWhite : AppColors.textDark,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),
@@ -282,36 +415,51 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
           else
             ...controller.halalHaramItems.map((item) {
               final bool isHalal = item['type'] == 'halal';
-              return Card(
+              final accentColor = isHalal ? Colors.green : Colors.red;
+              return Container(
                 margin: const EdgeInsets.only(bottom: 14),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(color: isHalal ? Colors.green.withOpacity(0.4) : Colors.red.withOpacity(0.4), width: 1),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.35),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(18.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         isHalal ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                        color: isHalal ? Colors.green : Colors.red,
+                        color: accentColor,
+                        size: 22,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               isBn ? item['titleBn']! : item['titleEn']!,
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isHalal ? Colors.green[700] : Colors.red[700]),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: isDark ? (isHalal ? Colors.green[300] : Colors.red[300]) : (isHalal ? Colors.green[800] : Colors.red[800]),
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               isBn ? item['descBn']! : item['descEn']!,
-                              style: TextStyle(fontSize: 13, height: 1.4, color: isDark ? AppColors.textWhite : AppColors.textDark),
+                              style: TextStyle(fontSize: 13, height: 1.45, color: isDark ? AppColors.textWhite : AppColors.textDark),
                             ),
                           ],
                         ),
@@ -326,25 +474,39 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
     );
   }
 
-
   Widget _buildPillarItem(SettingsController settings, String num, IconData icon, String title, String desc) {
     final isDark = settings.isDark;
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight, width: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.borderLight, width: 0.8),
+        boxShadow: [
+          BoxShadow(
+            color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.03))
+                .withValues(alpha: isDark ? 0.12 : 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 42,
+          height: 42,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Icon(icon, color: Colors.white, size: 20),
         ),
@@ -353,11 +515,12 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isDark ? AppColors.textWhite : AppColors.textDark,
+            fontSize: 15,
           ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
-          child: Text(desc, style: const TextStyle(color: AppColors.textGrey, fontSize: 12, height: 1.3)),
+          child: Text(desc, style: const TextStyle(color: AppColors.textGrey, fontSize: 12, height: 1.35)),
         ),
       ),
     );
@@ -373,27 +536,34 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
         final step = controller.wuduSteps[index];
         final isDark = settings.isDark;
 
-        return Card(
-          elevation: 0,
-          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.borderLight,
-              width: 0.5,
+              width: 0.8,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: (isDark ? Colors.black : Colors.orange.withValues(alpha: 0.05))
+                    .withValues(alpha: isDark ? 0.15 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(18.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 38,
+                  height: 38,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.primary, width: 1.5),
                   ),
@@ -402,6 +572,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -423,8 +594,8 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
                         isBn ? step.descBn : step.descEn,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
-                          height: 1.4,
+                          color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.75),
+                          height: 1.45,
                         ),
                       ),
                     ],
@@ -443,7 +614,7 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Column(
         children: [
-          Icon(Icons.inbox_rounded, size: 48, color: AppColors.textGrey.withOpacity(0.5)),
+          Icon(Icons.inbox_rounded, size: 48, color: AppColors.textGrey.withValues(alpha: 0.4)),
           const SizedBox(height: 12),
           Text(message, style: const TextStyle(color: AppColors.textGrey)),
         ],
