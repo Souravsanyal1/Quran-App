@@ -868,7 +868,13 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: imageUrl != null && imageUrl.isNotEmpty ? ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: CachedNetworkImage(imageUrl: imageUrl, width: 60, height: 40, fit: BoxFit.cover, errorWidget: (_,__,___) => const Icon(Icons.broken_image)),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl, 
+            width: 60, 
+            height: 40, 
+            fit: BoxFit.cover, 
+            errorWidget: (_,__,___) => const Icon(Icons.broken_image, size: 20),
+          ),
         ) : const Icon(Icons.image_not_supported_rounded),
         title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
         subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12)),
@@ -960,6 +966,12 @@ class _AdminMessageBubble extends StatelessWidget {
                       placeholder: (context, url) => const SizedBox(
                         height: 150, width: 200,
                         child: Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        height: 100,
+                        width: 150,
+                        color: Colors.black26,
+                        child: const Icon(Icons.broken_image, color: Colors.white24),
                       ),
                       fit: BoxFit.cover,
                     ),

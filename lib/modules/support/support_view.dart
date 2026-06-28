@@ -404,11 +404,38 @@ class _MessageBubble extends StatelessWidget {
 
   Widget _buildImage(BuildContext context, String url) {
     return GestureDetector(
-      onTap: () => Get.to(() => Scaffold(backgroundColor: Colors.black, appBar: AppBar(backgroundColor: Colors.transparent, foregroundColor: Colors.white), body: PhotoView(imageProvider: CachedNetworkImageProvider(url)))),
+      onTap: () => Get.to(() => Scaffold(
+            backgroundColor: Colors.black,
+            appBar: AppBar(backgroundColor: Colors.transparent, foregroundColor: Colors.white),
+            body: PhotoView(imageProvider: CachedNetworkImageProvider(url)),
+          )),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         constraints: const BoxConstraints(maxHeight: 200, maxWidth: 250),
-        child: ClipRRect(borderRadius: BorderRadius.circular(12), child: CachedNetworkImage(imageUrl: url, placeholder: (context, url) => Container(color: Colors.black12, child: const Center(child: CircularProgressIndicator())), fit: BoxFit.cover)),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            placeholder: (context, url) => Container(
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+            errorWidget: (context, url, error) => Container(
+              color: Colors.black12,
+              height: 100,
+              width: 150,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.broken_image, color: Colors.grey),
+                  SizedBox(height: 4),
+                  Text('Invalid Image', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                ],
+              ),
+            ),
+            fit: BoxFit.cover,
+          ),
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -510,10 +511,10 @@ class _CustomAdBanner extends StatelessWidget {
                 // Ad Image
                 AspectRatio(
                   aspectRatio: 3.2,
-                  child: Image.network(
-                    imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                    errorWidget: (context, url, error) => const SizedBox(),
                   ),
                 ),
                 // Gradient overlay

@@ -104,10 +104,21 @@ class NotificationsController extends GetxController {
 
   void _precacheNotificationImages(List<AppNotification> notifications) {
     for (var n in notifications) {
-      if (n.imageUrl != null && n.imageUrl!.isNotEmpty) {
+      final imageUrl = n.imageUrl;
+      if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
+        // Use the image provider with an error listener if supported, 
+        // or wrap the precache in a safe way.
         try {
-          precacheImage(CachedNetworkImageProvider(n.imageUrl!), Get.context!);
-        } catch (_) {}
+          precacheImage(
+            CachedNetworkImageProvider(imageUrl), 
+            Get.context!,
+          ).catchError((e) {
+            Get.log('Failed to precache notification image: $imageUrl - $e');
+          });
+        } catch (e) {
+          // Catch synchronous errors during provider creation
+          Get.log('Error creating image provider: $e');
+        }
       }
     }
   }

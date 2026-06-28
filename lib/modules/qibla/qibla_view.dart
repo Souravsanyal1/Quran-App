@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_qiblah/flutter_qiblah.dart';
 import 'package:get/get.dart';
@@ -29,7 +30,7 @@ class QiblaView extends StatelessWidget {
       backgroundColor: scaffoldBg,
       appBar: AppBar(
         leading: const AppBackButton(color: Colors.white), // Always White back button
-        backgroundColor: isDark ? const Color(0xFF09090B) : AppColors.primary,
+        backgroundColor: AppColors.primary,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -178,7 +179,12 @@ class QiblaView extends StatelessWidget {
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(color: isAligned ? orangeColor : (isDark ? Colors.black87 : Colors.white), shape: BoxShape.circle, border: Border.all(color: orangeColor)),
-                                      child: Image.network('https://img.icons8.com/color/48/kaaba.png', width: 24, height: 24),
+                                      child: CachedNetworkImage(
+                                  imageUrl: 'https://img.icons8.com/color/48/kaaba.png',
+                                  width: 24,
+                                  height: 24,
+                                  errorWidget: (context, url, error) => const Icon(Icons.mosque, color: Colors.orange, size: 20),
+                                ),
                                     ),
                                   ),
                                   // 3D Orange Needle
@@ -244,7 +250,12 @@ class QiblaView extends StatelessWidget {
           ),
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network('https://img.icons8.com/color/96/kaaba.png', width: 50, height: 50),
+            child: CachedNetworkImage(
+              imageUrl: 'https://img.icons8.com/color/96/kaaba.png',
+              width: 50,
+              height: 50,
+              errorWidget: (context, url, error) => const Icon(Icons.mosque, color: Colors.orange, size: 40),
+            ),
           ),
         ],
       ),

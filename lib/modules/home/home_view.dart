@@ -1,4 +1,5 @@
 import 'package:badges/badges.dart' as badges;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
@@ -142,17 +143,14 @@ class _BannerSlider extends StatelessWidget {
               final banner = controller.banners[index];
               return GestureDetector(
                 onTap: () => controller.openLink(banner.linkUrl),
-                child: Image.network(
-                  banner.imageUrl,
+                child: CachedNetworkImage(
+                  imageUrl: banner.imageUrl,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Colors.grey.withValues(alpha: 0.1),
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  errorBuilder: (c, e, s) => Container(
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey.withValues(alpha: 0.1),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
                     color: Colors.grey.withValues(alpha: 0.1),
                     child: const Icon(Icons.broken_image, color: Colors.grey),
                   ),
@@ -185,10 +183,10 @@ class _StaticTopBannerArea extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: AspectRatio(
               aspectRatio: 970 / 40,
-              child: Image.network(
-                banner.imageUrl,
+              child: CachedNetworkImage(
+                imageUrl: banner.imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => const SizedBox.shrink(),
+                errorWidget: (c, e, s) => const SizedBox.shrink(),
               ),
             ),
           ),
