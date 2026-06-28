@@ -20,7 +20,7 @@ class NotificationsView extends GetView<NotificationsController> {
       return Scaffold(
         backgroundColor: context.theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -180,14 +180,16 @@ class NotificationsView extends GetView<NotificationsController> {
             color: notification.isRead ? context.theme.cardColor.withOpacity(0.4) : context.theme.cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: notification.isRead ? Colors.white.withOpacity(0.05) : AppColors.primary.withOpacity(0.2),
+              color: notification.isRead 
+                  ? (context.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)) 
+                  : AppColors.primary.withOpacity(0.2),
               width: 1,
             ),
             boxShadow: notification.isRead
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withOpacity(context.isDarkMode ? 0.05 : 0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     )
@@ -232,7 +234,7 @@ class NotificationsView extends GetView<NotificationsController> {
                               Text(
                                 controller.timeAgo(notification.createdAt, isBn),
                                 style: context.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withOpacity(0.4),
+                                  color: context.isDarkMode ? Colors.white.withOpacity(0.4) : Colors.black.withOpacity(0.4),
                                   fontSize: 10,
                                 ),
                               ),
@@ -252,7 +254,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: context.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.5),
+                              color: context.isDarkMode ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.5),
                               fontSize: 13,
                               height: 1.4,
                             ),
@@ -369,11 +371,15 @@ class NotificationsView extends GetView<NotificationsController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_none_rounded, size: 80, color: Colors.white.withOpacity(0.05)),
+          Icon(Icons.notifications_none_rounded, 
+               size: 80, 
+               color: context.isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)),
           const SizedBox(height: 20),
           Text(
             isBn ? 'কোনো নোটিফিকেশন পাওয়া যায়নি' : 'No notifications found',
-            style: context.textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.3)),
+            style: context.textTheme.titleMedium?.copyWith(
+              color: context.isDarkMode ? Colors.white.withOpacity(0.3) : Colors.black.withOpacity(0.3)
+            ),
           ),
         ],
       ),

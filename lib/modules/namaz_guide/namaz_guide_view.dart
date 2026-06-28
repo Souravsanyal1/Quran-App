@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'namaz_guide_controller.dart';
 import 'widgets/posture_illustration.dart';
 
@@ -28,9 +29,26 @@ class NamazGuideView extends GetView<NamazGuideController> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Progress bar + step counter
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                ShimmerLoading.rounded(height: 40),
+                const SizedBox(height: 20),
+                ShimmerLoading.rounded(height: 200, borderRadius: 20),
+                const SizedBox(height: 20),
+                ShimmerLoading.rounded(height: 30, width: 200),
+                const SizedBox(height: 20),
+                ShimmerLoading.rounded(height: 100, borderRadius: 14),
+              ],
+            ),
+          );
+        }
+        return Column(
+          children: [
+            // Progress bar + step counter
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Obx(() => Column(
@@ -200,7 +218,8 @@ class NamazGuideView extends GetView<NamazGuideController> {
                 )),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }),
+  );
+}
 }

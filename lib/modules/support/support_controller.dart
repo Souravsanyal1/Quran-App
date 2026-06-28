@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,6 +30,7 @@ class SupportController extends GetxController {
   final RxBool isSubmitting = false.obs;
   final Rxn<SupportTicket> activeTicket = Rxn<SupportTicket>();
   final Rxn<XFile> selectedImage = Rxn<XFile>();
+  final Rxn<Uint8List> selectedImageBytes = Rxn<Uint8List>();
   final RxBool isAdminTyping = false.obs;
   
   // Controllers
@@ -153,6 +155,7 @@ class SupportController extends GetxController {
       subjectController.clear();
       descriptionController.clear();
       selectedImage.value = null;
+      selectedImageBytes.value = null;
     } catch (e) {
       _logger.e('Error creating ticket: $e');
       Get.snackbar('Error', 'Failed to create ticket');
@@ -236,6 +239,7 @@ class SupportController extends GetxController {
 
       messageController.clear();
       selectedImage.value = null;
+      selectedImageBytes.value = null;
       _scrollToBottom();
     } catch (e) {
       _logger.e('Error sending message: $e');
@@ -248,6 +252,7 @@ class SupportController extends GetxController {
     final image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
       selectedImage.value = image;
+      selectedImageBytes.value = await image.readAsBytes();
     }
   }
 

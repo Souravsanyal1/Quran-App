@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
@@ -19,6 +20,9 @@ Future<void> main() async {
 
   // Initialize GetStorage
   await GetStorage.init();
+
+  // Initialize AdMob
+  await MobileAds.instance.initialize();
 
   // Initialize Firebase FIRST
   try {

@@ -4,7 +4,8 @@ import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
-import '../../widgets/percentage_loading_widget.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
+import '../../widgets/banner_ad_widget.dart';
 import 'quran_controller.dart';
 
 class QuranView extends GetView<QuranController> {
@@ -55,11 +56,18 @@ class QuranView extends GetView<QuranController> {
               ],
             ),
           ),
-          body: TabBarView(
+          body: Column(
             children: [
-              _buildSurahTab(context, settings),
-              _buildParaTab(context, settings),
-              _buildBookmarksTab(context, settings),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildSurahTab(context, settings),
+                    _buildParaTab(context, settings),
+                    _buildBookmarksTab(context, settings),
+                  ],
+                ),
+              ),
+              const BannerAdWidget(),
             ],
           ),
         ),
@@ -261,10 +269,10 @@ class QuranView extends GetView<QuranController> {
         Expanded(
           child: Obx(() {
             if (controller.isLoading.value) {
-              return Center(
-                child: PercentageLoadingWidget(
-                  message: settings.isBangla ? 'সূরা তালিকা লোড হচ্ছে...' : 'Loading Surah List...',
-                ),
+              return ShimmerList(
+                itemCount: 8,
+                height: 70,
+                spacing: 12,
               );
             }
             if (controller.filteredSurahList.isEmpty) {

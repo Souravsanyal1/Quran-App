@@ -14,6 +14,8 @@ import 'banner_controller.dart';
 import 'widgets/app_drawer.dart';
 import 'widgets/home_dashboard.dart';
 import 'widgets/floating_support_button.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../../widgets/banner_ad_widget.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -100,6 +102,7 @@ class HomeView extends GetView<HomeController> {
                     ),
                   ),
                 ),
+                const BannerAdWidget(),
               ],
             ),
             floatingActionButton: const FloatingSupportButton(),
@@ -117,7 +120,12 @@ class _BannerSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.isLoading.value && controller.banners.isEmpty) return const SizedBox.shrink();
+      if (controller.isLoading.value && controller.banners.isEmpty) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: ShimmerLoading.rounded(height: 160, borderRadius: 20),
+        );
+      }
       if (controller.banners.isEmpty) return const SizedBox.shrink();
 
       return Container(
@@ -146,10 +154,7 @@ class _BannerSlider extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: banner.imageUrl,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.withValues(alpha: 0.1),
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
+                  placeholder: (context, url) => ShimmerLoading.rectangular(height: 160),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.grey.withValues(alpha: 0.1),
                     child: const Icon(Icons.broken_image, color: Colors.grey),

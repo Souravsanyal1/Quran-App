@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import '../../data/models/surah_model.dart';
@@ -49,6 +50,11 @@ class QuranDownloadController extends GetxController {
   }
 
   Future<void> downloadSurah(int surahNumber) async {
+    if (kIsWeb) {
+      Get.snackbar('Not Supported', 'Downloading is not supported on web.', 
+        snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     if (downloadStates[surahNumber] == 2 || downloadStates[surahNumber] == 1) return;
 
     downloadStates[surahNumber] = 1; // Downloading
@@ -114,6 +120,7 @@ class QuranDownloadController extends GetxController {
   }
 
   Future<void> deleteDownloadedSurah(int surahNumber) async {
+    if (kIsWeb) return;
     // Delete local files
     try {
       final qariId = Get.find<SettingsController>().selectedQari.value;

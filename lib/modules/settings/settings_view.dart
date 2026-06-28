@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_urls.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -12,10 +14,27 @@ class SettingsView extends GetView<SettingsController> {
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Obx(() => Text(controller.isBangla ? 'সেটিংস' : 'Settings')),
+        title: Obx(() => Text(
+          controller.isBangla ? 'সেটিংস' : 'Settings',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        )),
+        centerTitle: true,
         elevation: 0,
       ),
       body: Obx(() {
+        if (controller.isLoading.value) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                ShimmerLoading.rounded(height: 100, borderRadius: 20),
+                const SizedBox(height: 24),
+                ShimmerList(itemCount: 5, height: 60, padding: EdgeInsets.zero),
+              ],
+            ),
+          );
+        }
+
         final bn = controller.isBangla;
         final isDark = controller.isDark;
 
@@ -24,68 +43,87 @@ class SettingsView extends GetView<SettingsController> {
           children: [
             // Premium Header Card
             Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primary.withValues(alpha: 0.8),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: Row(
+              child: Stack(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
+                  Positioned(
+                    right: -20,
+                    top: -20,
+                    child: Icon(
                       Icons.settings_outlined,
-                      color: Colors.white,
-                      size: 28,
+                      size: 100,
+                      color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          bn ? 'পছন্দসমূহ' : 'Preferences',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          bn 
-                              ? 'আপনার অভিজ্ঞতা কাস্টমাইজ করুন' 
-                              : 'Customize your Quranic experience',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
-                            fontSize: 12,
-                          ),
+                        child: const Icon(
+                          Icons.settings_suggest_rounded,
+                          color: Colors.white,
+                          size: 32,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              bn ? 'পছন্দসমূহ' : 'Preferences',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              bn 
+                                  ? 'আপনার অভিজ্ঞতা কাস্টমাইজ করুন' 
+                                  : 'Personalize your spiritual journey',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
+            ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2, curve: Curves.easeOutQuad),
 
-            _SectionHeader(title: bn ? 'সাধারণ' : 'General'),
+            _SectionHeader(title: bn ? 'সাধারণ' : 'General')
+                .animate()
+                .fadeIn(delay: 100.ms),
 
             // Language toggle
             _SettingsCard(
@@ -96,15 +134,18 @@ class SettingsView extends GetView<SettingsController> {
                   icon: Icons.language_rounded,
                   title: bn ? 'ভাষা' : 'Language',
                   subtitle: controller.language.value == 'bn' ? 'বাংলা' : 'English',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.isBangla,
                     onChanged: (val) => controller.setLanguage(val ? 'bn' : 'en'),
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
 
-            _SectionHeader(title: bn ? 'থিম' : 'Appearance'),
+            _SectionHeader(title: bn ? 'থিম' : 'Appearance')
+                .animate()
+                .fadeIn(delay: 250.ms),
 
             // Theme
             _SettingsCard(
@@ -112,17 +153,20 @@ class SettingsView extends GetView<SettingsController> {
               children: [
                 _SettingsTile(
                   isDark: isDark,
-                  icon: Icons.dark_mode_rounded,
+                  icon: controller.isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
                   title: bn ? 'ডার্ক মোড' : 'Dark Mode',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.isDark,
                     onChanged: (_) => controller.toggleTheme(),
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(delay: 350.ms).slideX(begin: 0.1),
 
-            _SectionHeader(title: bn ? 'কুরআন' : 'Quran'),
+            _SectionHeader(title: bn ? 'কুরআন' : 'Quran')
+                .animate()
+                .fadeIn(delay: 400.ms),
 
             // Font size
             _SettingsCard(
@@ -130,7 +174,7 @@ class SettingsView extends GetView<SettingsController> {
               children: [
                 _SettingsTile(
                   isDark: isDark,
-                  icon: Icons.text_fields_rounded,
+                  icon: Icons.format_size_rounded,
                   title: bn ? 'আরবি ফন্ট সাইজ' : 'Arabic Font Size',
                   subtitle: controller.arabicFontSize.value.toStringAsFixed(0),
                 ),
@@ -184,9 +228,11 @@ class SettingsView extends GetView<SettingsController> {
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(delay: 500.ms).slideX(begin: 0.1),
 
-            _SectionHeader(title: bn ? 'অডিও' : 'Audio'),
+            _SectionHeader(title: bn ? 'অডিও' : 'Audio')
+                .animate()
+                .fadeIn(delay: 550.ms),
 
             // Qari selection
             _SettingsCard(
@@ -208,15 +254,18 @@ class SettingsView extends GetView<SettingsController> {
                   subtitle: bn
                       ? 'অ্যাপ বন্ধ বা স্ক্রিন লক থাকলেও অডিও সচল রাখবে'
                       : 'Keep playing audio when screen is locked or app is in background',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.backgroundPlayEnabled.value,
                     onChanged: controller.setBackgroundPlay,
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(delay: 650.ms).slideX(begin: 0.1),
 
-            _SectionHeader(title: bn ? 'নোটিফিকেশন' : 'Notifications'),
+            _SectionHeader(title: bn ? 'নোটিফিকেশন' : 'Notifications')
+                .animate()
+                .fadeIn(delay: 700.ms),
 
             _SettingsCard(
               isDark: isDark,
@@ -225,7 +274,8 @@ class SettingsView extends GetView<SettingsController> {
                   isDark: isDark,
                   icon: Icons.notifications_active_rounded,
                   title: bn ? 'নোটিফিকেশন' : 'Notification',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.notificationsEnabled.value,
                     onChanged: controller.setNotificationsEnabled,
                   ),
@@ -234,15 +284,18 @@ class SettingsView extends GetView<SettingsController> {
                   isDark: isDark,
                   icon: Icons.notifications_rounded,
                   title: bn ? 'আযান নোটিফিকেশন' : 'Azan Notification',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.azanEnabled.value,
                     onChanged: controller.setAzanEnabled,
                   ),
                 ),
               ],
-            ),
+            ).animate().fadeIn(delay: 800.ms).slideX(begin: 0.1),
 
-            _SectionHeader(title: bn ? 'দৈনিক দোয়া' : 'Daily Dua'),
+            _SectionHeader(title: bn ? 'দৈনিক দোয়া' : 'Daily Dua')
+                .animate()
+                .fadeIn(delay: 850.ms),
 
             _SettingsCard(
               isDark: isDark,
@@ -254,7 +307,8 @@ class SettingsView extends GetView<SettingsController> {
                   subtitle: bn
                       ? 'প্রতিদিন নির্দিষ্ট সময়ে দোয়ার নোটিফিকেশন'
                       : 'Get a daily dua notification at your chosen time',
-                  trailing: Switch(
+                  trailing: Switch.adaptive(
+                    activeColor: AppColors.primary,
                     value: controller.duaReminderEnabled.value,
                     onChanged: controller.setDuaReminderEnabled,
                   ),
@@ -305,7 +359,7 @@ class SettingsView extends GetView<SettingsController> {
                     },
                   ),
               ],
-            ),
+            ).animate().fadeIn(delay: 950.ms).slideX(begin: 0.1),
 
             const SizedBox(height: 32),
             Text(

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class AdminChatController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool isSubmitting = false.obs;
   final Rxn<XFile> selectedImage = Rxn<XFile>();
+  final Rxn<Uint8List> selectedImageBytes = Rxn<Uint8List>();
   final RxBool isUserTyping = false.obs;
 
   late final String currentTicketId;
@@ -145,6 +147,7 @@ class AdminChatController extends GetxController {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
       selectedImage.value = image;
+      selectedImageBytes.value = await image.readAsBytes();
     }
   }
 

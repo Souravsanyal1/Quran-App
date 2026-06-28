@@ -5,6 +5,15 @@ import 'namaz_guide_model.dart';
 class NamazGuideController extends GetxController {
   final PageController pageController = PageController();
   final RxInt currentIndex = 0.obs;
+  final RxBool isLoading = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    Future.delayed(const Duration(milliseconds: 600), () {
+      isLoading.value = false;
+    });
+  }
 
   final List<NamazStep> steps = [
     NamazStep(

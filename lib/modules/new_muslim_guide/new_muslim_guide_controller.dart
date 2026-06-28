@@ -10,6 +10,17 @@ class WuduStep {
 }
 
 class NewMuslimGuideController extends GetxController {
+  final RxBool isLoading = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Simulate data loading for shimmer effect
+    Future.delayed(const Duration(milliseconds: 800), () {
+      isLoading.value = false;
+    });
+  }
+
   final List<Map<String, String>> essentialBeliefs = const [
     {
       'titleBn': 'কালিমা তাইয়্যিবা',

@@ -4,6 +4,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'tracker_controller.dart';
 
 class TrackerView extends GetView<TrackerController> {
@@ -21,7 +22,18 @@ class TrackerView extends GetView<TrackerController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return _buildLinearLoader(settings.isBangla);
+          return Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                ShimmerLoading.rounded(height: 140, borderRadius: 24),
+                const SizedBox(height: 32),
+                ShimmerLoading.rounded(height: 20, width: 150),
+                const SizedBox(height: 16),
+                ShimmerList(itemCount: 6, height: 70, padding: EdgeInsets.zero),
+              ],
+            ),
+          );
         }
 
         final rate = controller.todayCompletionRate;
@@ -165,33 +177,5 @@ class TrackerView extends GetView<TrackerController> {
       default:
         return 'দৈনিক ফরজ নামাজ আদায় করুন';
     }
-  }
-
-  Widget _buildLinearLoader(bool bn) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.track_changes_rounded, size: 48, color: AppColors.primary),
-            const SizedBox(height: 20),
-            Text(
-              bn ? 'ডেটা লোড হচ্ছে...' : 'Loading data...',
-              style: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: const LinearProgressIndicator(
-                minHeight: 6,
-                backgroundColor: Colors.black12,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

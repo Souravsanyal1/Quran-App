@@ -25,6 +25,7 @@ class TasbihController extends GetxController {
   final RxInt target = 33.obs;
   final RxInt totalSaves = 0.obs;
   final RxInt selectedDhikrIndex = 0.obs;
+  final RxBool isLoading = true.obs;
 
   static const String _keyCount = 'tasbih_count';
   static const String _keyRounds = 'tasbih_rounds';
@@ -106,6 +107,7 @@ class TasbihController extends GetxController {
     totalSaves.value = _prefs?.getInt(_keyRounds) ?? 0;
     target.value = _prefs?.getInt(_keyTarget) ?? 33;
     selectedDhikrIndex.value = _prefs?.getInt(_keyDhikr) ?? 0;
+    isLoading.value = false;
   }
 
   Future<void> _saveState() async {

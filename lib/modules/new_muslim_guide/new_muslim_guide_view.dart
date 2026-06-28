@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'new_muslim_guide_controller.dart';
 
 class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
@@ -41,15 +42,20 @@ class NewMuslimGuideView extends GetView<NewMuslimGuideController> {
               ),
             ),
           ],
-          body: TabBarView(
-            children: [
-              _buildShahadaAndPillars(context, settings),
-              _buildLifestyle(context, settings),
-              _buildWuduSteps(context, settings),
-              _buildShortSurahs(context, settings),
-              _buildHalalHaram(context, settings),
-            ],
-          ),
+          body: Obx(() {
+            if (controller.isLoading.value) {
+              return  ShimmerList(itemCount: 5, height: 120);
+            }
+            return TabBarView(
+              children: [
+                _buildShahadaAndPillars(context, settings),
+                _buildLifestyle(context, settings),
+                _buildWuduSteps(context, settings),
+                _buildShortSurahs(context, settings),
+                _buildHalalHaram(context, settings),
+              ],
+            );
+          }),
         ),
       ),
     );

@@ -1,10 +1,10 @@
+import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
@@ -590,10 +590,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             image: DecorationImage(
-                              image: (kIsWeb
-                                      ? NetworkImage(chatController.selectedImage.value!.path)
-                                      : FileImage(File(chatController.selectedImage.value!.path)))
-                                  as ImageProvider,
+                              image: MemoryImage(chatController.selectedImageBytes.value!),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -603,7 +600,10 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                                 right: 4,
                                 top: 4,
                                 child: GestureDetector(
-                                  onTap: () => chatController.selectedImage.value = null,
+                                  onTap: () {
+                                    chatController.selectedImage.value = null;
+                                    chatController.selectedImageBytes.value = null;
+                                  },
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),

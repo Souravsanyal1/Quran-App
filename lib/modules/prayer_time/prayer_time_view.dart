@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_routes.dart';
 import '../../modules/settings/settings_controller.dart';
+import '../../widgets/shimmer_loading.dart';
 import 'prayer_time_controller.dart';
 
 class PrayerTimeView extends GetView<PrayerTimeController> {
@@ -894,99 +895,83 @@ class _PrayerLoadingWidgetState extends State<_PrayerLoadingWidget>
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
-    final bn = widget.bn;
-    final bg = isDark ? const Color(0xFF0D1B2A) : const Color(0xFFFCFBEF);
-    final cardColor = isDark ? const Color(0xFF1B2F40) : Colors.white;
-    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
-    final mutedColor = isDark ? Colors.white60 : Colors.black45;
+    final bg = isDark ? AppColors.bgDark : const Color(0xFFFCFBEF);
 
     return Container(
       color: bg,
-      child: Center(
+      child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(40),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Mosque icon with glow
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: cardColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 24,
-                      spreadRadius: 4,
-                    ),
+              // Header Shimmer
+              Row(
+                children: [
+                  ShimmerLoading.circular(height: 40, width: 40),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerLoading.rounded(height: 18, width: 150),
+                      const SizedBox(height: 6),
+                      ShimmerLoading.rounded(height: 14, width: 100),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 60),
+              
+              // Gauge Shimmer
+              Center(
+                child: Column(
+                  children: [
+                    ShimmerLoading.circular(height: 180, width: 180),
+                    const SizedBox(height: 24),
+                    ShimmerLoading.rounded(height: 24, width: 120),
+                    const SizedBox(height: 12),
+                    ShimmerLoading.rounded(height: 16, width: 80),
                   ],
                 ),
-                child: const Icon(
-                  Icons.mosque_rounded,
-                  size: 44,
-                  color: AppColors.primary,
+              ),
+              const SizedBox(height: 60),
+              
+              // Pills Shimmer
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ShimmerLoading.rounded(height: 36, width: 120, borderRadius: 18),
+                  const SizedBox(width: 12),
+                  ShimmerLoading.rounded(height: 36, width: 140, borderRadius: 18),
+                ],
+              ),
+              const Spacer(),
+              
+              // Bottom List Shimmer
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.surfaceDark : Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                bn ? 'নামাজের সময়সূচি' : 'Prayer Times',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                bn ? _statusBn[_step.clamp(0, _statusBn.length - 1)]
-                   : _statusEn[_step.clamp(0, _statusEn.length - 1)],
-                style: TextStyle(fontSize: 13, color: mutedColor),
-              ),
-              const SizedBox(height: 28),
-              // Progress bar with percentage
-              AnimatedBuilder(
-                animation: _progressAnim,
-                builder: (context, _) {
-                  final pct = (_progressAnim.value * 100).toInt();
-                  return Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            bn ? 'লোড হচ্ছে' : 'Loading',
-                            style: TextStyle(fontSize: 11, color: mutedColor),
-                          ),
-                          Text(
-                            '$pct%',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value: _progressAnim.value,
-                          minHeight: 8,
-                          backgroundColor: isDark
-                              ? Colors.white.withValues(alpha: 0.12)
-                              : Colors.black.withValues(alpha: 0.08),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                            AppColors.primary,
-                          ),
+                child: Column(
+                  children: List.generate(5, (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 18),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            ShimmerLoading.circular(height: 24, width: 24),
+                            const SizedBox(width: 16),
+                            ShimmerLoading.rounded(height: 16, width: 80),
+                          ],
                         ),
-                      ),
-                    ],
-                  );
-                },
+                        ShimmerLoading.rounded(height: 16, width: 100),
+                      ],
+                    ),
+                  )),
+                ),
               ),
             ],
           ),

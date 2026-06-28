@@ -25,6 +25,16 @@ class DuaItem {
 }
 
 class DuasController extends GetxController {
+  final RxBool isLoading = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    Future.delayed(const Duration(milliseconds: 800), () {
+      isLoading.value = false;
+    });
+  }
+
   final RxString selectedCategoryEn = 'Daily'.obs;
 
   final List<String> categoriesEn = const ['Daily', 'Prayer', 'Protection', 'Morning & Evening'];

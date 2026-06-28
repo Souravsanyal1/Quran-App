@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'tasbih_controller.dart';
 
 class TasbihView extends GetView<TasbihController> {
@@ -34,40 +35,64 @@ class TasbihView extends GetView<TasbihController> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 12),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  ShimmerLoading.rounded(height: 80, borderRadius: 20),
+                  const SizedBox(height: 60),
+                  Center(child: ShimmerLoading.circular(height: 240, width: 240)),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(child: ShimmerLoading.rounded(height: 48)),
+                      const SizedBox(width: 12),
+                      Expanded(child: ShimmerLoading.rounded(height: 48)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          }
+          return Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
 
-                    // ─── Dhikr Card ────────────────────────────────────
-                    _buildDhikrCard(context, settings, isDark),
+                      // ─── Dhikr Card ────────────────────────────────────
+                      _buildDhikrCard(context, settings, isDark),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // ─── Circular Counter ──────────────────────────────
-                    Expanded(child: _buildCircularCounter(context, settings, isDark)),
+                      // ─── Circular Counter ──────────────────────────────
+                      Expanded(child: _buildCircularCounter(context, settings, isDark)),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // ─── Target Selector ───────────────────────────────
-                    _buildTargetRow(isDark),
+                      // ─── Target Selector ───────────────────────────────
+                      _buildTargetRow(isDark),
 
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    // ─── Action Row ────────────────────────────────────
-                    _buildActionRow(context, settings, isDark),
+                      // ─── Action Row ────────────────────────────────────
+                      _buildActionRow(context, settings, isDark),
 
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
   }

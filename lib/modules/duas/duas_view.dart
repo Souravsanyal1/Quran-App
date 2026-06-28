@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'duas_controller.dart';
 
 class DuasView extends GetView<DuasController> {
@@ -71,6 +72,10 @@ class DuasView extends GetView<DuasController> {
           // List of Duas
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value) {
+                return  ShimmerList(itemCount: 4, height: 180);
+              }
+
               final list = controller.filteredDuas;
               if (list.isEmpty) {
                 return Center(

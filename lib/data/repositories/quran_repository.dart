@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logger/logger.dart';
@@ -297,6 +298,7 @@ class QuranRepository {
   }
 
   Future<bool> isAyahAudioDownloaded(int globalAyahNumber, String qariId) async {
+    if (kIsWeb) return false;
     final path = await getLocalAudioPath(globalAyahNumber, qariId);
     final file = File(path);
     return await file.exists() && await file.length() > 0;

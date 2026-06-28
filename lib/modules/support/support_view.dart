@@ -1,10 +1,10 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
@@ -292,11 +292,12 @@ class SupportChatView extends GetView<SupportController> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: kIsWeb
-                ? Image.network(controller.selectedImage.value!.path, width: 80, height: 80, fit: BoxFit.cover)
-                : Image.file(File(controller.selectedImage.value!.path), width: 80, height: 80, fit: BoxFit.cover),
+            child: Image.memory(controller.selectedImageBytes.value!, width: 80, height: 80, fit: BoxFit.cover),
           ),
-          Positioned(right: -4, top: -4, child: IconButton(onPressed: () => controller.selectedImage.value = null, icon: const Icon(Icons.cancel, color: Colors.red, size: 20))),
+          Positioned(right: -4, top: -4, child: IconButton(onPressed: () {
+            controller.selectedImage.value = null;
+            controller.selectedImageBytes.value = null;
+          }, icon: const Icon(Icons.cancel, color: Colors.red, size: 20))),
         ],
       ),
     );

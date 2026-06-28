@@ -24,6 +24,7 @@ class SettingsController extends GetxController {
   final RxBool notificationsEnabled = true.obs;
   final RxString selectedQari = 'ar.alafasy'.obs;
   final RxBool backgroundPlayEnabled = false.obs;
+  final RxBool isLoading = true.obs;
 
   SharedPreferences? _prefs;
 
@@ -46,6 +47,7 @@ class SettingsController extends GetxController {
     Get.updateLocale(Locale(language.value));
     // Load dua reminder settings
     await loadDuaReminder();
+    isLoading.value = false;
   }
 
   void _applyTheme() {
