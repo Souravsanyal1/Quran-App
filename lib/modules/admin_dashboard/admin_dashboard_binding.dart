@@ -6,6 +6,6 @@ class AdminDashboardBinding extends Bindings {
 
   @override
   void dependencies() {
-    Get.lazyPut<AdminDashboardController>(() => AdminDashboardController());
+    Get.lazyPut<AdminDashboardController>(() => AdminDashboardController(Get.find(), Get.find()));
   }
 }

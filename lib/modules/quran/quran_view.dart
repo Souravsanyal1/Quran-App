@@ -333,7 +333,7 @@ class QuranView extends GetView<QuranController> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: AppColors.deepOrange,
                         ),
                       ),
                       const Icon(
@@ -462,7 +462,7 @@ class QuranView extends GetView<QuranController> {
                   ),
                 ),
                 title: Text(
-                  para.nameMeaning,
+                  bn ? para.nameBn : para.nameMeaning,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -481,7 +481,7 @@ class QuranView extends GetView<QuranController> {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: AppColors.deepOrange,
                       ),
                     ),
                     const Icon(Icons.chevron_right, color: AppColors.textGrey),
@@ -491,7 +491,7 @@ class QuranView extends GetView<QuranController> {
                   AppRoutes.paraDetails,
                   arguments: {
                     'paraNumber': para.number,
-                    'paraName': para.nameMeaning,
+                    'paraName': bn ? para.nameBn : para.nameMeaning,
                   },
                 ),
               );

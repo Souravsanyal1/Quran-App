@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,14 +12,54 @@ class BannerController extends GetxController {
   
   final RxList<BannerModel> banners = <BannerModel>[].obs;
   final RxList<BannerModel> staticTopBanners = <BannerModel>[].obs;
+  final RxList<Map<String, dynamic>> campaignAds = <Map<String, dynamic>>[].obs;
   final RxBool isLoading = true.obs;
   final RxInt currentBannerIndex = 0.obs;
+  final RxInt currentAdIndex = 0.obs;
+  Timer? _adTimer;
 
   @override
   void onInit() {
     super.onInit();
     _initBannerStream();
     _initStaticBannerStream();
+    _initCampaignAdsStream();
+  }
+
+  @override
+  void onClose() {
+    _adTimer?.cancel();
+    super.onClose();
+  }
+
+  void _initCampaignAdsStream() {
+    // Simplified listener to avoid index requirements
+    _firestore.collection('custom_ads')
+        .snapshots().listen((snapshot) {
+      final List<Map<String, dynamic>> ads = snapshot.docs
+          .map((doc) => {'id': doc.id, ...doc.data()})
+          .where((ad) => ad['status'] == 'active')
+          .toList();
+          
+      // Manual sorting by createdAt if needed
+      ads.sort((a, b) {
+        final tA = (a['createdAt'] as Timestamp?) ?? Timestamp.now();
+        final tB = (b['createdAt'] as Timestamp?) ?? Timestamp.now();
+        return tB.compareTo(tA);
+      });
+
+      campaignAds.assignAll(ads);
+      _startAdTimer();
+    });
+  }
+
+  void _startAdTimer() {
+    _adTimer?.cancel();
+    if (campaignAds.length > 1) {
+      _adTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+        currentAdIndex.value = (currentAdIndex.value + 1) % campaignAds.length;
+      });
+    }
   }
 
   void _initBannerStream() {

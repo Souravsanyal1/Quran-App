@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_colors.dart';
-import '../../modules/settings/settings_controller.dart';
-import 'notification_model.dart';
+import '../../data/models/notification_model.dart';
+import '../settings/settings_controller.dart';
 import 'notifications_controller.dart';
 
 class NotificationsView extends GetView<NotificationsController> {
@@ -13,265 +15,269 @@ class NotificationsView extends GetView<NotificationsController> {
     final settings = Get.find<SettingsController>();
 
     return Obx(() {
-      final isDark = settings.isDark;
       final isBn = settings.isBangla;
 
       return Scaffold(
-        backgroundColor: isDark ? AppColors.bgDark : AppColors.bgLight,
-        appBar: _buildAppBar(isDark, isBn),
-        body: _buildBody(isDark, isBn),
+        backgroundColor: context.theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: Colors.orange,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            isBn ? 'নোটিফিকেশন' : 'Notifications',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          actions: [
+            if (controller.unreadCount.value > 0)
+              IconButton(
+                icon: const Icon(Icons.done_all_rounded),
+                tooltip: isBn ? 'সবগুলো পঠিত হিসেবে চিহ্নিত করুন' : 'Mark all as read',
+                onPressed: controller.markAllAsRead,
+              ),
+            IconButton(
+              icon: const Icon(Icons.sort_rounded),
+              onPressed: () => _showSortOptions(context, isBn),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: Column(
+          children: [
+            _buildFilterSection(context, isBn),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.filteredNotifications.isEmpty) {
+                  return _buildEmptyState(context, isBn);
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: controller.filteredNotifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = controller.filteredNotifications[index];
+                    return _buildNotificationCard(context, notification, isBn)
+                        .animate()
+                        .fadeIn(delay: (index * 50).ms)
+                        .slideX(begin: 0.1, curve: Curves.easeOutQuad);
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
       );
     });
   }
 
-  PreferredSizeWidget _buildAppBar(bool isDark, bool isBn) {
-    return AppBar(
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-        onPressed: () => Get.back(),
-      ),
-      title: Text(isBn ? 'নোটিফিকেশন' : 'Notifications'),
-      actions: [
-        Obx(() {
-          if (controller.notifications.isEmpty) return const SizedBox.shrink();
-          return TextButton.icon(
-            onPressed: () => _showClearDialog(isBn),
-            icon: const Icon(Icons.done_all_rounded, size: 18),
-            label: Text(isBn ? 'সব পড়া' : 'Mark All'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+  Widget _buildFilterSection(BuildContext context, bool isBn) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextField(
+            onChanged: controller.setSearchQuery,
+            decoration: InputDecoration(
+              hintText: isBn ? 'নোটিফিকেশন খুঁজুন...' : 'Search notifications...',
+              prefixIcon: const Icon(Icons.search, size: 20),
+              filled: true,
+              fillColor: context.theme.cardColor.withOpacity(0.5),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0),
             ),
-          );
-        }),
-        const SizedBox(width: 4),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              FilterChip(
+                label: Text(isBn ? 'সব' : 'All'),
+                selected: controller.selectedCategory.value == null,
+                onSelected: (_) => controller.setCategory(null),
+                selectedColor: AppColors.primary.withOpacity(0.2),
+                checkmarkColor: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              ...NotificationCategory.values.map((cat) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(_getCategoryLabel(cat, isBn)),
+                      selected: controller.selectedCategory.value == cat,
+                      onSelected: (_) => controller.setCategory(cat),
+                      selectedColor: AppColors.primary.withOpacity(0.2),
+                      checkmarkColor: AppColors.primary,
+                    ),
+                  )),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildBody(bool isDark, bool isBn) {
-    return Obx(() {
-      if (controller.notifications.isEmpty) {
-        return _buildEmptyState(isDark, isBn);
-      }
-
-      return Column(
-        children: [
-          // Summary bar
-          _buildSummaryBar(isDark, isBn),
-          // List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-              itemCount: controller.notifications.length,
-              itemBuilder: (context, index) {
-                final notification = controller.notifications[index];
-                return _buildNotificationCard(notification, isDark, isBn);
-              },
-            ),
-          ),
-        ],
-      );
-    });
+  String _getCategoryLabel(NotificationCategory cat, bool isBn) {
+    switch (cat) {
+      case NotificationCategory.general:
+        return isBn ? 'সাধারণ' : 'General';
+      case NotificationCategory.prayer:
+        return isBn ? 'নামাজ' : 'Prayer';
+      case NotificationCategory.quran:
+        return isBn ? 'কুরআন' : 'Quran';
+      case NotificationCategory.announcement:
+        return isBn ? 'ঘোষণা' : 'Announcement';
+      case NotificationCategory.event:
+        return isBn ? 'ইভেন্ট' : 'Event';
+      case NotificationCategory.donation:
+        return isBn ? 'দান' : 'Donation';
+      case NotificationCategory.update:
+        return isBn ? 'আপডেট' : 'Update';
+      case NotificationCategory.support:
+        return isBn ? 'সাপোর্ট' : 'Support';
+    }
   }
 
-  Widget _buildSummaryBar(bool isDark, bool isBn) {
-    return Obx(() {
-      final unread = controller.unreadCount.value;
-      final total = controller.notifications.length;
-      return Container(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isDark ? AppColors.borderDark : AppColors.borderLight,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.notifications_rounded, color: AppColors.primary, size: 20),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                isBn
-                    ? '$total টি নোটিফিকেশন • $unread টি অপঠিত'
-                    : '$total notifications • $unread unread',
-                style: TextStyle(
-                  color: isDark ? AppColors.textGrey : AppColors.textDark,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            if (unread > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$unread',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
-    });
-  }
-
-  Widget _buildNotificationCard(AppNotification notif, bool isDark, bool isBn) {
-    final iconData = _getTypeIcon(notif.type);
-    final iconColor = _getTypeColor(notif.type);
-
+  Widget _buildNotificationCard(BuildContext context, AppNotification notification, bool isBn) {
     return Dismissible(
-      key: Key(notif.id),
+      key: Key(notification.id),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => controller.deleteNotification(notif.id),
+      onDismissed: (_) => controller.deleteNotification(notification.id),
       background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
-          color: AppColors.error.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.error.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(24),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.delete_rounded, color: AppColors.error, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              isBn ? 'মুছুন' : 'Delete',
-              style: const TextStyle(color: AppColors.error, fontSize: 11),
-            ),
-          ],
-        ),
+        child: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
       ),
-      child: GestureDetector(
-        onTap: () => controller.markAsRead(notif.id),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(vertical: 5),
-          padding: const EdgeInsets.all(14),
+      child: InkWell(
+        onTap: () {
+          if (!notification.isRead) {
+            controller.markAsRead(notification.id);
+          }
+          _openNotificationDetails(notification);
+        },
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: notif.isRead
-                ? (isDark ? AppColors.surfaceDark : AppColors.surfaceLight)
-                : (isDark
-                    ? AppColors.primary.withValues(alpha: 0.07)
-                    : AppColors.primary.withValues(alpha: 0.05)),
-            borderRadius: BorderRadius.circular(16),
+            color: notification.isRead ? context.theme.cardColor.withOpacity(0.4) : context.theme.cardColor,
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: notif.isRead
-                  ? (isDark ? AppColors.borderDark : AppColors.borderLight)
-                  : AppColors.primary.withValues(alpha: 0.3),
-              width: notif.isRead ? 1 : 1.5,
+              color: notification.isRead ? Colors.white.withOpacity(0.05) : AppColors.primary.withOpacity(0.2),
+              width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            boxShadow: notification.isRead
+                ? null
+                : [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon container
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+              if (notification.imageUrl != null)
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  child: CachedNetworkImage(
+                    imageUrl: notification.imageUrl!,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    maxWidthDiskCache: 1000, // Optimize disk cache
+                    memCacheHeight: 300, // Pre-resize in memory for faster rendering
+                    placeholder: (context, url) => Container(
+                      height: 150,
+                      color: Colors.grey.withOpacity(0.05),
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (context, url, error) => const SizedBox.shrink(),
+                  ),
                 ),
-                child: Icon(iconData, color: iconColor, size: 22),
-              ),
-              const SizedBox(width: 12),
-              // Content
-              Expanded(
-                child: Column(
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            notif.title,
-                            style: TextStyle(
-                              color: isDark ? AppColors.textWhite : AppColors.textDark,
-                              fontWeight: notif.isRead ? FontWeight.w500 : FontWeight.w700,
-                              fontSize: 14,
+                    _buildCategoryIcon(notification.category),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildPriorityBadge(notification.priority, isBn),
+                              Text(
+                                controller.timeAgo(notification.createdAt, isBn),
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: Colors.white.withOpacity(0.4),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            notification.title,
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.w800,
+                              fontSize: 16,
                             ),
-                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            notification.body,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (!notif.isRead)
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 13,
+                              height: 1.4,
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      notif.body,
-                      style: TextStyle(
-                        color: isDark ? AppColors.textGrey : AppColors.textMuted,
-                        fontSize: 13,
-                        height: 1.4,
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.access_time_rounded,
-                          size: 12,
-                          color: isDark ? AppColors.textMuted : AppColors.textGrey,
+                    if (!notification.isRead)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.only(left: 8, top: 4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primary,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          controller.timeAgo(notif.receivedAt),
-                          style: TextStyle(
-                            color: isDark ? AppColors.textMuted : AppColors.textGrey,
-                            fontSize: 11,
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: iconColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _getTypeLabel(notif.type, isBn),
-                            style: TextStyle(
-                              color: iconColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      )
+                          .animate(onPlay: (c) => c.repeat())
+                          .scale(
+                            duration: const Duration(seconds: 1),
+                            begin: const Offset(0.8, 0.8),
+                            end: const Offset(1.2, 1.2),
+                          )
+                          .then()
+                          .scale(begin: const Offset(1.2, 1.2), end: const Offset(0.8, 0.8)),
                   ],
                 ),
               ),
@@ -282,124 +288,138 @@ class NotificationsView extends GetView<NotificationsController> {
     );
   }
 
-  Widget _buildEmptyState(bool isDark, bool isBn) {
+  Widget _buildCategoryIcon(NotificationCategory category) {
+    IconData icon;
+    Color color;
+
+    switch (category) {
+      case NotificationCategory.prayer:
+        icon = Icons.access_time_filled_rounded;
+        color = Colors.blue;
+        break;
+      case NotificationCategory.quran:
+        icon = Icons.menu_book_rounded;
+        color = AppColors.emerald;
+        break;
+      case NotificationCategory.announcement:
+        icon = Icons.campaign_rounded;
+        color = Colors.orange;
+        break;
+      case NotificationCategory.donation:
+        icon = Icons.volunteer_activism_rounded;
+        color = Colors.pink;
+        break;
+      case NotificationCategory.support:
+        icon = Icons.support_agent_rounded;
+        color = Colors.purple;
+        break;
+      default:
+        icon = Icons.notifications_rounded;
+        color = AppColors.primary;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: color, size: 20),
+    );
+  }
+
+  Widget _buildPriorityBadge(NotificationPriority priority, bool isBn) {
+    if (priority == NotificationPriority.low) return const SizedBox.shrink();
+
+    Color color;
+    String label;
+
+    switch (priority) {
+      case NotificationPriority.urgent:
+        color = Colors.red;
+        label = isBn ? 'জরুরী' : 'Urgent';
+        break;
+      case NotificationPriority.high:
+        color = Colors.orange;
+        label = isBn ? 'উচ্চ' : 'High';
+        break;
+      default:
+        color = Colors.grey;
+        label = '';
+    }
+
+    if (label.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, bool isBn) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.notifications_off_outlined,
-              size: 48,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 24),
+          Icon(Icons.notifications_none_rounded, size: 80, color: Colors.white.withOpacity(0.05)),
+          const SizedBox(height: 20),
           Text(
-            isBn ? 'কোনো নোটিফিকেশন নেই' : 'No Notifications Yet',
-            style: TextStyle(
-              color: isDark ? AppColors.textWhite : AppColors.textDark,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            isBn
-                ? 'নামাজের সময় ও নতুন বার্তা\nএখানে দেখা যাবে'
-                : 'Prayer alerts and app\nupdates will appear here',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isDark ? AppColors.textGrey : AppColors.textMuted,
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 32),
-          OutlinedButton.icon(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.arrow_back_rounded, size: 18),
-            label: Text(isBn ? 'ফিরে যান' : 'Go Back'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            isBn ? 'কোনো নোটিফিকেশন পাওয়া যায়নি' : 'No notifications found',
+            style: context.textTheme.titleMedium?.copyWith(color: Colors.white.withOpacity(0.3)),
           ),
         ],
       ),
     );
   }
 
-  void _showClearDialog(bool isBn) {
-    Get.dialog(
-      AlertDialog(
-        title: Text(isBn ? 'সব পড়া হিসেবে চিহ্নিত করুন' : 'Mark All as Read'),
-        content: Text(
-          isBn
-              ? 'সব নোটিফিকেশন পড়া হিসেবে চিহ্নিত করবেন?'
-              : 'Mark all notifications as read?',
+  void _showSortOptions(BuildContext context, bool isBn) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: context.theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(isBn ? 'বাতিল' : 'Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              controller.markAllAsRead();
-              Get.back();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: Text(
-              isBn ? 'হ্যাঁ' : 'Yes',
-              style: const TextStyle(color: Colors.white),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(isBn ? 'সাজানোর অপশন' : 'Sort Notifications', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: const Icon(Icons.arrow_downward_rounded),
+              title: Text(isBn ? 'নতুনগুলো আগে' : 'Latest First'),
+              trailing: controller.sortBy.value == 'latest' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              onTap: () {
+                controller.setSortBy('latest');
+                Get.back();
+              },
             ),
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.arrow_upward_rounded),
+              title: Text(isBn ? 'পুরানো গুলো আগে' : 'Oldest First'),
+              trailing: controller.sortBy.value == 'oldest' ? const Icon(Icons.check, color: AppColors.primary) : null,
+              onTap: () {
+                controller.setSortBy('oldest');
+                Get.back();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'prayer':
-        return Icons.access_time_rounded;
-      case 'quran':
-        return Icons.auto_stories_rounded;
-      default:
-        return Icons.notifications_rounded;
-    }
-  }
-
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'prayer':
-        return AppColors.islamicLight;
-      case 'quran':
-        return AppColors.primary;
-      default:
-        return AppColors.info;
-    }
-  }
-
-  String _getTypeLabel(String type, bool isBn) {
-    switch (type) {
-      case 'prayer':
-        return isBn ? 'নামাজ' : 'Prayer';
-      case 'quran':
-        return isBn ? 'কুরআন' : 'Quran';
-      default:
-        return isBn ? 'সাধারণ' : 'General';
-    }
+  void _openNotificationDetails(AppNotification notification) {
+    // Navigate to NotificationDetailsView
+    // Get.to(() => NotificationDetailsView(notification: notification));
   }
 }

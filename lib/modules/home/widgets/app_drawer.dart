@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/constants/app_routes.dart';
-import '../../../modules/settings/settings_controller.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/constants/app_routes.dart';
+import '../../settings/settings_controller.dart';
 import '../../auth/auth_controller.dart';
-import '../home_controller.dart';
+import '../../admin/admin_view.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -13,279 +12,196 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
-    final home = Get.find<HomeController>();
     final auth = Get.find<AuthController>();
 
-    return Obx(() {
-      final bool bn = settings.isBangla;
-      final isDark = settings.isDark;
-
-      return Drawer(
-        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+    return Drawer(
+      child: Container(
+        color: settings.isDark ? AppColors.surfaceDark : Colors.white,
         child: Column(
           children: [
-            // ── Premium Header ────────────────────────────────────────────
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 12, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Close button row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // App icon with glow
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.menu_book_rounded,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                          ),
-                          // Close drawer button
-                          Material(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(10),
-                              onTap: () => Get.back(),
-                              child: const Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Icon(
-                                  Icons.close_rounded,
-                                  color: Colors.black,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // App name
-                      Text(
-                        bn ? 'কুরআন অ্যাপ' : 'Quran App',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Tagline
-                      Text(
-                        bn
-                            ? 'পড়ুন · শুনুন · চিন্তা করুন'
-                            : 'Read · Listen · Reflect',
-                        style: TextStyle(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
+            _buildHeader(context, settings, auth),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  _DrawerSection(title: bn ? 'কুরআন' : 'Quran', children: [
-                    _DrawerItem(
-                      icon: Icons.menu_book_rounded,
-                      label: bn ? 'কুরআন পড়ুন' : 'Read Quran',
-                      onTap: () { Get.back(); home.goToQuran(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.download_rounded,
-                      label: bn ? 'কুরআন ডাউনলোড' : 'Download Quran',
-                      onTap: () { Get.back(); home.goToDownload(); },
-                    ),
-                  ]),
-                  _DrawerSection(title: bn ? 'নামাজ' : 'Prayer', children: [
-                    _DrawerItem(
-                      icon: Icons.access_time_rounded,
-                      label: bn ? 'নামাজের সময়' : 'Prayer Times',
-                      onTap: () { Get.back(); home.goToPrayerTime(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.explore_rounded,
-                      label: bn ? 'কিবলা দিক' : 'Qibla Direction',
-                      onTap: () { Get.back(); home.goToQibla(); },
-                    ),
-                  ]),
-                  _DrawerSection(title: bn ? 'শিক্ষা ও গাইড' : 'Learning & Guide', children: [
-                    _DrawerItem(
-                      icon: Icons.school_rounded,
-                      label: bn ? 'নামাজ ও ইসলাম শিক্ষা' : 'Salah & Islamic Learning',
-                      onTap: () { Get.back(); home.goToNewMuslimGuide(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.volunteer_activism_rounded,
-                      label: bn ? 'দোয়া ও আযকার' : "Du'a & Azkar",
-                      onTap: () { Get.back(); home.goToDuas(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.radio_button_checked_rounded,
-                      label: bn ? 'তাসবীহ' : 'Tasbih Counter',
-                      onTap: () { Get.back(); home.goToTasbih(); },
-                    ),
-                  ]),
-                  _DrawerSection(title: bn ? 'ট্র্যাকিং' : 'Tracking', children: [
-                    _DrawerItem(
-                      icon: Icons.track_changes_rounded,
-                      label: bn ? 'আমার ট্র্যাকার' : 'My Tracker',
-                      onTap: () { Get.back(); home.goToTracker(); },
-                    ),
-                  ]),
-                  _DrawerSection(title: bn ? 'কমিউনিটি' : 'Community', children: [
-                    _DrawerItem(
-                      icon: Icons.favorite_rounded,
-                      label: bn ? 'ডোনেশন' : 'Donation',
-                      color: AppColors.error,
-                      onTap: () { Get.back(); home.goToDonation(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.headset_mic_rounded,
-                      label: bn ? 'সাপোর্ট' : 'Support',
-                      onTap: () { Get.back(); home.goToSupport(); },
-                    ),
-                  ]),
-                  _DrawerSection(title: bn ? 'অ্যাপ' : 'App', children: [
-                    _DrawerItem(
-                      icon: Icons.settings_rounded,
-                      label: bn ? 'সেটিংস' : 'Settings',
-                      onTap: () { Get.back(); home.goToSettings(); },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.info_outline_rounded,
-                      label: bn ? 'ডেভেলপার তথ্য' : 'Developer Info',
-                      onTap: () { Get.back(); home.goToDeveloperInfo(); },
-                    ),
-                    Obx(() {
-                      if (auth.isAdmin.value) {
-                        return _DrawerItem(
-                          icon: Icons.admin_panel_settings_rounded,
-                          label: bn ? 'এডমিন প্যানেল' : 'Admin Panel',
-                          onTap: () {
-                            Get.back();
-                            auth.goToAdmin();
-                          },
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ]),
+                  _buildItem(
+                    icon: Icons.home_rounded,
+                    title: settings.isBangla ? 'হোম' : 'Home',
+                    onTap: () => Get.back(),
+                  ),
+                  _buildItem(
+                    icon: Icons.menu_book_rounded,
+                    title: settings.isBangla ? 'আল-কুরআন' : 'Al-Quran',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.quran);
+                    },
+                  ),
+                  _buildItem(
+                    icon: Icons.access_time_filled_rounded,
+                    title: settings.isBangla ? 'নামাজের সময়' : 'Prayer Times',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.prayerTime);
+                    },
+                  ),
+                  _buildItem(
+                    icon: Icons.explore_rounded,
+                    title: settings.isBangla ? 'কিবলা কম্পাস' : 'Qibla Finder',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.qibla);
+                    },
+                  ),
+                  Obx(() {
+                    if (auth.isAdmin.value) {
+                      return _buildItem(
+                        icon: Icons.admin_panel_settings_rounded,
+                        title: settings.isBangla ? 'অ্যাডমিন ড্যাশবোর্ড' : 'Admin Dashboard',
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed(AppRoutes.adminDashboard);
+                        },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                  _buildItem(
+                    icon: Icons.auto_stories_rounded,
+                    title: settings.isBangla ? 'শিক্ষা ও গাইড' : 'Learning & Guide',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.newMuslimGuide);
+                    },
+                  ),
+                  _buildItem(
+                    icon: Icons.menu_book_outlined,
+                    title: settings.isBangla ? 'নামাজ শিক্ষা' : 'Namaz Guide',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.salahGuide);
+                    },
+                  ),
+                  const Divider(indent: 20, endIndent: 20, height: 30),
+                  _buildItem(
+                    icon: Icons.settings_rounded,
+                    title: settings.isBangla ? 'সেটিংস' : 'Settings',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.settings);
+                    },
+                  ),
+                  _buildItem(
+                    icon: Icons.info_outline_rounded,
+                    title: settings.isBangla ? 'ডেভেলপার তথ্য' : 'Developer Info',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.developerInfo);
+                    },
+                  ),
+                  _buildItem(
+                    icon: Icons.contact_support_rounded,
+                    title: settings.isBangla ? 'সাপোর্ট' : 'Support',
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed(AppRoutes.support);
+                    },
+                  ),
                 ],
               ),
             ),
-
-            // Footer
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Quran App v1.0.0\nMade with ❤️ for the Ummah',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
-                  fontSize: 11,
-                  height: 1.5,
-                ),
-              ),
-            ),
+            _buildFooter(auth, settings),
           ],
         ),
-      );
-    });
-  }
-}
-
-class _DrawerSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _DrawerSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = Get.find<SettingsController>();
-    final isDark = settings.isDark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-          child: Text(
-            title.toUpperCase(),
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
-              letterSpacing: 1.5,
-            ),
-          ),
-        ),
-        ...children,
-        Divider(color: isDark ? AppColors.borderDark : AppColors.borderLight, thickness: 0.5),
-      ],
+      ),
     );
   }
-}
 
-class _DrawerItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color? color;
-
-  const _DrawerItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = Get.find<SettingsController>();
-    final isDark = settings.isDark;
-    return ListTile(
-      leading: Icon(icon, color: color ?? (isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.7)), size: 20),
-      title: Text(
-        label,
-        style: TextStyle(
-          color: isDark ? AppColors.textWhite : AppColors.textDark,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
+  Widget _buildHeader(BuildContext context, SettingsController settings, AuthController auth) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 20,
+        right: 10,
+        bottom: 24,
       ),
+      decoration: const BoxDecoration(
+        gradient: AppColors.primaryGradient,
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 30),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                settings.isBangla ? 'কুরআন অ্যাপ' : 'Quran App',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Obx(() => Text(
+                auth.user.value?.email ?? (settings.isBangla ? 'মেহমান ইউজার' : 'Guest User'),
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              )),
+            ],
+          ),
+          Positioned(
+            top: -10,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+              onPressed: () => Get.back(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItem({required IconData icon, required String title, required VoidCallback onTap}) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary, size: 24),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       dense: true,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  Widget _buildFooter(AuthController auth, SettingsController settings) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          Text(
+            'Version 1.0.0',
+            style: TextStyle(
+              color: settings.isDark ? Colors.grey : Colors.black54,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

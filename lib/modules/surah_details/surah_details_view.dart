@@ -44,7 +44,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
         )),
         actions: [
           PopupMenuButton<String>(
-            icon: Icon(Icons.settings_outlined, color: settings.isDark ? Colors.white : AppColors.textDark),
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
             onSelected: (value) {
               if (value == 'translation') controller.showTranslation.toggle();
               if (value == 'pronunciation') controller.showPronunciation.toggle();
@@ -188,7 +188,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                   style: GoogleFonts.amiri(
                     fontSize: 26,
-                    color: settings.isDark ? AppColors.primary : const Color(0xFF4A3428),
+                    color: AppColors.deepOrange,
                   ),
                 ),
             ],
@@ -284,32 +284,52 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             // Arabic Text
             controller.isWordByWord.value
                 ? _buildWordByWordView(ayah, settings)
-                : Text(
-                    ayah.text,
-                    textAlign: TextAlign.right,
-                    textDirection: TextDirection.rtl,
-                    style: GoogleFonts.amiri(
-                      fontSize: settings.arabicFontSize.value,
-                      height: 1.8,
-                      fontWeight: FontWeight.w500,
-                      color: isPlaying 
-                          ? AppColors.primary 
-                          : (isDark ? AppColors.textWhite : const Color(0xFF1A1A1A)),
-                    ),
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        ayah.text,
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
+                        style: GoogleFonts.amiri(
+                          fontSize: settings.arabicFontSize.value + 4,
+                          height: 2.0,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.deepOrange,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Bengali Transliteration (Pronunciation)
+                      if (ayah.textBanglaTranslit != null)
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                settings.isBangla ? 'উচ্চারণ:' : 'Pronunciation:',
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                ayah.textBanglaTranslit!,
+                                style: TextStyle(
+                                  fontSize: settings.translationFontSize.value - 1,
+                                  color: settings.isDark ? Colors.white70 : Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-
-            if (controller.showPronunciation.value && ayah.textBanglaTranslit != null) ...[
-              const SizedBox(height: 16),
-              Text(
-                ayah.textBanglaTranslit!,
-                style: TextStyle(
-                  fontSize: settings.translationFontSize.value - 2,
-                  color: isPlaying ? AppColors.primary : AppColors.primary.withValues(alpha: 0.8),
-                  fontStyle: FontStyle.italic,
-                  fontWeight: isPlaying ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ],
 
             if (controller.showTranslation.value) ...[
               const SizedBox(height: 12),
@@ -465,10 +485,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                 color: AppColors.primary,
                 size: 36,
               ),
-              onPressed: () {
-                final current = controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value);
-                if (current != null) controller.playAyah(current);
-              },
+              onPressed: () => controller.togglePlayback(),
             ),
             IconButton(
               icon: const Icon(Icons.close, color: AppColors.textGrey),
@@ -511,7 +528,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   word.text,
                   style: GoogleFonts.amiri(
                     fontSize: settings.arabicFontSize.value,
-                    color: settings.isDark ? AppColors.textWhite : const Color(0xFF1A1A1A),
+                    color: AppColors.deepOrange,
                     fontWeight: FontWeight.w500,
                   ),
                   textAlign: TextAlign.center,

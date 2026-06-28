@@ -26,8 +26,8 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white, size: 22),
+        actionsIconTheme: const IconThemeData(color: Colors.white, size: 22),
         foregroundColor: Colors.white,
         titleTextStyle: GoogleFonts.inter(
           color: Colors.white,
@@ -126,28 +126,28 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.bgLight,
-      colorScheme: const ColorScheme.light(
+      colorScheme: ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.primaryLight,
-        surface: AppColors.surfaceLight,
+        surface: AppColors.bgLight, // Use banana color for surface too
         error: AppColors.error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: AppColors.textDark,
       ),
       textTheme: _buildTextTheme(Brightness.light),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.white, size: 22),
+        actionsIconTheme: IconThemeData(color: Colors.white, size: 22),
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: TextStyle(
           color: Colors.white,
           fontSize: 18,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.bold,
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(

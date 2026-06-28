@@ -120,7 +120,7 @@ class AuthController extends GetxController {
         'Login Failed',
         message,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
     } catch (e) {
@@ -128,7 +128,7 @@ class AuthController extends GetxController {
         'Error',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        backgroundColor: Colors.red.withOpacity(0.8),
         colorText: Colors.white,
       );
     } finally {

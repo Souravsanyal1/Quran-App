@@ -130,10 +130,12 @@ class SurahDetailsController extends GetxController {
     saveLastRead(ayah.numberInSurah);
   }
 
+  Future<void> togglePlayback() => _audio.togglePlayback();
+
   Future<void> playWordAudio(String? audioUrl) async {
     if (audioUrl == null || audioUrl.isEmpty) return;
     try {
-      await _audio.playUrl(audioUrl);
+      await _audio.playAudioUrl(audioUrl);
     } catch (e) {
       Get.log('Error playing word audio: $e');
     }

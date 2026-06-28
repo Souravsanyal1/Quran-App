@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import '../modules/notifications/notification_model.dart';
+import '../data/models/notification_model.dart';
 import '../modules/notifications/notifications_controller.dart';
 import '../modules/settings/settings_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,9 +50,8 @@ class NotificationService {
         const iosInit = DarwinInitializationSettings();
         const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
 
-        // Cast to dynamic to avoid web compiler errors with positional arguments
-        await (_localNotifications as dynamic).initialize(
-          initSettings,
+        await _localNotifications.initialize(
+          settings: initSettings,
           onDidReceiveNotificationResponse: (response) {
             Get.toNamed('/notifications');
           },
@@ -64,7 +64,9 @@ class NotificationService {
 
         if (Platform.isAndroid) {
           final status = await Permission.notification.status;
-          if (!status.isGranted) await Permission.notification.request();
+          if (!status.isGranted) {
+            await Permission.notification.request();
+          }
         }
         await _requestExactAlarmPermission();
       }
@@ -84,11 +86,11 @@ class NotificationService {
               } catch (_) {}
             }
 
-            await (_localNotifications as dynamic).show(
-              notification.hashCode,
-              notification.title,
-              notification.body,
-              NotificationDetails(
+            await _localNotifications.show(
+              id: notification.hashCode,
+              title: notification.title,
+              body: notification.body,
+              notificationDetails: NotificationDetails(
                 android: AndroidNotificationDetails('high_importance_channel', 'Important', icon: '@mipmap/ic_launcher', styleInformation: bigPicture),
                 iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
               ),
@@ -145,11 +147,11 @@ class NotificationService {
       } catch (_) {}
     }
 
-    await (_localNotifications as dynamic).show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      NotificationDetails(
+    await _localNotifications.show(
+      id: DateTime.now().millisecond,
+      title: title,
+      body: body,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails('high_importance_channel', 'Announcements', channelDescription: 'General app announcements', importance: Importance.high, priority: Priority.high, styleInformation: bigPicture),
         iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
       ),
@@ -161,7 +163,9 @@ class NotificationService {
     try {
       final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       final bool canSchedule = await androidPlugin?.canScheduleExactNotifications() ?? true;
-      if (!canSchedule) await androidPlugin?.requestExactAlarmsPermission();
+      if (!canSchedule) {
+        await androidPlugin?.requestExactAlarmsPermission();
+      }
     } catch (_) {}
   }
 
@@ -169,7 +173,9 @@ class NotificationService {
     if (kIsWeb || !Platform.isAndroid) return;
     try {
       final status = await Permission.ignoreBatteryOptimizations.status;
-      if (!status.isGranted) await Permission.ignoreBatteryOptimizations.request();
+      if (!status.isGranted) {
+        await Permission.ignoreBatteryOptimizations.request();
+      }
     } catch (_) {}
   }
 
@@ -183,7 +189,7 @@ class NotificationService {
       }
       return true;
     } else if (Platform.isIOS) {
-      final bool? granted = await (_localNotifications as dynamic).resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
+      final bool? granted = await _localNotifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
       return granted ?? false;
     }
     return true;
@@ -191,13 +197,31 @@ class NotificationService {
 
   String _detectType(Map<String, dynamic> data) {
     if (data.containsKey('prayer')) return 'prayer';
+    if (data['type'] == 'support_reply') return 'support';
     return 'fcm';
   }
 
   void _storeNotification({required String title, required String body, String? imageUrl, String type = 'fcm'}) {
     try {
-      Get.find<NotificationsController>().addNotification(AppNotification(id: '${DateTime.now().millisecondsSinceEpoch}', title: title, body: body, imageUrl: imageUrl, receivedAt: DateTime.now(), type: type));
+      Get.find<NotificationsController>().addNotification(AppNotification(
+        id: '${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        body: body,
+        imageUrl: imageUrl,
+        createdAt: DateTime.now(),
+        category: _mapTypeToCategory(type),
+        priority: NotificationPriority.high,
+      ));
     } catch (_) {}
+  }
+
+  NotificationCategory _mapTypeToCategory(String type) {
+    switch (type) {
+      case 'prayer': return NotificationCategory.prayer;
+      case 'quran': return NotificationCategory.quran;
+      case 'support': return NotificationCategory.support;
+      default: return NotificationCategory.general;
+    }
   }
 
   Future<String> _downloadAndSaveFile(String url, String fileName) async {
@@ -213,14 +237,42 @@ class NotificationService {
   Future<void> _initFCMInBackground() async {
     try {
       await _fcm.requestPermission(alert: true, badge: true, sound: true);
+      final token = await _fcm.getToken();
+      if (token != null) {
+        _logger.i('FCM Token: $token');
+        await _updateTokenInFirestore(token);
+      }
       await toggleFCM(Get.find<SettingsController>().notificationsEnabled.value);
     } catch (_) {}
   }
 
+  Future<void> _updateTokenInFirestore(String token) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      // Check if admin
+      final adminDoc = await FirebaseFirestore.instance.collection('admins').doc(user.uid).get();
+      if (adminDoc.exists) {
+        await adminDoc.reference.update({'fcmToken': token});
+      }
+      
+      // Also update in users collection if applicable (depending on your DB structure)
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'fcmToken': token,
+        'lastActive': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      _logger.w('Failed to update FCM token: $e');
+    }
+  }
+
   Future<void> toggleFCM(bool enabled) async {
     try {
-      if (enabled) await _fcm.subscribeToTopic('all');
-      else await _fcm.unsubscribeFromTopic('all');
+      if (enabled) {
+        await _fcm.subscribeToTopic('all');
+      } else {
+        await _fcm.unsubscribeFromTopic('all');
+      }
     } catch (_) {}
   }
 
@@ -248,12 +300,23 @@ class NotificationService {
       final Map<String, dynamic> timings = dayData['timings'] as Map<String, dynamic>;
       for (var k in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
         try {
-          if (timings[k] == null || !(prefs.getBool('azan_notification_$k') ?? true)) continue;
+          if (timings[k] == null || !(prefs.getBool('azan_notification_$k') ?? true)) {
+            continue;
+          }
           final timeParts = timings[k].toString().split(' ')[0].split(':');
           var pTime = DateTime((dayData['date'] as DateTime).year, (dayData['date'] as DateTime).month, (dayData['date'] as DateTime).day, int.parse(timeParts[0]), int.parse(timeParts[1]));
-          if (dayOffset == 0 && pTime.isBefore(now)) continue;
+          if (dayOffset == 0 && pTime.isBefore(now)) {
+            continue;
+          }
           final tzTime = tz.TZDateTime.from(pTime, tz.local);
-          await (_localNotifications as dynamic).zonedSchedule(1000 + dayOffset * 10 + k.length, bn ? '🕌 নামাজের সময়' : '🕌 Prayer Time', bn ? 'নামাজ আদায় করুন' : 'Offer prayer now', tzTime, notifDetails, androidScheduleMode: scheduleMode);
+          await _localNotifications.zonedSchedule(
+            id: 1000 + dayOffset * 10 + k.length,
+            title: bn ? '🕌 নামাজের সময়' : '🕌 Prayer Time',
+            body: bn ? 'নামাজ আদায় করুন' : 'Offer prayer now',
+            scheduledDate: tzTime,
+            notificationDetails: notifDetails,
+            androidScheduleMode: scheduleMode,
+          );
         } catch (_) {}
       }
     }
@@ -261,7 +324,9 @@ class NotificationService {
 
   Future<void> cancelAzanNotifications() async {
     if (kIsWeb) return;
-    for (int i = 0; i < 70; i++) await (_localNotifications as dynamic).cancel(1000 + i);
+    for (int i = 0; i < 70; i++) {
+      await _localNotifications.cancel(id: 1000 + i);
+    }
   }
 
   Future<void> scheduleDuaReminder(TimeOfDay time) async {
@@ -274,13 +339,24 @@ class NotificationService {
     for (int i = 0; i < 7; i++) {
       final targetDate = now.add(Duration(days: i));
       var sDate = DateTime(targetDate.year, targetDate.month, targetDate.day, time.hour, time.minute);
-      if (i == 0 && sDate.isBefore(now)) sDate = sDate.add(const Duration(days: 7));
-      await (_localNotifications as dynamic).zonedSchedule(3001 + i, '📿 Daily Dua', 'Remember Allah', tz.TZDateTime.from(sDate, tz.local), const NotificationDetails(android: AndroidNotificationDetails('dua_channel', 'Dua', importance: Importance.high, playSound: true)), androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle);
+      if (i == 0 && sDate.isBefore(now)) {
+        sDate = sDate.add(const Duration(days: 7));
+      }
+      await _localNotifications.zonedSchedule(
+        id: 3001 + i,
+        title: '📿 Daily Dua',
+        body: 'Remember Allah',
+        scheduledDate: tz.TZDateTime.from(sDate, tz.local),
+        notificationDetails: const NotificationDetails(android: AndroidNotificationDetails('dua_channel', 'Dua', importance: Importance.high, playSound: true)),
+        androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+      );
     }
   }
 
   Future<void> cancelDuaReminder() async {
     if (kIsWeb) return;
-    for (int i = 0; i < 7; i++) await (_localNotifications as dynamic).cancel(3001 + i);
+    for (int i = 0; i < 7; i++) {
+      await _localNotifications.cancel(id: 3001 + i);
+    }
   }
 }

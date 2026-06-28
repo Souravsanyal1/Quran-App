@@ -24,6 +24,8 @@ import '../modules/salah_guide/salah_guide_view.dart';
 import '../modules/salah_guide/salah_guide_controller.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_view.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_controller.dart';
+import '../modules/namaz_guide/namaz_guide_view.dart';
+import '../modules/namaz_guide/namaz_guide_binding.dart';
 import '../modules/duas/duas_view.dart';
 import '../modules/duas/duas_controller.dart';
 import '../modules/tasbih/tasbih_view.dart';
@@ -33,11 +35,15 @@ import '../modules/qibla/qibla_controller.dart';
 import '../modules/tracker/tracker_view.dart';
 import '../modules/tracker/tracker_controller.dart';
 import '../modules/donation/donation_view.dart';
+import '../modules/support/support_center_view.dart';
 import '../modules/support/support_view.dart';
+import '../modules/support/support_form_view.dart';
 import '../modules/support/support_controller.dart';
+import '../modules/support/support_binding.dart';
 import '../modules/settings/settings_view.dart';
 import '../modules/settings/settings_controller.dart';
 import '../modules/notifications/notifications_view.dart';
+import '../modules/notifications/notification_details_view.dart';
 import '../modules/notifications/notifications_controller.dart';
 import '../modules/prayer_time/location_map_view.dart';
 import '../modules/developer_info/developer_info_view.dart';
@@ -107,8 +113,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.salahGuide,
-      page: () => const SalahGuideView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => SalahGuideController())),
+      page: () => const NamazGuideView(),
+      binding: NamazGuideBinding(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
@@ -148,8 +154,20 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.support,
-      page: () => const SupportView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => SupportController())),
+      page: () => const SupportCenterView(),
+      binding: SupportBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: '/support-chat',
+      page: () => const SupportChatView(),
+      binding: SupportBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: '/support-form',
+      page: () => const SupportFormView(),
+      binding: SupportBinding(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
@@ -161,7 +179,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.notifications,
       page: () => const NotificationsView(),
-      binding: BindingsBuilder(() => Get.lazyPut(() => NotificationsController())),
       transition: Transition.rightToLeft,
     ),
     GetPage(

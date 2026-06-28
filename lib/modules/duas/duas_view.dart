@@ -140,7 +140,7 @@ class DuasView extends GetView<DuasController> {
                               style: TextStyle(
                                 fontFamily: 'Uthmanic',
                                 fontSize: settings.arabicFontSize.value,
-                                color: AppColors.primary,
+                                color: AppColors.deepOrange,
                                 height: 1.6,
                               ),
                             ),
@@ -158,7 +158,7 @@ class DuasView extends GetView<DuasController> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            dua.pronunciationBn,
+                            settings.isBangla ? dua.pronunciationBn : dua.pronunciationEn,
                             style: TextStyle(
                               fontSize: 14,
                               fontStyle: FontStyle.italic,

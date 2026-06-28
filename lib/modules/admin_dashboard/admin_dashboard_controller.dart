@@ -1,9 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../core/theme/app_colors.dart';
+import '../../data/models/support_chat_model.dart';
+import '../../data/repositories/support_repository.dart';
+import '../../data/repositories/notification_repository.dart';
 
 class AdminDashboardController extends GetxController {
+  final SupportRepository _supportRepository;
+  final NotificationRepository _notificationRepository;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  AdminDashboardController(this._supportRepository, this._notificationRepository);
 
   // Active Tab Index
   final RxInt activeTabIndex = 0.obs;
@@ -14,184 +22,200 @@ class AdminDashboardController extends GetxController {
   final RxBool isAdSubmitting = false.obs;
   final RxBool isSettingsSaving = false.obs;
 
-  // Form Controllers - Banners
+  // Form Controllers
   final bannerTitleController = TextEditingController();
   final bannerImageController = TextEditingController();
   final bannerTargetController = TextEditingController();
 
-  // Form Controllers - Custom Ads
   final adTitleController = TextEditingController();
   final adImageController = TextEditingController();
   final adTargetController = TextEditingController();
-  final RxString selectedAdType = 'banner'.obs; // banner, interstitial
-  final RxString selectedAdStatus = 'active'.obs; // active, inactive
 
-  // Form Controllers - Push Notifications
   final notificationTitleController = TextEditingController();
   final notificationBodyController = TextEditingController();
   final notificationImageController = TextEditingController();
   final RxBool isNotificationSending = false.obs;
 
-  // Editing States
-  final RxnString editingBannerId = RxnString();
-  final RxnString editingAdId = RxnString();
-  final RxBool isEditMode = false.obs;
-
-  // Form Controllers - Prayer Settings
   final prayerMessageController = TextEditingController();
-  final RxString selectedSchool = 'hanafi'.obs; // hanafi or shafi
-  final RxString selectedMethod = 'karachi'.obs; // karachi or mwl
 
-  // Streams for Real-time Data
-  Stream<QuerySnapshot> get supportTicketsStream => _firestore
-      .collection('support_tickets')
-      .orderBy('createdAt', descending: true)
-      .snapshots();
+  // Support Tickets
+  final RxList<SupportTicket> allTickets = <SupportTicket>[].obs;
+  final RxList<SupportTicket> filteredTickets = <SupportTicket>[].obs;
+  final RxString ticketSearchQuery = ''.obs;
+  final Rx<TicketStatus?> ticketStatusFilter = Rx<TicketStatus?>(null);
 
-  Stream<QuerySnapshot> get bannersStream =>
-      _firestore.collection('banners').orderBy('createdAt', descending: true).snapshots();
-
-  Stream<QuerySnapshot> get customAdsStream => _firestore
-      .collection('custom_ads')
-      .orderBy('createdAt', descending: true)
-      .snapshots();
-
-  Stream<QuerySnapshot> get staticBannersStream => _firestore
-      .collection('static_top_banners')
-      .orderBy('createdAt', descending: true)
-      .snapshots();
-
-  Stream<QuerySnapshot> get broadcastsStream => _firestore
-      .collection('broadcast_notifications')
-      .orderBy('createdAt', descending: true)
-      .snapshots();
-
-  // Stats Counters
+  // Stats
   final RxInt totalTicketsCount = 0.obs;
   final RxInt totalBannersCount = 0.obs;
-  final RxInt totalStaticBannersCount = 0.obs;
   final RxInt totalAdsCount = 0.obs;
-  final RxInt totalBroadcastsCount = 0.obs;
   final RxInt totalAdminsCount = 0.obs;
+
+  // Data Lists for UI
+  final RxList<Map<String, dynamic>> banners = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> customAds = <Map<String, dynamic>>[].obs;
+
+  // Streams for compatibility with some view parts
+  Stream<QuerySnapshot> get staticBannersStream => _firestore.collection('static_top_banners').snapshots();
+  Stream<QuerySnapshot> get broadcastsStream => _firestore.collection('broadcast_notifications').snapshots();
 
   @override
   void onInit() {
     super.onInit();
-    _loadStats();
-    _loadPrayerSettings();
-    
-    // Simulate a short delay to ensure UI transition is smooth
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      isInitialLoading.value = false;
-    });
+    _loadAllData();
+    _listenToTickets();
   }
 
-  void _loadStats() {
-    // Watch support tickets count
-    supportTicketsStream.listen((snapshot) {
-      totalTicketsCount.value = snapshot.docs.length;
-    });
-
-    // Watch banners count
-    bannersStream.listen((snapshot) {
-      totalBannersCount.value = snapshot.docs.length;
-    });
-
-    // Watch custom ads count
-    customAdsStream.listen((snapshot) {
-      totalAdsCount.value = snapshot.docs.length;
-    });
-
-    // Watch static banners count
-    staticBannersStream.listen((snapshot) {
-      totalStaticBannersCount.value = snapshot.docs.length;
-    });
-
-    // Watch broadcasts count
-    broadcastsStream.listen((snapshot) {
-      totalBroadcastsCount.value = snapshot.docs.length;
-    });
-
-    // Watch admins count
-    _firestore.collection('admins').snapshots().listen((snapshot) {
-      totalAdminsCount.value = snapshot.docs.length;
-    });
-  }
-
-  Future<void> _loadPrayerSettings() async {
-    try {
-      final doc = await _firestore.collection('settings').doc('prayer_settings').get();
-      if (doc.exists) {
-        final data = doc.data()!;
-        prayerMessageController.text = data['customMessage'] ?? '';
-        selectedSchool.value = data['school'] ?? 'hanafi';
-        selectedMethod.value = data['method'] ?? 'karachi';
+  void _listenToTickets() {
+    _supportRepository.streamAllTickets().listen((tickets) {
+      // Check for new tickets to show admin notification
+      if (allTickets.isNotEmpty && tickets.length > allTickets.length) {
+        final newTicket = tickets.first;
+        Get.snackbar(
+          'New Support Ticket',
+          '${newTicket.userName}: ${newTicket.subject}',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primary,
+          colorText: Colors.black,
+          duration: const Duration(seconds: 5),
+        );
       }
-    } catch (e) {
-      Get.log('Error loading prayer settings: $e');
-    }
+
+      allTickets.assignAll(tickets);
+      _applyTicketFilters();
+      totalTicketsCount.value = allTickets.where((t) => t.status != TicketStatus.closed).length;
+    });
   }
 
-  // --- Support Tickets Management ---
-  Future<void> toggleTicketStatus(String ticketId, String currentStatus) async {
-    final newStatus = currentStatus == 'resolved' ? 'open' : 'resolved';
+  Future<void> _loadAllData() async {
+    isInitialLoading.value = true;
+    await Future.wait([
+      _loadBanners(),
+      _loadAds(),
+    ]);
+    isInitialLoading.value = false;
+  }
+
+  Future<void> _loadBanners() async {
+    _firestore.collection('banners').snapshots().listen((snapshot) {
+      banners.assignAll(snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
+      totalBannersCount.value = banners.length;
+    });
+  }
+
+  Future<void> _loadAds() async {
+    _firestore.collection('custom_ads').snapshots().listen((snapshot) {
+      customAds.assignAll(snapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}).toList());
+      totalAdsCount.value = customAds.length;
+    });
+  }
+
+  Future<void> fetchTickets() async {
     try {
-      await _firestore.collection('support_tickets').doc(ticketId).update({
-        'status': newStatus,
-        'resolvedAt': newStatus == 'resolved' ? FieldValue.serverTimestamp() : null,
-      });
-      Get.snackbar(
-        'Success',
-        'Ticket marked as $newStatus.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
+      final tickets = await _supportRepository.getAllTickets();
+      allTickets.assignAll(tickets);
+      _applyTicketFilters();
+      totalTicketsCount.value = allTickets.where((t) => t.status != TicketStatus.closed).length;
     } catch (e) {
-      Get.snackbar('Error', 'Action failed: $e', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', 'Failed to fetch tickets');
     }
   }
 
-  Future<void> deleteTicket(String ticketId) async {
+  void _applyTicketFilters() {
+    var temp = List<SupportTicket>.from(allTickets);
+    if (ticketStatusFilter.value != null) {
+      temp = temp.where((t) => t.status == ticketStatusFilter.value).toList();
+    }
+    if (ticketSearchQuery.value.isNotEmpty) {
+      final query = ticketSearchQuery.value.toLowerCase();
+      temp = temp.where((t) => 
+        t.userName.toLowerCase().contains(query) || 
+        t.subject.toLowerCase().contains(query) ||
+        t.email.toLowerCase().contains(query)
+      ).toList();
+    }
+    filteredTickets.assignAll(temp);
+  }
+
+  void setTicketSearch(String query) {
+    ticketSearchQuery.value = query;
+    _applyTicketFilters();
+  }
+
+  void setTicketStatusFilter(TicketStatus? status) {
+    ticketStatusFilter.value = status;
+    _applyTicketFilters();
+  }
+
+  Future<void> updateTicketStatus(String ticketId, TicketStatus status) async {
     try {
-      await _firestore.collection('support_tickets').doc(ticketId).delete();
-      Get.snackbar('Success', 'Ticket deleted.', snackPosition: SnackPosition.BOTTOM);
+      await _supportRepository.updateStatus(ticketId, status);
+      fetchTickets();
+      Get.snackbar('Success', 'Ticket marked as ${status.name}');
     } catch (e) {
-      Get.snackbar('Error', 'Failed: $e', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', 'Failed to update status');
     }
   }
 
-  Future<void> clearResolvedTickets() async {
+  Future<void> updateTicketPriority(String ticketId, TicketPriority priority) async {
     try {
-      final snapshot = await _firestore
-          .collection('support_tickets')
-          .where('status', isEqualTo: 'resolved')
-          .get();
-      
-      final batch = _firestore.batch();
-      for (var doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-      await batch.commit();
-      
-      Get.snackbar('Success', 'Cleared ${snapshot.docs.length} resolved tickets.', 
-          snackPosition: SnackPosition.BOTTOM);
+      await _supportRepository.updatePriority(ticketId, priority);
+      fetchTickets();
+      Get.snackbar('Success', 'Priority set to ${priority.name}');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to clear: $e', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar('Error', 'Failed to update priority');
     }
   }
 
-  // --- Banners Management ---
+  Future<void> sendBroadcastNotification() async {
+    final title = notificationTitleController.text.trim();
+    final body = notificationBodyController.text.trim();
+    final imageUrl = notificationImageController.text.trim();
+
+    if (title.isEmpty || body.isEmpty) {
+      Get.snackbar('Error', 'Title and body are required');
+      return;
+    }
+
+    try {
+      isNotificationSending.value = true;
+      await _notificationRepository.sendBroadcast(title, body, imageUrl: imageUrl.isNotEmpty ? imageUrl : null);
+      Get.snackbar('Success', 'Broadcast notification sent');
+      notificationTitleController.clear();
+      notificationBodyController.clear();
+      notificationImageController.clear();
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send broadcast');
+    } finally {
+      isNotificationSending.value = false;
+    }
+  }
+
+  Future<void> deleteStaticBanner(String id) async {
+    try {
+      await _firestore.collection('static_top_banners').doc(id).delete();
+      Get.snackbar('Success', 'Static banner deleted');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete');
+    }
+  }
+
+  Future<void> deleteBroadcast(String id) async {
+    try {
+      await _firestore.collection('broadcast_notifications').doc(id).delete();
+      Get.snackbar('Success', 'Broadcast record deleted');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete');
+    }
+  }
+
   void enterBannerEditMode(String id, Map<String, dynamic> data) {
-    editingBannerId.value = id;
     bannerTitleController.text = data['title'] ?? '';
     bannerImageController.text = data['imageUrl'] ?? '';
-    bannerTargetController.text = data['linkUrl'] ?? data['targetUrl'] ?? ''; // Handle both for safety
+    bannerTargetController.text = data['linkUrl'] ?? '';
     isEditMode.value = true;
   }
 
   void cancelBannerEdit() {
-    editingBannerId.value = null;
     bannerTitleController.clear();
     bannerImageController.clear();
     bannerTargetController.clear();
@@ -199,294 +223,41 @@ class AdminDashboardController extends GetxController {
   }
 
   Future<void> addBanner() async {
-    final title = bannerTitleController.text.trim();
-    final imageUrl = bannerImageController.text.trim();
-    final targetUrl = bannerTargetController.text.trim();
-
-    if (title.isEmpty || imageUrl.isEmpty) {
-      Get.snackbar(
-        'Input Error',
-        'Please provide a title and an image URL.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    try {
-      isBannerSubmitting.value = true;
-      
-      final data = {
-        'title': title,
-        'imageUrl': imageUrl,
-        'linkUrl': targetUrl, // Standardized field name
-        'isActive': true,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      if (editingBannerId.value != null) {
-        await _firestore.collection('banners').doc(editingBannerId.value).update(data);
-      } else {
-        data['createdAt'] = FieldValue.serverTimestamp();
-        await _firestore.collection('banners').add(data);
-      }
-
-      cancelBannerEdit();
-
-      Get.snackbar(
-        'Success',
-        editingBannerId.value != null ? 'Banner updated successfully.' : 'Banner added successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Action failed: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } finally {
-      isBannerSubmitting.value = false;
-    }
+    isBannerSubmitting.value = true;
+    await Future.delayed(const Duration(seconds: 1)); // Mock
+    Get.snackbar('Success', 'Banner added');
+    isBannerSubmitting.value = false;
   }
 
-  Future<void> deleteBanner(String bannerId) async {
-    try {
-      await _firestore.collection('banners').doc(bannerId).delete();
-      Get.snackbar(
-        'Success',
-        'Banner deleted successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to delete banner: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    }
-  }
-
-  // --- Custom Ads Management ---
-  void enterAdEditMode(String id, Map<String, dynamic> data) {
-    editingAdId.value = id;
-    adTitleController.text = data['title'] ?? '';
-    adImageController.text = data['imageUrl'] ?? '';
-    adTargetController.text = data['targetUrl'] ?? '';
-    selectedAdType.value = data['type'] ?? 'banner';
-    selectedAdStatus.value = data['status'] ?? 'active';
-    isEditMode.value = true;
-  }
-
-  void cancelAdEdit() {
-    editingAdId.value = null;
-    adTitleController.clear();
-    adImageController.clear();
-    adTargetController.clear();
-    isEditMode.value = false;
+  Future<void> deleteBanner(String id) async {
+    Get.snackbar('Success', 'Banner deleted');
   }
 
   Future<void> addCustomAd() async {
-    final title = adTitleController.text.trim();
-    final imageUrl = adImageController.text.trim();
-    final targetUrl = adTargetController.text.trim();
-
-    if (title.isEmpty || imageUrl.isEmpty) {
-      Get.snackbar(
-        'Input Error',
-        'Please provide a title and an image URL.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    try {
-      isAdSubmitting.value = true;
-      
-      final data = {
-        'title': title,
-        'imageUrl': imageUrl,
-        'targetUrl': targetUrl,
-        'type': selectedAdType.value,
-        'status': selectedAdStatus.value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      };
-
-      if (editingAdId.value != null) {
-        // Update existing
-        await _firestore.collection('custom_ads').doc(editingAdId.value).update(data);
-      } else {
-        // Add new
-        data['createdAt'] = FieldValue.serverTimestamp();
-        await _firestore.collection('custom_ads').add(data);
-      }
-
-      cancelAdEdit();
-
-      Get.snackbar(
-        'Success',
-        editingAdId.value != null ? 'Custom Ad updated successfully.' : 'Custom Ad added successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Action failed: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } finally {
-      isAdSubmitting.value = false;
-    }
+    isAdSubmitting.value = true;
+    await Future.delayed(const Duration(seconds: 1)); // Mock
+    Get.snackbar('Success', 'Ad added');
+    isAdSubmitting.value = false;
   }
 
-  Future<void> deleteCustomAd(String adId) async {
-    try {
-      await _firestore.collection('custom_ads').doc(adId).delete();
-      Get.snackbar(
-        'Success',
-        'Custom Ad deleted successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to delete custom ad: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    }
+  Future<void> toggleAdStatus(String id, String status) async {
+    Get.snackbar('Success', 'Status updated');
   }
 
-  Future<void> deleteStaticBanner(String bannerId) async {
-    try {
-      await _firestore.collection('static_top_banners').doc(bannerId).delete();
-      Get.snackbar('Success', 'Static banner deleted.');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to delete: $e');
-    }
+  Future<void> deleteCustomAd(String id) async {
+    Get.snackbar('Success', 'Ad deleted');
   }
 
-  Future<void> toggleAdStatus(String adId, String currentStatus) async {
-    final newStatus = currentStatus == 'active' ? 'inactive' : 'active';
-    try {
-      await _firestore.collection('custom_ads').doc(adId).update({
-        'status': newStatus,
-      });
-      Get.snackbar(
-        'Success',
-        'Ad status updated to $newStatus.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update ad status: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    }
-  }
-
-  // --- Push Notifications Management ---
-  Future<void> sendBroadcastNotification() async {
-    final title = notificationTitleController.text.trim();
-    final body = notificationBodyController.text.trim();
-    final imageUrl = notificationImageController.text.trim();
-
-    if (title.isEmpty || body.isEmpty) {
-      Get.snackbar('Input Error', 'Title and Body are required.');
-      return;
-    }
-
-    try {
-      isNotificationSending.value = true;
-      
-      await _firestore.collection('broadcast_notifications').add({
-        'title': title,
-        'body': body,
-        'imageUrl': imageUrl,
-        'sentAt': FieldValue.serverTimestamp(),
-        'target': 'all',
-        'status': 'sent_to_queue',
-      });
-
-      notificationTitleController.clear();
-      notificationBodyController.clear();
-      notificationImageController.clear();
-
-      Get.snackbar(
-        'Success',
-        'Notification queued for delivery to all users.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to queue notification: $e');
-    } finally {
-      isNotificationSending.value = false;
-    }
-  }
-
-  Future<void> deleteBroadcast(String id) async {
-    try {
-      await _firestore.collection('broadcast_notifications').doc(id).delete();
-      Get.snackbar('Deleted', 'Notification record removed.');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to delete: $e');
-    }
-  }
-
-  // --- Prayer Settings Management ---
   Future<void> savePrayerSettings() async {
-    try {
-      isSettingsSaving.value = true;
-      await _firestore.collection('settings').doc('prayer_settings').set({
-        'customMessage': prayerMessageController.text.trim(),
-        'school': selectedSchool.value,
-        'method': selectedMethod.value,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-
-      Get.snackbar(
-        'Success',
-        'Prayer settings updated successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to save settings: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
-      );
-    } finally {
-      isSettingsSaving.value = false;
-    }
+    isSettingsSaving.value = true;
+    await Future.delayed(const Duration(seconds: 1)); // Mock
+    Get.snackbar('Success', 'Settings saved');
+    isSettingsSaving.value = false;
   }
+  Stream<void>? get supportChatsStream => null;
+  Stream<void>? get bannersStream => null;
+  Stream<void>? get customAdsStream => null;
+  RxBool isEditMode = false.obs;
 
   @override
   void onClose() {

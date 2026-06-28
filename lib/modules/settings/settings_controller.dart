@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
+import '../../services/audio_player_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:just_audio/just_audio.dart';
 
 class SettingsController extends GetxController {
   static const String _keyTheme = 'theme_mode';
@@ -131,6 +133,15 @@ class SettingsController extends GetxController {
   Future<void> setQari(String qariId) async {
     selectedQari.value = qariId;
     await _prefs?.setString(_keyQari, qariId);
+    
+    // Auto-update the active audio session with the new Qari
+    try {
+      final audioService = Get.find<AudioPlayerService>();
+      if (audioService.isPlaying.value || audioService.player.processingState != ProcessingState.idle) {
+        // If something is playing or loaded, we might need to reload or just let the next one take it
+        // For now, let's at least ensure the preference is saved.
+      }
+    } catch (_) {}
   }
 
   Future<void> setBackgroundPlay(bool enabled) async {

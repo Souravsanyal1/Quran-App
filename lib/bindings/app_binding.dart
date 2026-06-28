@@ -1,6 +1,11 @@
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/api/notification_api_provider.dart';
+import '../core/api/support_api_provider.dart';
+import '../core/services/cloudinary_service.dart';
+import '../data/repositories/notification_repository.dart';
+import '../data/repositories/support_repository.dart';
 import '../data/repositories/quran_repository.dart';
 import '../data/providers/quran_api_provider.dart';
 import '../modules/settings/settings_controller.dart';
@@ -19,11 +24,18 @@ class AppBinding extends Bindings {
       permanent: true,
     );
 
+    // Services
+    Get.put<CloudinaryService>(CloudinaryService(), permanent: true);
+
     // API Providers
     Get.lazyPut<QuranApiProvider>(() => QuranApiProvider(), fenix: true);
+    Get.lazyPut<NotificationApiProvider>(() => NotificationApiProvider(), fenix: true);
+    Get.lazyPut<SupportApiProvider>(() => SupportApiProvider(), fenix: true);
 
     // Repositories
     Get.lazyPut<QuranRepository>(() => QuranRepository(), fenix: true);
+    Get.lazyPut<NotificationRepository>(() => NotificationRepository(Get.find()), fenix: true);
+    Get.lazyPut<SupportRepository>(() => SupportRepository(Get.find()), fenix: true);
 
     // Settings (needed globally for theme/language)
     Get.put<SettingsController>(SettingsController(), permanent: true);
@@ -32,12 +44,12 @@ class AppBinding extends Bindings {
     Get.put<AuthController>(AuthController(), permanent: true);
 
     // Notifications (needed globally so FCM messages can be stored from anywhere)
-    Get.put<NotificationsController>(NotificationsController(), permanent: true);
+    Get.put<NotificationsController>(NotificationsController(Get.find()), permanent: true);
 
     // Audio player service — permanent singleton so background playback
     // continues when the user navigates away or minimises the app
     Get.putAsync<AudioPlayerService>(
-      () async => AudioPlayerService(),
+      () async => AudioPlayerService().init(),
       permanent: true,
     );
 

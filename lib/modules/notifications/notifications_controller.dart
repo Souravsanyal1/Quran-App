@@ -1,99 +1,263 @@
-import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'notification_model.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../data/models/notification_model.dart';
+import '../../data/repositories/notification_repository.dart';
 
 class NotificationsController extends GetxController {
-  static const String _storageKey = 'app_notifications';
+  final NotificationRepository _repository;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final RxList<AppNotification> notifications = <AppNotification>[].obs;
+  NotificationsController(this._repository);
+
+  final RxList<AppNotification> allNotifications = <AppNotification>[].obs;
+  final RxList<AppNotification> filteredNotifications = <AppNotification>[].obs;
+  
   final RxInt unreadCount = 0.obs;
+  final RxBool isLoading = true.obs;
+  final RxString searchQuery = ''.obs;
+  final Rx<NotificationCategory?> selectedCategory = Rx<NotificationCategory?>(null);
+  final RxBool showOnlyUnread = false.obs;
+  final RxString sortBy = 'latest'.obs; // latest, oldest
 
-  final _storage = GetStorage();
+  Timer? _searchTimer;
 
   @override
   void onInit() {
     super.onInit();
-    _loadNotifications();
+    fetchNotifications();
+    _listenToPersonalNotifications();
   }
 
-  void _loadNotifications() {
-    final List<dynamic>? raw = _storage.read(_storageKey);
-    if (raw == null) return;
+  void _listenToPersonalNotifications() {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-    final loaded = raw.map((item) {
-      try {
-        return AppNotification.fromMap(Map<String, dynamic>.from(item));
-      } catch (_) {
-        return null;
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('notifications')
+        .orderBy('sentAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null) {
+            // Avoid adding duplicates if already fetched via API
+            final exists = allNotifications.any((n) => n.id == change.doc.id);
+            if (!exists) {
+              final newNotif = AppNotification(
+                id: change.doc.id,
+                title: data['title'] ?? 'Notification',
+                body: data['body'] ?? '',
+                imageUrl: data['imageUrl'],
+                createdAt: (data['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                category: _parseCategory(data['type']),
+                isRead: data['isRead'] ?? false,
+              );
+              allNotifications.insert(0, newNotif);
+              _applyFilters();
+              _updateUnreadCount();
+            }
+          }
+        }
       }
-    }).whereType<AppNotification>().toList();
-
-    // Sort by most recent first
-    loaded.sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
-    notifications.assignAll(loaded);
-    _updateUnreadCount();
+    });
   }
 
-  void _saveNotifications() {
-    final raw = notifications
-        .map((n) => n.toMap())
-        .toList();
-    _storage.write(_storageKey, raw);
+  NotificationCategory _parseCategory(String? type) {
+    switch (type) {
+      case 'support_reply': return NotificationCategory.support;
+      case 'prayer': return NotificationCategory.prayer;
+      case 'quran': return NotificationCategory.quran;
+      default: return NotificationCategory.general;
+    }
   }
 
-  /// Add a new notification (called from NotificationService)
-  void addNotification(AppNotification notification) {
-    notifications.insert(0, notification);
-    _updateUnreadCount();
-    _saveNotifications();
-  }
+  Future<void> fetchNotifications() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      isLoading.value = false;
+      return;
+    }
 
-  /// Mark a single notification as read
-  void markAsRead(String id) {
-    final idx = notifications.indexWhere((n) => n.id == id);
-    if (idx != -1) {
-      notifications[idx].isRead = true;
-      notifications.refresh();
+    try {
+      isLoading.value = true;
+      final results = await _repository.getNotifications(user.uid);
+      allNotifications.assignAll(results);
+      _applyFilters();
       _updateUnreadCount();
-      _saveNotifications();
+      
+      // Precache images for faster loading in background
+      _precacheNotificationImages(results);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch notifications');
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  /// Mark all notifications as read
-  void markAllAsRead() {
-    for (final n in notifications) {
-      n.isRead = true;
+  void _precacheNotificationImages(List<AppNotification> notifications) {
+    for (var n in notifications) {
+      if (n.imageUrl != null && n.imageUrl!.isNotEmpty) {
+        try {
+          precacheImage(CachedNetworkImageProvider(n.imageUrl!), Get.context!);
+        } catch (_) {}
+      }
     }
-    notifications.refresh();
-    unreadCount.value = 0;
-    _saveNotifications();
-  }
-
-  /// Delete a single notification
-  void deleteNotification(String id) {
-    notifications.removeWhere((n) => n.id == id);
-    _updateUnreadCount();
-    _saveNotifications();
-  }
-
-  /// Clear all notifications
-  void clearAll() {
-    notifications.clear();
-    unreadCount.value = 0;
-    _saveNotifications();
   }
 
   void _updateUnreadCount() {
-    unreadCount.value = notifications.where((n) => !n.isRead).length;
+    unreadCount.value = allNotifications.where((n) => !n.isRead).length;
   }
 
-  String timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inSeconds < 60) return 'Just now';
+  void _applyFilters() {
+    var temp = List<AppNotification>.from(allNotifications);
+
+    // Filter by Category
+    if (selectedCategory.value != null) {
+      temp = temp.where((n) => n.category == selectedCategory.value).toList();
+    }
+
+    // Filter by Unread
+    if (showOnlyUnread.value) {
+      temp = temp.where((n) => !n.isRead).toList();
+    }
+
+    // Search Query
+    if (searchQuery.value.isNotEmpty) {
+      final query = searchQuery.value.toLowerCase();
+      temp = temp.where((n) => 
+        n.title.toLowerCase().contains(query) || 
+        n.body.toLowerCase().contains(query)
+      ).toList();
+    }
+
+    // Sorting
+    if (sortBy.value == 'latest') {
+      temp.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } else {
+      temp.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    }
+
+    filteredNotifications.assignAll(temp);
+  }
+
+  void setSearchQuery(String query) {
+    searchQuery.value = query;
+    _searchTimer?.cancel();
+    _searchTimer = Timer(const Duration(milliseconds: 500), () {
+      _applyFilters();
+    });
+  }
+
+  void setCategory(NotificationCategory? category) {
+    selectedCategory.value = category;
+    _applyFilters();
+  }
+
+  void toggleUnreadOnly() {
+    showOnlyUnread.value = !showOnlyUnread.value;
+    _applyFilters();
+  }
+
+  void setSortBy(String sort) {
+    sortBy.value = sort;
+    _applyFilters();
+  }
+
+  String timeAgo(DateTime date, bool isBangla) {
+    final now = DateTime.now();
+    final diff = now.difference(date);
+    
+    if (isBangla) {
+      if (diff.inMinutes < 1) return 'এইমাত্র';
+      if (diff.inMinutes < 60) return '${diff.inMinutes} মিনিট আগে';
+      if (diff.inHours < 24) return '${diff.inHours} ঘণ্টা আগে';
+      if (diff.inDays < 7) return '${diff.inDays} দিন আগে';
+      return DateFormat('dd MMM, hh:mm a').format(date);
+    }
+    
+    if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dt.day}/${dt.month}/${dt.year}';
+    return DateFormat('MMM dd, hh:mm a').format(date);
+  }
+
+  Future<void> addNotification(AppNotification notification) async {
+    allNotifications.insert(0, notification);
+    _applyFilters();
+    _updateUnreadCount();
+  }
+
+  Future<void> markAsRead(String notificationId) async {
+    try {
+      final index = allNotifications.indexWhere((n) => n.id == notificationId);
+      if (index != -1) {
+        allNotifications[index].isRead = true;
+        allNotifications.refresh();
+        _applyFilters();
+        _updateUnreadCount();
+        await _repository.markAsRead(notificationId);
+      }
+    } catch (e) {
+      // Revert on error if necessary
+    }
+  }
+
+  Future<void> markAllAsRead() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      for (var n in allNotifications) {
+        n.isRead = true;
+      }
+      allNotifications.refresh();
+      _applyFilters();
+      _updateUnreadCount();
+      await _repository.markAllAsRead(user.uid);
+    } catch (e) {
+      fetchNotifications(); // Reload on error
+    }
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    final index = allNotifications.indexWhere((n) => n.id == notificationId);
+    if (index == -1) return;
+
+    final deletedItem = allNotifications[index];
+    
+    // Optimistic delete
+    allNotifications.removeAt(index);
+    _applyFilters();
+    _updateUnreadCount();
+
+    Get.snackbar(
+      'Notification Deleted',
+      'The notification has been removed',
+      mainButton: TextButton(
+        onPressed: () {
+          allNotifications.insert(index, deletedItem);
+          _applyFilters();
+          _updateUnreadCount();
+          Get.back();
+        },
+        child: const Text('UNDO', style: TextStyle(color: Colors.amber)),
+      ),
+      duration: const Duration(seconds: 5),
+    );
+
+    try {
+      await _repository.deleteNotification(notificationId);
+    } catch (e) {
+      // Revert if API fails? Usually, for deletion, we just try our best.
+    }
   }
 }

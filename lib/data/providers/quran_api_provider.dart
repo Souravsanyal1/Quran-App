@@ -50,29 +50,62 @@ class QuranApiProvider {
   String getSurahAudioUrl(int surahNumber, {String qariId = AppUrls.defaultQariId}) {
     final paddedNumber = surahNumber.toString().padLeft(3, '0');
     final qari = AppUrls.qariList.firstWhere(
-      (q) => q['id'] == qariId,
+          (q) => q['id'] == qariId,
       orElse: () => {'id': qariId, 'bitrate': '128'},
     );
     final bitrate = qari['bitrate'] ?? '128';
     return 'https://cdn.islamic.network/quran/audio-surah/$bitrate/$qariId/$paddedNumber.mp3';
   }
 
-  /// Get audio URL for a single Ayah
-  String getAyahAudioUrl(int globalAyahNumber,
-      {String qariId = AppUrls.defaultQariId}) {
+  /// Get audio URL for a single Ayah from EveryAyah (More Stable)
+  String getEveryAyahAudioUrl(int globalAyahNumber, String qariId) {
+    return '${AppUrls.everyAyahBase}/$qariId/$globalAyahNumber.mp3';
+  }
+
+  /// Get audio URL for a single Ayah (Islamic Network CDN)
+  String getAyahAudioUrl(int globalAyahNumber, {String qariId = AppUrls.defaultQariId}) {
     final qari = AppUrls.qariList.firstWhere(
-      (q) => q['id'] == qariId,
+          (q) => q['id'] == qariId,
       orElse: () => {'id': qariId, 'bitrate': '128'},
     );
     final bitrate = qari['bitrate'] ?? '128';
     return 'https://cdn.islamic.network/quran/audio/$bitrate/$qariId/$globalAyahNumber.mp3';
   }
 
+  /// Get Qibla direction from Aladhan API
+  Future<Response> fetchQiblaDirection(double latitude, double longitude) async {
+    final url = AppUrls.qiblaApi
+        .replaceFirst('{latitude}', latitude.toString())
+        .replaceFirst('{longitude}', longitude.toString());
+    return await _dio.get(url);
+  }
+
+  /// Fetch Tafsir list from Quran.com
+  Future<Response> fetchTafsirList() async {
+    return await _dio.get(AppUrls.tafsirList);
+  }
+
+  /// Fetch Tafsir content for a specific ayah
+  Future<Response> fetchAyahTafsir(int tafsirId, int surahNum, int ayahNum) async {
+    final url = '${AppUrls.quranComBaseV4}/quran/tafsirs/$tafsirId/by_ayah/$surahNum:$ayahNum';
+    return await _dio.get(url);
+  }
+
+  /// Fetch Dua categories from Hisn-ul-Muslim
+  Future<Response> fetchDuaCategories() async {
+    return await _dio.get('${AppUrls.hisnMuslimBase}/index.json');
+  }
+
+  /// Fetch Dua details by category ID
+  Future<Response> fetchDuaDetails(int categoryId) async {
+    return await _dio.get('${AppUrls.hisnMuslimBase}/$categoryId.json');
+  }
+
   /// Prayer times by latitude/longitude and date
   Future<Response> fetchPrayerTimes({
     required double latitude,
     required double longitude,
-    required String date, // format: DD-MM-YYYY
+    required String date,
     int method = 2,
     int school = 1,
   }) async {
@@ -82,7 +115,7 @@ class QuranApiProvider {
       'longitude': longitude,
       'method': method,
       'school': school,
-      'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
+      'adjustment': -1,
     });
   }
 
@@ -92,13 +125,12 @@ class QuranApiProvider {
     return await _dio.get(url, queryParameters: {
       'words': 'true',
       'word_fields': 'text_uthmani,location,audio_url',
-      // Include both English (131) and Bengali (161) word translations
-      'translation_fields': '131,161', 
+      'translation_fields': '131,161',
       'per_page': 300,
     });
   }
 
-  /// Monthly calendar of prayer times by latitude/longitude, year and month
+  /// Monthly calendar of prayer times
   Future<Response> fetchMonthlyPrayerTimes({
     required double latitude,
     required double longitude,
@@ -115,8 +147,49 @@ class QuranApiProvider {
       'longitude': longitude,
       'method': method,
       'school': school,
-      'adjustment': -1, // Bangladesh observes Hijri date 1 day behind astronomical calculation
+      'adjustment': -1,
     });
   }
 
+  /// Fetch Hadith books list
+  Future<Response> fetchHadithBooks() async {
+    return await _dio.get(AppUrls.hadithBooks);
+  }
+
+  /// Fetch Hadith from a specific book with range
+  Future<Response> fetchHadithByBook(String bookId, {int start = 1, int end = 10}) async {
+    final url = AppUrls.hadithByBook.replaceFirst('{book}', bookId);
+    return await _dio.get(url, queryParameters: {'range': '$start-$end'});
+  }
+
+  /// Convert Gregorian date to Hijri
+  Future<Response> fetchHijriDate(String date) async {
+    final url = AppUrls.hijriDate.replaceFirst('{date}', date);
+    return await _dio.get(url);
+  }
+
+  /// Fetch prayer times by city name
+  Future<Response> fetchPrayerByCity({
+    required String city,
+    required String country,
+    required String date,
+    int method = 2,
+  }) async {
+    final url = AppUrls.prayerByCity.replaceFirst('{date}', date);
+    return await _dio.get(url, queryParameters: {
+      'city': city,
+      'country': country,
+      'method': method,
+    });
+  }
+
+  /// Get location info by IP
+  Future<Response> fetchLocationByIp() async {
+    return await _dio.get(AppUrls.ipLocation);
+  }
+
+  /// Fetch a random Islamic quote
+  Future<Response> fetchRandomQuote() async {
+    return await _dio.get(AppUrls.randomQuote);
+  }
 }

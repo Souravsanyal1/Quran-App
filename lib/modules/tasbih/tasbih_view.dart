@@ -12,15 +12,30 @@ class TasbihView extends GetView<TasbihController> {
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final isDark = settings.isDark;
+    final isBn = settings.isBangla;
 
     return Scaffold(
       backgroundColor: context.theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          isBn ? 'ডিজিটাল তসবীহ' : 'Digital Tasbih',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        actions: [
+          const SizedBox(width: 48), // Balancing the leading back button
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // ─── Header ───────────────────────────────────────────────
-            _buildHeader(context, settings, isDark),
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -53,61 +68,6 @@ class TasbihView extends GetView<TasbihController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ────────────────────────────────────────────────────────────────
-  // Header
-  // ────────────────────────────────────────────────────────────────
-  Widget _buildHeader(BuildContext context, SettingsController settings, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, Color(0xFFFF6A00)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-            onPressed: () => Get.back(),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  settings.isBangla ? 'ডিজিটাল তসবীহ' : 'Digital Tasbih',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Text(
-                  'مِسْبَحَة',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
-          // Dhikr selector button
-          IconButton(
-            icon: const Icon(Icons.menu_book_rounded, color: Colors.white),
-            onPressed: () => _showDhikrSelector(settings),
-          ),
-        ],
       ),
     );
   }

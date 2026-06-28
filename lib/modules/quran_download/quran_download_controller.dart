@@ -82,7 +82,8 @@ class QuranDownloadController extends GetxController {
         await file.parent.create(recursive: true);
 
         if (!await file.exists() || await file.length() == 0) {
-          final audioUrl = Get.find<QuranApiProvider>().getAyahAudioUrl(ayah.number, qariId: qariId);
+          final QuranApiProvider api = Get.find<QuranApiProvider>();
+          final audioUrl = api.getAyahAudioUrl(ayah.number, qariId: qariId);
           try {
             if (await file.exists()) {
               await file.delete();

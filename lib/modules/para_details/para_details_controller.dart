@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/ayah_model.dart';
 import '../../data/models/bookmark_model.dart';
+import '../../data/models/para_model.dart';
 import '../../data/models/surah_model.dart';
 import '../../data/repositories/quran_repository.dart';
 import '../../modules/settings/settings_controller.dart';
@@ -18,6 +19,12 @@ class ParaDetailsController extends GetxController {
 
   late final int paraNumber;
   late final String paraName;
+
+  String get currentParaName {
+    final para = ParaModel.allParas.firstWhereOrNull((p) => p.number == paraNumber);
+    if (para == null) return 'Juz $paraNumber';
+    return _settings.isBangla ? para.nameBn : para.nameMeaning;
+  }
 
   /// Delegates to the shared audio service
   RxnInt get playingAyahNumber => _audio.playingAyahNumber;
@@ -87,6 +94,8 @@ class ParaDetailsController extends GetxController {
       qariId: _settings.selectedQari.value,
     );
   }
+
+  Future<void> togglePlayback() => _audio.togglePlayback();
 
   Future<void> stopAudio() => _audio.stopAudio();
 

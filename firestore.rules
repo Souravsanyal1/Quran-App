@@ -3,25 +3,61 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Support tickets can be created by any user (even unauthenticated)
-    // but only read, updated, or deleted by administrators.
+    // Improved Admin check: checks if the document exists in the 'admins' collection
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Support tickets
     match /support_tickets/{ticketId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      // Allow creation for any logged-in user
+      allow create: if request.auth != null;
+
+      // Allow read/list/update if owner or admin
+      // Note: resource.data refers to the document as it exists on the server
+      allow read, list, update: if request.auth != null && (
+        isAdmin() ||
+        (resource != null && resource.data.userId == request.auth.uid) ||
+        (resource == null) // Allow if document doesn't exist yet (for create/first-write)
+      );
+
+      // Only admins can delete
+      allow delete: if isAdmin();
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Users can create messages if they are logged in
+        allow create: if request.auth != null;
+
+        // Read requires being the ticket owner or an admin
+        allow read, list: if request.auth != null && (
+          isAdmin() ||
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid
+        );
+      }
     }
 
-    // Admins collection: read by everyone, write allowed temporarily for seeding
+    // User profiles
+    match /users/{userId} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Admins collection (Public read to allow isAdmin check to work efficiently)
     match /admins/{adminId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin() || (request.auth != null && adminId == request.auth.uid);
     }
 
-    // Default fallback rules for all other collections:
-    // Read is allowed for everyone, write requires verified admin role.
+    // Public Collections
+    match /banners/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /custom_ads/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /static_top_banners/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /broadcast_notifications/{id} { allow read: if true; allow write: if isAdmin(); }
+
+    // Global fallback
     match /{document=**} {
       allow read: if true;
-      allow write: if request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow write: if isAdmin();
     }
   }
 }

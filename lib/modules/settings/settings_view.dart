@@ -224,7 +224,7 @@ class SettingsView extends GetView<SettingsController> {
                 _SettingsTile(
                   isDark: isDark,
                   icon: Icons.notifications_active_rounded,
-                  title: bn ? 'পুশ নোটিফিকেশন (FCM)' : 'Push Notifications (FCM)',
+                  title: bn ? 'নোটিফিকেশন' : 'Notification',
                   trailing: Switch(
                     value: controller.notificationsEnabled.value,
                     onChanged: controller.setNotificationsEnabled,

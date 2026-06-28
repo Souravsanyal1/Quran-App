@@ -26,17 +26,18 @@ class AppColors {
   static const Color borderDark = Color(0xFF2E2E40);
 
   // ── Light Theme ───────────────────────────────────────────────────────────
-  static const Color bgLight = Color(0xFFF8F8FC);
-  static const Color bgLight2 = Color(0xFFEEEEF8);
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color cardLight = Color(0xFFF2F2F8);
-  static const Color borderLight = Color(0xFFE0E0EE);
+  static const Color bgLight = Color(0xFFFFF9E6); // Halka yellow / Banana color
+  static const Color bgLight2 = Color(0xFFFFF3D4);
+  static const Color surfaceLight = Color(0xFFFFFBF0);
+  static const Color cardLight = Color(0xFFFFF4E0);
+  static const Color borderLight = Color(0xFFFFE0B2);
 
   // ── Text ──────────────────────────────────────────────────────────────────
   static const Color textWhite = Color(0xFFFFFFFF);
   static const Color textGrey = Color(0xFFB0B0C8);
   static const Color textMuted = Color(0xFF5A5A78);
   static const Color textDark = Color(0xFF1A1A2E);
+  static const Color deepOrange = Color(0xFFE65100); // Deep Orange for Arabic
 
   // ── Status ────────────────────────────────────────────────────────────────
   static const Color success = Color(0xFF00E676);

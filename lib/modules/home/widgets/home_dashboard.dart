@@ -3,12 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:showcaseview/showcaseview.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../modules/settings/settings_controller.dart';
 import '../home_controller.dart';
+import '../banner_controller.dart';
 
 class HomeDashboard extends StatelessWidget {
   const HomeDashboard({super.key});
@@ -54,12 +55,18 @@ class HomeDashboard extends StatelessWidget {
               childAspectRatio: 1.0,
               children: [
                 _QuickActionCard(
+                  showcaseKey: homeController.quranKey,
+                  showcaseTitle: bn ? 'কুরআন' : 'Quran',
+                  showcaseDesc: bn ? 'এখান থেকে কুরআন পড়ুন' : 'Read the Holy Quran from here',
                   icon: Icons.menu_book_rounded,
                   label: bn ? 'কুরআন' : 'Quran',
                   color: AppColors.primary,
                   route: AppRoutes.quran,
                 ),
                 _QuickActionCard(
+                  showcaseKey: homeController.prayerKey,
+                  showcaseTitle: bn ? 'নামাজ' : 'Prayer',
+                  showcaseDesc: bn ? 'আজকের নামাজের সময় দেখুন' : 'Check today\'s prayer times',
                   icon: Icons.access_time_rounded,
                   label: bn ? 'নামাজ' : 'Prayer',
                   color: AppColors.fajr,
@@ -72,6 +79,9 @@ class HomeDashboard extends StatelessWidget {
                   route: AppRoutes.qibla,
                 ),
                 _QuickActionCard(
+                  showcaseKey: homeController.learnKey,
+                  showcaseTitle: bn ? 'শিক্ষা' : 'Learn',
+                  showcaseDesc: bn ? 'নতুন মুসলিমদের জন্য শিক্ষা' : 'Step-by-step education for new Muslims',
                   icon: Icons.school_rounded,
                   label: bn ? 'শিক্ষা ও গাইড' : 'Learning & Guide',
                   color: AppColors.info,
@@ -96,6 +106,15 @@ class HomeDashboard extends StatelessWidget {
                   route: AppRoutes.tracker,
                 ),
                 _QuickActionCard(
+                  icon: Icons.menu_book_outlined,
+                  label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
+                  color: AppColors.primary,
+                  route: AppRoutes.salahGuide,
+                ),
+                _QuickActionCard(
+                  showcaseKey: homeController.settingsKey,
+                  showcaseTitle: bn ? 'প্রোফাইল' : 'Profile',
+                  showcaseDesc: bn ? 'সেটিংস ও প্রগ্রেস দেখুন' : 'View your settings and progress',
                   icon: Icons.settings_rounded,
                   label: bn ? 'সেটিংস' : 'Settings',
                   color: AppColors.textMuted,
@@ -178,7 +197,7 @@ class _GreetingCard extends StatelessWidget {
                       : 'Start your recitation today',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black.withValues(alpha: 0.7),
+                    color: Colors.black.withOpacity(0.7),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -215,19 +234,26 @@ class _QuickActionCard extends StatelessWidget {
   final String label;
   final Color color;
   final String route;
+  final GlobalKey? showcaseKey;
+  final String? showcaseTitle;
+  final String? showcaseDesc;
 
   const _QuickActionCard({
     required this.icon,
     required this.label,
     required this.color,
     required this.route,
+    this.showcaseKey,
+    this.showcaseTitle,
+    this.showcaseDesc,
   });
 
   @override
   Widget build(BuildContext context) {
     final settings = Get.find<SettingsController>();
     final isDark = settings.isDark;
-    return GestureDetector(
+
+    Widget card = GestureDetector(
       onTap: () => Get.toNamed(route),
       child: Container(
         decoration: BoxDecoration(
@@ -245,7 +271,7 @@ class _QuickActionCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -256,7 +282,7 @@ class _QuickActionCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
+                color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
@@ -266,6 +292,17 @@ class _QuickActionCard extends StatelessWidget {
         ),
       ),
     );
+
+    if (showcaseKey != null) {
+      return Showcase(
+        key: showcaseKey!,
+        title: showcaseTitle ?? '',
+        description: showcaseDesc ?? '',
+        child: card,
+      );
+    }
+
+    return card;
   }
 }
 
@@ -287,7 +324,7 @@ class _DailyVerse {
 
 const List<_DailyVerse> _dailyVerses = [
   _DailyVerse(
-    arabic: 'وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا',
+    arabic: 'وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ মَخْرَجًا',
     english: 'And whoever fears Allah — He will make for him a way out.',
     bangla: 'যে আল্লাহকে ভয় করে, তিনি তার জন্য পথ করে দেন।',
     referenceEn: '— Surah At-Talaq (65:2)',
@@ -301,7 +338,7 @@ const List<_DailyVerse> _dailyVerses = [
     referenceBn: '— সূরা আল-বাকারা (২:১৮৬)',
   ),
   _DailyVerse(
-    arabic: 'إِنَّ মَعَ الْعُسْرِ يُسْرًا',
+    arabic: 'إِنَّ مَعَ الْعُسْرِ يُسْرًا',
     english: 'Indeed, with hardship [will be] ease.',
     bangla: 'নিশ্চয়ই কষ্টের সাথে স্বস্তি রয়েছে।',
     referenceEn: '— Surah Ash-Sharh (94:6)',
@@ -329,7 +366,7 @@ const List<_DailyVerse> _dailyVerses = [
     referenceBn: '— সূরা আল-বাকারা (২:১৫২)',
   ),
   _DailyVerse(
-    arabic: 'رَبِّ اشْرَحْ লِي صَدْرِي  وَيَسِّرْ লِي أَمْرِي',
+    arabic: 'رَبِّ اشْرَحْ لِي صَدْرِي  وَيَسِّরْ لِي أَمْرِي',
     english: 'My Lord, expand for me my breast [with assurance] and ease for me my task.',
     bangla: 'হে আমার রব, আমার বুক প্রশস্ত করে দিন এবং আমার কাজ সহজ করে দিন।',
     referenceEn: '— Surah Taha (20:25-26)',
@@ -372,7 +409,7 @@ class _DailyVerseCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: AppColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -387,7 +424,7 @@ class _DailyVerseCard extends StatelessWidget {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.share_outlined, size: 18),
-                color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
+                color: isDark ? AppColors.textMuted : AppColors.textDark.withOpacity(0.5),
                 onPressed: () {
                   final text = isBangla
                       ? '${verse.arabic}\n\n${verse.bangla}\n\n${verse.referenceBn}\n\nShared from Quran App'
@@ -415,7 +452,7 @@ class _DailyVerseCard extends StatelessWidget {
             isBangla ? verse.bangla : verse.english,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.8),
+              color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
               height: 1.6,
             ),
           ),
@@ -424,7 +461,7 @@ class _DailyVerseCard extends StatelessWidget {
             isBangla ? verse.referenceBn : verse.referenceEn,
             style: TextStyle(
               fontSize: 12,
-              color: isDark ? AppColors.textMuted : AppColors.textDark.withValues(alpha: 0.5),
+              color: isDark ? AppColors.textMuted : AppColors.textDark.withOpacity(0.5),
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -440,39 +477,27 @@ class _CustomAdBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bannerController = Get.find<BannerController>();
     final settings = Get.find<SettingsController>();
     final isDark = settings.isDark;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('custom_ads')
-          .where('status', isEqualTo: 'active')
-          .where('type', isEqualTo: 'banner')
-          .orderBy('createdAt', descending: true)
-          .limit(1)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox();
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const SizedBox();
-        }
+    return Obx(() {
+      if (bannerController.campaignAds.isEmpty) return const SizedBox.shrink();
 
-        final doc = snapshot.data!.docs.first;
-        final data = doc.data() as Map<String, dynamic>;
-        final String title = data['title'] ?? '';
-        final String imageUrl = data['imageUrl'] ?? '';
-        final String targetUrl = data['targetUrl'] ?? '';
+      final ad = bannerController.campaignAds[bannerController.currentAdIndex.value];
+      final String title = ad['title'] ?? '';
+      final String imageUrl = ad['imageUrl'] ?? '';
+      final String targetUrl = ad['targetUrl'] ?? '';
 
-        if (imageUrl.isEmpty) return const SizedBox();
-
-        return Container(
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        child: Container(
+          key: ValueKey(ad['id']),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -497,8 +522,8 @@ class _CustomAdBanner extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withValues(alpha: 0.8),
-                          Colors.black.withValues(alpha: 0.2),
+                          Colors.black.withOpacity(0.8),
+                          Colors.black.withOpacity(0.2),
                         ],
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
@@ -587,8 +612,8 @@ class _CustomAdBanner extends StatelessWidget {
               ],
             ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 }
