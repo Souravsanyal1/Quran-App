@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
 import '../auth/auth_controller.dart';
@@ -589,7 +590,10 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             image: DecorationImage(
-                              image: FileImage(chatController.selectedImage.value!),
+                              image: (kIsWeb
+                                      ? NetworkImage(chatController.selectedImage.value!.path)
+                                      : FileImage(File(chatController.selectedImage.value!.path)))
+                                  as ImageProvider,
                               fit: BoxFit.cover,
                             ),
                           ),

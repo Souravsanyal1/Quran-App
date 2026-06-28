@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
-import 'package:just_audio/just_audio.dart';
-import '../../core/constants/app_urls.dart';
 import '../../core/services/cloudinary_service.dart';
 import '../../data/models/support_chat_model.dart';
 import '../../data/repositories/support_repository.dart';
 import '../auth/auth_controller.dart';
-import '../../services/audio_player_service.dart';
 
 class SupportController extends GetxController {
   final SupportRepository _repository;
@@ -32,7 +28,7 @@ class SupportController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool isSubmitting = false.obs;
   final Rxn<SupportTicket> activeTicket = Rxn<SupportTicket>();
-  final Rxn<File> selectedImage = Rxn<File>();
+  final Rxn<XFile> selectedImage = Rxn<XFile>();
   final RxBool isAdminTyping = false.obs;
   
   // Controllers
@@ -251,7 +247,7 @@ class SupportController extends GetxController {
   Future<void> pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (image != null) {
-      selectedImage.value = File(image.path);
+      selectedImage.value = image;
     }
   }
 

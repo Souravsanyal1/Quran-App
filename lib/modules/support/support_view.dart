@@ -4,9 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
-import '../settings/settings_controller.dart';
 import 'support_controller.dart';
 
 class SupportChatView extends GetView<SupportController> {
@@ -289,7 +290,12 @@ class SupportChatView extends GetView<SupportController> {
       margin: const EdgeInsets.only(bottom: 12),
       child: Stack(
         children: [
-          ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.file(controller.selectedImage.value!, width: 80, height: 80, fit: BoxFit.cover)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: kIsWeb
+                ? Image.network(controller.selectedImage.value!.path, width: 80, height: 80, fit: BoxFit.cover)
+                : Image.file(File(controller.selectedImage.value!.path), width: 80, height: 80, fit: BoxFit.cover),
+          ),
           Positioned(right: -4, top: -4, child: IconButton(onPressed: () => controller.selectedImage.value = null, icon: const Icon(Icons.cancel, color: Colors.red, size: 20))),
         ],
       ),

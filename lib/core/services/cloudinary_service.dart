@@ -4,15 +4,39 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import '../constants/app_keys.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart';
+
 
 class CloudinaryService {
   final Dio _dio = Dio();
 
-  Future<String?> uploadImage(File file, {String folder = 'general'}) async {
+  Future<String?> uploadImage(XFile file, {String folder = 'general'}) async {
     try {
+      if (kIsWeb) {
+        String fileName = file.name;
+        Uint8List bytes = await file.readAsBytes();
+        FormData formData = FormData.fromMap({
+          'file': MultipartFile.fromBytes(bytes, filename: fileName),
+          'upload_preset': AppKeys.cloudinaryUploadPreset,
+        });
+
+        final response = await _dio.post(
+          'https://api.cloudinary.com/v1_1/${AppKeys.cloudinaryCloudName}/image/upload',
+          data: formData,
+        );
+
+        if (response.statusCode == 200) {
+          return response.data['secure_url'];
+        }
+        return null;
+      }
+
+      // Native flow
+      final ioFile = File(file.path);
       // 1. Compress Image
-      final File? compressedFile = await _compressImage(file);
+      final File? compressedFile = await _compressImage(ioFile);
       if (compressedFile == null) return null;
+
 
       // 2. Prepare Data
       String fileName = path.basename(compressedFile.path);
