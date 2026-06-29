@@ -114,9 +114,10 @@ class NotificationsController extends GetxController {
           precacheImage(
             CachedNetworkImageProvider(imageUrl), 
             Get.context!,
-          ).catchError((e) {
-            Get.log('Failed to precache notification image: $imageUrl - $e');
-          });
+            onError: (exception, stackTrace) {
+              Get.log('Failed to precache notification image: $imageUrl - $exception');
+            },
+          );
         } catch (e) {
           // Catch synchronous errors during provider creation
           Get.log('Error creating image provider: $e');
