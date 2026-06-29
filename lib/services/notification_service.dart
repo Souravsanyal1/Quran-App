@@ -63,12 +63,15 @@ class NotificationService {
         await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('dua_channel', 'Daily Dua Reminder', importance: Importance.high, playSound: true));
 
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-          final status = await Permission.notification.status;
-          if (!status.isGranted) {
-            await Permission.notification.request();
-          }
+          Permission.notification.status.then((status) {
+            if (!status.isGranted) {
+              Permission.notification.request();
+            }
+          }).catchError((e) {
+            _logger.w('Failed to check/request notification permission: $e');
+          });
         }
-        await _requestExactAlarmPermission();
+        _requestExactAlarmPermission(); // Run asynchronously without awaiting
       }
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {

@@ -3,10 +3,13 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
+import '../settings/settings_controller.dart';
 
 class SplashController extends GetxController {
   static const String _onboardingKey = 'onboarding_done';
@@ -22,43 +25,62 @@ class SplashController extends GetxController {
 
   Future<void> _initializeAndNavigate() async {
     try {
-      // Step 1: Hive Local Storage (0% -> 30%)
       statusMessage.value = 'Preparing local storage...';
-      final appDocDir = await getApplicationDocumentsDirectory();
-      await Hive.initFlutter(appDocDir.path);
-      progress.value = 0.30;
-      await Future.delayed(const Duration(milliseconds: 60));
+      progress.value = 0.15;
 
-      // Step 2: SharedPreferences & Notifications (30% -> 70%)
-      statusMessage.value = 'Setting up services...';
+      // Initialize SharedPreferences first (which is fast since it is cached)
       final prefs = await SharedPreferences.getInstance();
-      await NotificationService.instance.init();
 
-      // Reschedule azan notifications
-      try {
-        final prayerController = Get.find<PrayerTimeController>();
-        await prayerController.loadPrayerTimes();
-      } catch (_) {}
+      statusMessage.value = 'Setting up services...';
+      progress.value = 0.40;
 
-      // Battery optimization
-      final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
-      if (!batteryAsked) {
-        await prefs.setBool('battery_opt_asked', true);
-        await NotificationService.instance.requestBatteryOptimization();
+      // Run non-interdependent services in parallel
+      await Future.wait([
+        // 1. Hive Local Storage
+        Future(() async {
+          final appDocDir = await getApplicationDocumentsDirectory();
+          await Hive.initFlutter(appDocDir.path);
+        }),
+        
+        // 2. Notification Service Initialization
+        NotificationService.instance.init(),
+        
+        // 3. Check for maintenance or updates
+        _checkUpdateAndMaintenance(),
+        
+        // 4. Load prayer times
+        Future(() async {
+          try {
+            final prayerController = Get.find<PrayerTimeController>();
+            await prayerController.loadPrayerTimes();
+          } catch (_) {}
+        }),
+      ]);
+
+      // If update or maintenance views have taken over, stop execution here
+      if (Get.currentRoute == AppRoutes.maintenance || Get.currentRoute == AppRoutes.forceUpdate) {
+        return;
       }
 
-      // Restore daily dua reminder
+      progress.value = 0.85;
+
+      // Perform background/asynchronous setup tasks that shouldn't block routing
+      // 1. Battery optimization prompt
+      final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
+      if (!batteryAsked) {
+        prefs.setBool('battery_opt_asked', true);
+        NotificationService.instance.requestBatteryOptimization();
+      }
+
+      // 2. Restore daily dua reminder
       final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
       if (duaEnabled) {
         final int h = prefs.getInt('dua_reminder_hour') ?? 8;
         final int m = prefs.getInt('dua_reminder_minute') ?? 0;
-        await NotificationService.instance.scheduleDuaReminder(
+        NotificationService.instance.scheduleDuaReminder(
           TimeOfDay(hour: h, minute: m),
         );
       }
-
-      progress.value = 0.85;
-      await Future.delayed(const Duration(milliseconds: 60));
 
       // Step 3: Loading complete (85% -> 100%)
       statusMessage.value = 'Ready!';
@@ -76,6 +98,58 @@ class SplashController extends GetxController {
       Get.log('Initialization error: $e');
       await Future.delayed(const Duration(seconds: 3));
       Get.offAllNamed(AppRoutes.onboarding);
+    }
+  }
+
+  Future<void> _checkUpdateAndMaintenance() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc('update_config')
+          .get()
+          .timeout(const Duration(milliseconds: 1500));
+
+      if (doc.exists) {
+        final data = doc.data()!;
+        
+        // Sync with SettingsController so it has the data immediately
+        try {
+          final settings = Get.find<SettingsController>();
+          settings.updateMaintenanceFromData(data);
+        } catch (e) {
+          Get.log('Error syncing maintenance data: $e');
+        }
+        
+        // 1. Check Maintenance Mode
+        bool isMaintenanceActive = data['maintenanceMode'] == true;
+        if (data['maintenanceEndTime'] != null) {
+          final endTime = (data['maintenanceEndTime'] as Timestamp).toDate();
+          if (DateTime.now().isAfter(endTime)) {
+            isMaintenanceActive = false;
+          }
+        }
+
+        if (isMaintenanceActive) {
+          Get.offAllNamed(AppRoutes.maintenance);
+          return;
+        }
+
+        // 2. Check Force Update
+        if (data['forceUpdate'] == true) {
+          final packageInfo = await PackageInfo.fromPlatform();
+          final int currentBuildNumber = int.tryParse(packageInfo.buildNumber) ?? 0;
+          final int requiredBuildNumber = data['buildNumber'] ?? 0;
+
+          if (currentBuildNumber < requiredBuildNumber) {
+            Get.offAllNamed(AppRoutes.forceUpdate);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      Get.log('Maintenance/Update check skipped due to error: $e');
+      // We don't block the app if the check fails (e.g. no internet)
+      // unless we want it to be super strict.
     }
   }
 }
