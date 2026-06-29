@@ -46,6 +46,7 @@ class QuranView extends GetView<QuranController> {
           body: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
               SliverAppBar(
+                toolbarHeight: 64,
                 backgroundColor: Colors.transparent,
                 leading: const AppBackButton(color: Colors.white),
                 title: Column(
@@ -60,10 +61,10 @@ class QuranView extends GetView<QuranController> {
                         letterSpacing: 0.5,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Container(
                       height: 2,
-                      width: 32,
-                      margin: const EdgeInsets.only(top: 4),
+                      width: 28,
                       decoration: BoxDecoration(
                         color: _QViewTheme.goldLight,
                         borderRadius: BorderRadius.circular(1),
@@ -99,7 +100,7 @@ class QuranView extends GetView<QuranController> {
                   ),
                 ],
                 bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(48),
+                  preferredSize: const Size.fromHeight(50),
                   child: Container(
                     color: isDark ? _QViewTheme.darkSurface : _QViewTheme.lightSurface,
                     child: TabBar(
