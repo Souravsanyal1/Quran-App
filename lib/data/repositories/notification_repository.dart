@@ -22,6 +22,14 @@ class NotificationRepository {
     return _apiProvider.deleteNotification(userId, notificationId);
   }
 
+  Future<void> deleteBulk(String userId, List<String> ids) {
+    return _apiProvider.deleteNotificationsBulk(userId, ids);
+  }
+
+  Future<void> deleteAll(String userId) {
+    return _apiProvider.deleteAllPersonalNotifications(userId);
+  }
+
   Future<void> sendBroadcast(String title, String body, {String? imageUrl}) {
     return _apiProvider.sendBroadcastNotification(title, body, imageUrl: imageUrl);
   }

@@ -91,12 +91,14 @@ class SupportController extends GetxController {
       
       // Auto-select active chat
       if (myTickets.isNotEmpty && activeTicket.value == null) {
-        final active = myTickets.firstWhere(
+        final active = myTickets.firstWhereOrNull(
           (t) => t.status != TicketStatus.closed,
-          orElse: () => myTickets.first,
         );
-        activeTicket.value = active;
-        _listenToCurrentMessages(active.id);
+        
+        if (active != null) {
+          activeTicket.value = active;
+          _listenToCurrentMessages(active.id);
+        }
       }
       isLoading.value = false;
     });

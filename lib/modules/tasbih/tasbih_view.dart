@@ -1,10 +1,27 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import 'package:quran_app/widgets/shimmer_loading.dart';
+import '../../widgets/app_back_button.dart';
 import 'tasbih_controller.dart';
+
+// ── Design Tokens ────────────────────────────────────────────────────────────
+class _TasbihTheme {
+  _TasbihTheme._();
+  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emeraldLight = Color(0xFF2E7D52);
+  static const Color emeraldDark  = Color(0xFF0D3B1E);
+  static const Color gold         = Color(0xFFC9A84C);
+  static const Color goldLight    = Color(0xFFE8C97A);
+  static const Color goldSoft     = Color(0xFFFFF8E7);
+  static const Color darkSurface  = Color(0xFF141420);
+  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color lightSurface = Color(0xFFFAF8F5);
+  static const Color lightCard    = Color(0xFFFFFFFF);
+}
 
 class TasbihView extends GetView<TasbihController> {
   const TasbihView({super.key});
@@ -16,23 +33,31 @@ class TasbihView extends GetView<TasbihController> {
     final isBn = settings.isBangla;
 
     return Scaffold(
-      backgroundColor: context.theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? _TasbihTheme.darkSurface : _TasbihTheme.lightSurface,
       appBar: AppBar(
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        leading: const AppBackButton(color: Colors.white),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Get.back(),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_TasbihTheme.emeraldDark, _TasbihTheme.emerald, _TasbihTheme.emeraldLight],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border(bottom: BorderSide(color: _TasbihTheme.gold, width: 1.5)),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+            ],
+          ),
         ),
         title: Text(
           isBn ? 'ডিজিটাল তসবীহ' : 'Digital Tasbih',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
         ),
         centerTitle: true,
-        actions: [
-          const SizedBox(width: 48), // Balancing the leading back button
-        ],
       ),
       body: SafeArea(
         child: Obx(() {
@@ -65,7 +90,7 @@ class TasbihView extends GetView<TasbihController> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
 
                       // ─── Dhikr Card ────────────────────────────────────
                       _buildDhikrCard(context, settings, isDark),
@@ -97,9 +122,6 @@ class TasbihView extends GetView<TasbihController> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Dhikr Info Card
-  // ────────────────────────────────────────────────────────────────
   Widget _buildDhikrCard(BuildContext context, SettingsController settings, bool isDark) {
     return Obx(() {
       final dhikr = controller.currentDhikr;
@@ -109,15 +131,15 @@ class TasbihView extends GetView<TasbihController> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : Colors.white,
+            color: isDark ? _TasbihTheme.darkCard : _TasbihTheme.lightCard,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.3),
+              color: _TasbihTheme.emerald.withOpacity(0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
+                color: _TasbihTheme.emerald.withOpacity(isDark ? 0.08 : 0.06),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -129,11 +151,12 @@ class TasbihView extends GetView<TasbihController> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: _TasbihTheme.emerald.withOpacity(0.15),
                   shape: BoxShape.circle,
+                  border: Border.all(color: _TasbihTheme.gold.withOpacity(0.5), width: 1),
                 ),
                 child: const Icon(Icons.my_library_books_rounded,
-                    color: AppColors.primary, size: 20),
+                    color: _TasbihTheme.emerald, size: 20),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -142,11 +165,10 @@ class TasbihView extends GetView<TasbihController> {
                   children: [
                     Text(
                       dhikr.arabic,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontFamily: 'Amiri',
+                      style: GoogleFonts.amiri(
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: _TasbihTheme.emerald,
                       ),
                       textDirection: TextDirection.rtl,
                     ),
@@ -155,9 +177,9 @@ class TasbihView extends GetView<TasbihController> {
                       settings.isBangla
                           ? '${dhikr.transliterationBn} — ${dhikr.meaningBn}'
                           : '${dhikr.transliterationEn} — ${dhikr.meaningEn}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.textGrey : Colors.grey.shade600,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5,
+                        color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -165,7 +187,7 @@ class TasbihView extends GetView<TasbihController> {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.primary),
+              const Icon(Icons.chevron_right_rounded, color: _TasbihTheme.emerald),
             ],
           ),
         ),
@@ -173,9 +195,6 @@ class TasbihView extends GetView<TasbihController> {
     });
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Circular Counter Button
-  // ────────────────────────────────────────────────────────────────
   Widget _buildCircularCounter(BuildContext context, SettingsController settings, bool isDark) {
     return Center(
       child: Obx(() {
@@ -191,7 +210,7 @@ class TasbihView extends GetView<TasbihController> {
               painter: _ArcPainter(
                 progress: progress,
                 isDark: isDark,
-                primaryColor: AppColors.primary,
+                primaryColor: _TasbihTheme.gold,
               ),
               child: SizedBox(
                 width: 240,
@@ -204,22 +223,18 @@ class TasbihView extends GetView<TasbihController> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          isDark
-                              ? const Color(0xFF2A2A2A)
-                              : Colors.white,
-                          isDark
-                              ? const Color(0xFF1E1E1E)
-                              : const Color(0xFFF5F5F5),
+                          isDark ? const Color(0xFF232335) : Colors.white,
+                          isDark ? const Color(0xFF141420) : const Color(0xFFF9F7F2),
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
+                          color: _TasbihTheme.emerald.withOpacity(0.25),
                           blurRadius: 30,
                           spreadRadius: 2,
                         ),
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
+                          color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
                           blurRadius: 16,
                           offset: const Offset(0, 8),
                         ),
@@ -230,23 +245,22 @@ class TasbihView extends GetView<TasbihController> {
                       children: [
                         Text(
                           settings.isBangla ? 'স্পর্শ করুন' : 'TAP',
-                          style: TextStyle(
-                            color: AppColors.textGrey.withValues(alpha: 0.7),
-                            fontSize: 11,
+                          style: GoogleFonts.poppins(
+                            color: _TasbihTheme.emerald,
+                            fontSize: 12,
                             letterSpacing: 3,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Large animated count
                         TweenAnimationBuilder<int>(
                           key: ValueKey(count),
                           tween: IntTween(begin: count - 1 < 0 ? 0 : count - 1, end: count),
                           duration: const Duration(milliseconds: 200),
                           builder: (context, val, child) => Text(
                             val.toString(),
-                            style: TextStyle(
-                              fontSize: 72,
+                            style: GoogleFonts.poppins(
+                              fontSize: 64,
                               fontWeight: FontWeight.w900,
                               color: isDark ? Colors.white : AppColors.textDark,
                               height: 1.0,
@@ -258,8 +272,8 @@ class TasbihView extends GetView<TasbihController> {
                           final t = controller.target.value;
                           return Text(
                             '/ ${t == 9999 ? "∞" : t}',
-                            style: const TextStyle(
-                              color: AppColors.primary,
+                            style: GoogleFonts.poppins(
+                              color: _TasbihTheme.gold,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -277,9 +291,6 @@ class TasbihView extends GetView<TasbihController> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Target Selector
-  // ────────────────────────────────────────────────────────────────
   Widget _buildTargetRow(bool isDark) {
     return Obx(() => Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -305,19 +316,19 @@ class TasbihView extends GetView<TasbihController> {
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
-                  colors: [AppColors.primary, Color(0xFFFF6A00)],
+                  colors: [_TasbihTheme.emerald, _TasbihTheme.emeraldLight],
                 )
               : null,
-          color: isSelected ? null : (isDark ? AppColors.surfaceDark : Colors.grey.shade100),
+          color: isSelected ? null : (isDark ? _TasbihTheme.darkCard : Colors.grey.shade100),
           borderRadius: BorderRadius.circular(50),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
+            color: isSelected ? _TasbihTheme.gold : (isDark ? _TasbihTheme.emerald.withOpacity(0.2) : Colors.grey.shade300),
             width: 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
+                    color: _TasbihTheme.emerald.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   )
@@ -326,7 +337,7 @@ class TasbihView extends GetView<TasbihController> {
         ),
         child: Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: isSelected ? Colors.white : AppColors.textGrey,
             fontWeight: FontWeight.bold,
             fontSize: 14,
@@ -336,9 +347,6 @@ class TasbihView extends GetView<TasbihController> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Action Row: reset | rounds badge
-  // ────────────────────────────────────────────────────────────────
   Widget _buildActionRow(BuildContext context, SettingsController settings, bool isDark) {
     return Row(
       children: [
@@ -349,10 +357,10 @@ class TasbihView extends GetView<TasbihController> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
+                color: AppColors.error.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: AppColors.error.withValues(alpha: 0.2),
+                  color: AppColors.error.withOpacity(0.2),
                 ),
               ),
               child: Row(
@@ -362,7 +370,7 @@ class TasbihView extends GetView<TasbihController> {
                   const SizedBox(width: 8),
                   Text(
                     settings.isBangla ? 'রিসেট' : 'Reset',
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
                       color: AppColors.error,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -379,21 +387,21 @@ class TasbihView extends GetView<TasbihController> {
           child: Obx(() => Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
+                  color: _TasbihTheme.emerald.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.2),
+                    color: _TasbihTheme.emerald.withOpacity(0.2),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.loop_rounded, color: AppColors.success, size: 20),
+                    const Icon(Icons.loop_rounded, color: _TasbihTheme.emerald, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       '${settings.isBangla ? "চক্র" : "Rounds"}: ${controller.totalSaves.value}',
-                      style: const TextStyle(
-                        color: AppColors.success,
+                      style: GoogleFonts.poppins(
+                        color: _TasbihTheme.emerald,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -406,35 +414,34 @@ class TasbihView extends GetView<TasbihController> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Dhikr Selector Bottom Sheet
-  // ────────────────────────────────────────────────────────────────
   void _showDhikrSelector(SettingsController settings) {
+    final isDark = settings.isDark;
     Get.bottomSheet(
       Container(
         decoration: BoxDecoration(
-          color: settings.isDark ? const Color(0xFF1C1C1E) : Colors.white,
+          color: isDark ? _TasbihTheme.darkCard : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          border: Border(top: BorderSide(color: _TasbihTheme.emerald.withOpacity(0.2))),
         ),
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle
             Container(
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
+                color: Colors.grey.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 16),
             Text(
               settings.isBangla ? 'জিকির বেছে নিন' : 'Choose Dhikr',
-              style: const TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : AppColors.textDark,
               ),
             ),
             const SizedBox(height: 16),
@@ -447,7 +454,7 @@ class TasbihView extends GetView<TasbihController> {
                 itemCount: controller.dhikrList.length,
                 separatorBuilder: (context, i) => Divider(
                   height: 1,
-                  color: Colors.grey.withValues(alpha: 0.2),
+                  color: Colors.grey.withOpacity(0.2),
                 ),
                 itemBuilder: (context, index) {
                   final dhikr = controller.dhikrList[index];
@@ -461,12 +468,12 @@ class TasbihView extends GetView<TasbihController> {
                       },
                       leading: CircleAvatar(
                         backgroundColor: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : Colors.grey.withValues(alpha: 0.1),
+                            ? _TasbihTheme.emerald.withOpacity(0.15)
+                            : Colors.grey.withOpacity(0.1),
                         child: Text(
                           '${dhikr.defaultTarget}',
-                          style: TextStyle(
-                            color: isSelected ? AppColors.primary : AppColors.textGrey,
+                          style: GoogleFonts.poppins(
+                            color: isSelected ? _TasbihTheme.emerald : AppColors.textGrey,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -474,10 +481,10 @@ class TasbihView extends GetView<TasbihController> {
                       ),
                       title: Text(
                         dhikr.arabic,
-                        style: const TextStyle(
-                          fontFamily: 'Amiri',
-                          fontSize: 18,
+                        style: GoogleFonts.amiri(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isSelected ? _TasbihTheme.gold : (isDark ? Colors.white70 : Colors.black87),
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -485,10 +492,10 @@ class TasbihView extends GetView<TasbihController> {
                         settings.isBangla
                             ? '${dhikr.transliterationBn} — ${dhikr.meaningBn}'
                             : '${dhikr.transliterationEn} — ${dhikr.meaningEn}',
-                        style: const TextStyle(fontSize: 11),
+                        style: GoogleFonts.poppins(fontSize: 11.5),
                       ),
                       trailing: isSelected
-                          ? const Icon(Icons.check_circle, color: AppColors.primary)
+                          ? const Icon(Icons.check_circle_rounded, color: _TasbihTheme.emerald)
                           : null,
                     );
                   });
@@ -502,22 +509,22 @@ class TasbihView extends GetView<TasbihController> {
     );
   }
 
-  // ────────────────────────────────────────────────────────────────
-  // Reset Confirm Dialog
-  // ────────────────────────────────────────────────────────────────
   void _confirmReset(BuildContext context, SettingsController settings) {
     Get.dialog(
       AlertDialog(
-        title: Text(settings.isBangla ? 'রিসেট নিশ্চিত করুন' : 'Confirm Reset'),
+        backgroundColor: settings.isDark ? _TasbihTheme.darkCard : _TasbihTheme.lightCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(settings.isBangla ? 'রিসেট নিশ্চিত করুন' : 'Confirm Reset', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: Text(
           settings.isBangla
               ? 'গণনা ও চক্র শূন্য হয়ে যাবে। এগিয়ে যাবেন?'
               : 'Count and rounds will be reset. Proceed?',
+          style: GoogleFonts.poppins(),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text(settings.isBangla ? 'বাতিল' : 'Cancel'),
+            child: Text(settings.isBangla ? 'বাতিল' : 'Cancel', style: TextStyle(color: _TasbihTheme.emerald)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.error),
@@ -533,9 +540,6 @@ class TasbihView extends GetView<TasbihController> {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────
-// Custom Arc Painter for progress ring
-// ──────────────────────────────────────────────────────────────────
 class _ArcPainter extends CustomPainter {
   final double progress;
   final bool isDark;
@@ -552,11 +556,10 @@ class _ArcPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 8;
 
-    // Background track
     final trackPaint = Paint()
       ..color = isDark
-          ? Colors.white.withValues(alpha: 0.08)
-          : Colors.grey.withValues(alpha: 0.15)
+          ? Colors.white.withOpacity(0.08)
+          : const Color(0xFF1B5E35).withOpacity(0.1)
       ..strokeWidth = 10
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -564,7 +567,6 @@ class _ArcPainter extends CustomPainter {
     canvas.drawCircle(center, radius, trackPaint);
 
     if (progress > 0) {
-      // Progress arc (gradient simulation via shader)
       final rect = Rect.fromCircle(center: center, radius: radius);
       final sweepAngle = 2 * pi * progress;
 
@@ -573,9 +575,9 @@ class _ArcPainter extends CustomPainter {
           startAngle: -pi / 2,
           endAngle: -pi / 2 + 2 * pi,
           colors: const [
-            Color(0xFFFF8A00),
-            Color(0xFFFF4500),
-            Color(0xFFFF8A00),
+            Color(0xFF1B5E35),
+            Color(0xFFC9A84C),
+            Color(0xFF1B5E35),
           ],
           stops: const [0.0, 0.5, 1.0],
         ).createShader(rect)
@@ -591,7 +593,6 @@ class _ArcPainter extends CustomPainter {
         progressPaint,
       );
 
-      // Glow dot at tip
       final angle = -pi / 2 + sweepAngle;
       final dotX = center.dx + radius * cos(angle);
       final dotY = center.dy + radius * sin(angle);
@@ -610,4 +611,47 @@ class _ArcPainter extends CustomPainter {
   @override
   bool shouldRepaint(_ArcPainter old) =>
       old.progress != progress || old.isDark != isDark;
+}
+
+// ─── Islamic Star / Geometric Pattern Painter ──────────────────────────────────
+class _StarPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    const step = 32.0;
+
+    for (double x = 0; x < size.width + step; x += step) {
+      for (double y = 0; y < size.height + step; y += step) {
+        _drawStar6(canvas, paint, Offset(x, y), 9);
+      }
+    }
+  }
+
+  void _drawStar6(Canvas canvas, Paint paint, Offset center, double r) {
+    final path = Path();
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30 - 90) * (3.14159 / 180);
+      final radius = i.isEven ? r : r * 0.45;
+      final point = Offset(
+        center.dx + radius * _cos(angle),
+        center.dy + radius * _sin(angle),
+      );
+      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  double _cos(double rad) => rad == 0
+      ? 1
+      : (rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120);
+  double _sin(double rad) =>
+      rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120;
+
+  @override
+  bool shouldRepaint(_StarPatternPainter old) => false;
 }

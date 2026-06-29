@@ -4,6 +4,14 @@ import 'package:get/get.dart';
 import '../../core/theme/app_colors.dart';
 import 'splash_controller.dart';
 
+class _SplashTheme {
+  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emeraldDark  = Color(0xFF0D3B1E);
+  static const Color gold         = Color(0xFFC9A84C);
+  static const Color goldLight    = Color(0xFFE8C97A);
+  static const Color inkDark      = Color(0xFF141420);
+}
+
 class SplashView extends StatelessWidget {
   const SplashView({super.key});
 
@@ -12,7 +20,13 @@ class SplashView extends StatelessWidget {
     final controller = Get.put(SplashController());
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.nightGradient),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [_SplashTheme.emeraldDark, _SplashTheme.inkDark],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         child: Stack(
           children: [
             // Background decorative circles
@@ -24,7 +38,7 @@ class SplashView extends StatelessWidget {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.07),
+                  color: _SplashTheme.gold.withOpacity(0.04),
                 ),
               ),
             ),
@@ -36,7 +50,7 @@ class SplashView extends StatelessWidget {
                 height: 350,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.05),
+                  color: _SplashTheme.emerald.withOpacity(0.05),
                 ),
               ),
             ),
@@ -51,11 +65,16 @@ class SplashView extends StatelessWidget {
                     width: 110,
                     height: 110,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: const LinearGradient(
+                        colors: [_SplashTheme.emerald, _SplashTheme.emeraldDark],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(32),
+                      border: Border.all(color: _SplashTheme.gold, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.45),
+                          color: _SplashTheme.emerald.withOpacity(0.4),
                           blurRadius: 40,
                           spreadRadius: 8,
                         ),
@@ -64,7 +83,7 @@ class SplashView extends StatelessWidget {
                     child: const Icon(
                       Icons.menu_book_rounded,
                       size: 56,
-                      color: Colors.black,
+                      color: _SplashTheme.goldLight,
                     ),
                   )
                       .animate()
@@ -82,8 +101,8 @@ class SplashView extends StatelessWidget {
                   const Text(
                     'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
                     style: TextStyle(
-                      fontSize: 22,
-                      color: AppColors.gold,
+                      fontSize: 24,
+                      color: _SplashTheme.goldLight,
                       fontFamily: 'Uthmanic',
                       letterSpacing: 1,
                     ),
@@ -102,7 +121,7 @@ class SplashView extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textWhite,
+                      color: Colors.white,
                       letterSpacing: -1,
                     ),
                   )
@@ -143,8 +162,8 @@ class SplashView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
                                 value: controller.progress.value,
-                                backgroundColor: AppColors.borderDark.withValues(alpha: 0.5),
-                                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                backgroundColor: Colors.white.withOpacity(0.08),
+                                valueColor: const AlwaysStoppedAnimation<Color>(_SplashTheme.gold),
                               ),
                             ),
                           ),
@@ -169,7 +188,7 @@ class SplashView extends StatelessWidget {
                               Text(
                                 '$percentage%',
                                 style: const TextStyle(
-                                  color: AppColors.primary,
+                                  color: _SplashTheme.gold,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                 ),

@@ -23,6 +23,8 @@ class NotificationsController extends GetxController {
   final Rx<NotificationCategory?> selectedCategory = Rx<NotificationCategory?>(null);
   final RxBool showOnlyUnread = false.obs;
   final RxString sortBy = 'latest'.obs; // latest, oldest
+  final RxList<String> selectedIds = <String>[].obs;
+  final RxBool isSelectionMode = false.obs;
 
   Timer? _searchTimer;
 
@@ -275,6 +277,64 @@ class NotificationsController extends GetxController {
       }
     } catch (e) {
       // Revert if API fails? Usually, for deletion, we just try our best.
+    }
+  }
+
+  void toggleSelection(String id) {
+    if (selectedIds.contains(id)) {
+      selectedIds.remove(id);
+      if (selectedIds.isEmpty) {
+        isSelectionMode.value = false;
+      }
+    } else {
+      selectedIds.add(id);
+      isSelectionMode.value = true;
+    }
+  }
+
+  void clearSelection() {
+    selectedIds.clear();
+    isSelectionMode.value = false;
+  }
+
+  Future<void> deleteSelected() async {
+    if (selectedIds.isEmpty) return;
+
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final idsToDelete = List<String>.from(selectedIds);
+    
+    // Optimistic delete from UI
+    allNotifications.removeWhere((n) => idsToDelete.contains(n.id));
+    _applyFilters();
+    _updateUnreadCount();
+    clearSelection();
+
+    try {
+      await _repository.deleteBulk(user.uid, idsToDelete);
+      Get.snackbar('Deleted', '${idsToDelete.length} notifications removed');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete some notifications');
+      fetchNotifications(); // Reload to sync with server
+    }
+  }
+
+  Future<void> deleteAll() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    // Confirm before delete is handled in UI
+    allNotifications.clear();
+    _applyFilters();
+    _updateUnreadCount();
+    clearSelection();
+
+    try {
+      await _repository.deleteAll(user.uid);
+      Get.snackbar('Success', 'All notifications cleared');
+    } catch (e) {
+      fetchNotifications();
     }
   }
 }

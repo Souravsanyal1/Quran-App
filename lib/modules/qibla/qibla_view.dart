@@ -10,6 +10,21 @@ import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
 import 'qibla_controller.dart';
 
+// ── Design Tokens ────────────────────────────────────────────────────────────
+class _QiblaTheme {
+  _QiblaTheme._();
+  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emeraldLight = Color(0xFF2E7D52);
+  static const Color emeraldDark  = Color(0xFF0D3B1E);
+  static const Color gold         = Color(0xFFC9A84C);
+  static const Color goldLight    = Color(0xFFE8C97A);
+  static const Color goldSoft     = Color(0xFFFFF8E7);
+  static const Color darkSurface  = Color(0xFF141420);
+  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color lightSurface = Color(0xFFFAF8F5);
+  static const Color lightCard    = Color(0xFFFFFFFF);
+}
+
 class QiblaView extends StatelessWidget {
   const QiblaView({super.key});
 
@@ -19,19 +34,33 @@ class QiblaView extends StatelessWidget {
     final c = Get.find<QiblaController>();
     final isDark = settings.isDark;
 
-    // Premium Zinc/Dark theme based on request (No green)
-    final Color dialBg = isDark ? const Color(0xFF09090B) : const Color(0xFFFFFBF0);
-    final Color cardBg = isDark ? const Color(0xFF18181B) : const Color(0xFFFFF4E0);
-    final Color orangeColor = AppColors.primary;
-    final Color scaffoldBg = isDark ? const Color(0xFF020202) : const Color(0xFFFFF9E6);
-    final Color textColor = isDark ? Colors.white : const Color(0xFF4A3428);
+    final Color dialBg = isDark ? _QiblaTheme.darkSurface : _QiblaTheme.goldSoft;
+    final Color cardBg = isDark ? _QiblaTheme.darkCard : _QiblaTheme.lightCard;
+    final Color primaryColor = _QiblaTheme.emerald;
+    final Color scaffoldBg = isDark ? _QiblaTheme.darkSurface : _QiblaTheme.lightSurface;
+    final Color textColor = isDark ? Colors.white : AppColors.textDark;
 
     return Scaffold(
       backgroundColor: scaffoldBg,
       appBar: AppBar(
-        leading: const AppBackButton(color: Colors.white), // Always White back button
-        backgroundColor: AppColors.primary,
+        leading: const AppBackButton(color: Colors.white),
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_QiblaTheme.emeraldDark, _QiblaTheme.emerald, _QiblaTheme.emeraldLight],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border(bottom: BorderSide(color: _QiblaTheme.gold, width: 1.5)),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+            ],
+          ),
+        ),
         centerTitle: true,
         title: Text(
           settings.isBangla ? 'কিবলা কম্পাস' : 'Qibla Compass',
@@ -52,9 +81,6 @@ class QiblaView extends StatelessWidget {
         final data = c.direction.value;
         if (data == null) return _buildShimmerLoading(isDark);
 
-        // data.direction: Device heading (0-360)
-        // data.qiblah: Qibla bearing from North (0-360)
-        // offset: qiblah - direction (Angle to rotate needle from Top)
         final double deviceHeading = data.direction;
         final double qiblaBearing = data.qiblah;
         final double offset = qiblaBearing - deviceHeading;
@@ -65,24 +91,17 @@ class QiblaView extends StatelessWidget {
         return Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: isDark ? const LinearGradient(
-              colors: [Color(0xFF09090B), Color(0xFF020202)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ) : null,
-          ),
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   
                   // Location Info
-                  _buildLocationCard(c, cardBg, orangeColor, settings, isDark, textColor),
+                  _buildLocationCard(c, cardBg, primaryColor, settings, isDark, textColor),
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // Stats Info
                   Row(
@@ -91,19 +110,19 @@ class QiblaView extends StatelessWidget {
                         settings.isBangla ? 'কিবলার দিক' : 'Qibla Bearing',
                         '${qiblaBearing.round()}°',
                         settings.isBangla ? 'উত্তর থেকে' : 'From North',
-                        Icons.explore_outlined, cardBg, orangeColor, textColor, isDark
+                        Icons.explore_outlined, cardBg, primaryColor, textColor, isDark
                       )),
                       const SizedBox(width: 16),
                       Expanded(child: _buildStatCard(
                         settings.isBangla ? 'কাবা থেকে দূরত্ব' : 'Distance to Kaaba',
                         '${c.distanceToKaaba.value.toStringAsFixed(0)} km',
                         settings.isBangla ? 'প্রায়' : 'Approx',
-                        Icons.location_on_outlined, cardBg, orangeColor, textColor, isDark
+                        Icons.location_on_outlined, cardBg, primaryColor, textColor, isDark
                       )),
                     ],
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // COMPASS UI
                   Center(
@@ -115,7 +134,7 @@ class QiblaView extends StatelessWidget {
                           width: 310, height: 310,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: orangeColor.withOpacity(0.15), width: 1),
+                            border: Border.all(color: _QiblaTheme.gold.withOpacity(0.2), width: 1.5),
                           ),
                         ),
                         
@@ -131,17 +150,17 @@ class QiblaView extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: dialBg,
-                                  border: Border.all(color: orangeColor.withOpacity(0.8), width: 3),
+                                  border: Border.all(color: isAligned ? _QiblaTheme.gold : _QiblaTheme.emerald, width: 3),
                                   boxShadow: [
-                                    BoxShadow(color: isAligned ? orangeColor.withOpacity(0.3) : Colors.black26, blurRadius: 30, spreadRadius: 5),
+                                    BoxShadow(color: isAligned ? _QiblaTheme.gold.withOpacity(0.3) : Colors.black12, blurRadius: 20, spreadRadius: 3),
                                   ],
                                 ),
                                 child: Stack(
                                   children: [
-                                    _buildCardinalLabel('N', 0, orangeColor, isDark, isN: true),
-                                    _buildCardinalLabel('E', 90, orangeColor, isDark),
-                                    _buildCardinalLabel('S', 180, orangeColor, isDark),
-                                    _buildCardinalLabel('W', 270, orangeColor, isDark),
+                                    _buildCardinalLabel('N', 0, primaryColor, isDark, isN: true),
+                                    _buildCardinalLabel('E', 90, primaryColor, isDark),
+                                    _buildCardinalLabel('S', 180, primaryColor, isDark),
+                                    _buildCardinalLabel('W', 270, primaryColor, isDark),
                                     
                                     // Ticks
                                     ...List.generate(72, (i) => Transform.rotate(
@@ -151,7 +170,7 @@ class QiblaView extends StatelessWidget {
                                         child: Container(
                                           height: i % 6 == 0 ? 12 : 5, width: 1.5,
                                           margin: const EdgeInsets.only(top: 8),
-                                          color: orangeColor.withOpacity(i % 6 == 0 ? 0.8 : 0.3),
+                                          color: i % 6 == 0 ? _QiblaTheme.gold : _QiblaTheme.emerald.withOpacity(0.3),
                                         ),
                                       ),
                                     )),
@@ -178,19 +197,23 @@ class QiblaView extends StatelessWidget {
                                     top: -5,
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(color: isAligned ? orangeColor : (isDark ? Colors.black87 : Colors.white), shape: BoxShape.circle, border: Border.all(color: orangeColor)),
+                                      decoration: BoxDecoration(
+                                        color: isAligned ? _QiblaTheme.gold : (isDark ? Colors.black87 : Colors.white), 
+                                        shape: BoxShape.circle, 
+                                        border: Border.all(color: _QiblaTheme.gold, width: 1.5),
+                                      ),
                                       child: CachedNetworkImage(
-                                  imageUrl: 'https://img.icons8.com/color/48/kaaba.png',
-                                  width: 24,
-                                  height: 24,
-                                  errorWidget: (context, url, error) => const Icon(Icons.mosque, color: Colors.orange, size: 20),
-                                ),
+                                        imageUrl: 'https://img.icons8.com/color/48/kaaba.png',
+                                        width: 24,
+                                        height: 24,
+                                        errorWidget: (context, url, error) => const Icon(Icons.mosque, color: _QiblaTheme.gold, size: 20),
+                                      ),
                                     ),
                                   ),
-                                  // 3D Orange Needle
+                                  // Needle
                                   Container(
                                     width: 200, height: 200,
-                                    child: CustomPaint(painter: LuxuryNeedlePainter(color: orangeColor)),
+                                    child: CustomPaint(painter: LuxuryNeedlePainter(color: isAligned ? _QiblaTheme.gold : _QiblaTheme.emerald)),
                                   ),
                                 ],
                               ),
@@ -201,16 +224,16 @@ class QiblaView extends StatelessWidget {
                         // Center Pin
                         Container(
                           width: 20, height: 20,
-                          decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: orangeColor, width: 3)),
+                          decoration: BoxDecoration(color: dialBg, shape: BoxShape.circle, border: Border.all(color: _QiblaTheme.gold, width: 3)),
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 36),
                   
                   // Instruction Card
-                  _buildBottomInstruction(cardBg, orangeColor, settings, textColor, isDark),
+                  _buildBottomInstruction(cardBg, primaryColor, settings, textColor, isDark),
                   
                   const SizedBox(height: 20),
                 ],
@@ -222,28 +245,28 @@ class QiblaView extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationCard(QiblaController c, Color bg, Color orange, SettingsController s, bool isDark, Color textColor) {
+  Widget _buildLocationCard(QiblaController c, Color bg, Color emerald, SettingsController s, bool isDark, Color textColor) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : orange.withOpacity(0.2)),
+        border: Border.all(color: isDark ? _QiblaTheme.emerald.withOpacity(0.15) : _QiblaTheme.emerald.withOpacity(0.06)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: orange.withOpacity(0.1), shape: BoxShape.circle),
-            child: Icon(Icons.location_on, color: orange, size: 24),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: emerald.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(Icons.location_on_rounded, color: emerald, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(s.isBangla ? 'আপনার অবস্থান' : 'Your Location', style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.6), fontSize: 12)),
-                Text(c.currentAddress.value, style: TextStyle(color: isDark ? Colors.white : textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(c.currentAddress.value, style: TextStyle(color: isDark ? Colors.white : textColor, fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(c.latLong.value, style: TextStyle(color: isDark ? Colors.white.withOpacity(0.4) : textColor.withOpacity(0.4), fontSize: 11)),
               ],
             ),
@@ -252,9 +275,9 @@ class QiblaView extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: CachedNetworkImage(
               imageUrl: 'https://img.icons8.com/color/96/kaaba.png',
-              width: 50,
-              height: 50,
-              errorWidget: (context, url, error) => const Icon(Icons.mosque, color: Colors.orange, size: 40),
+              width: 48,
+              height: 48,
+              errorWidget: (context, url, error) => const Icon(Icons.mosque, color: _QiblaTheme.gold, size: 40),
             ),
           ),
         ],
@@ -262,26 +285,26 @@ class QiblaView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, String sub, IconData icon, Color bg, Color orange, Color textColor, bool isDark) {
+  Widget _buildStatCard(String title, String value, String sub, IconData icon, Color bg, Color emerald, Color textColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : orange.withOpacity(0.15)),
+        border: Border.all(color: isDark ? _QiblaTheme.emerald.withOpacity(0.15) : _QiblaTheme.emerald.withOpacity(0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: orange, size: 18),
+              Icon(icon, color: _QiblaTheme.gold, size: 18),
               const SizedBox(width: 8),
               Expanded(child: Text(title, style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.6), fontSize: 11), maxLines: 1)),
             ],
           ),
           const SizedBox(height: 12),
-          Text(value, style: TextStyle(color: isDark ? Colors.white : textColor, fontSize: 22, fontWeight: FontWeight.w900)),
+          Text(value, style: TextStyle(color: isDark ? Colors.white : textColor, fontSize: 20, fontWeight: FontWeight.w900)),
           Text(sub, style: TextStyle(color: isDark ? Colors.white.withOpacity(0.3) : textColor.withOpacity(0.4), fontSize: 10)),
         ],
       ),
@@ -302,7 +325,7 @@ class QiblaView extends StatelessWidget {
               Text(
                 label, 
                 style: TextStyle(
-                  color: isN ? Colors.red : (isDark ? Colors.white : const Color(0xFF4A3428)), 
+                  color: isN ? Colors.red : (isDark ? Colors.white : _QiblaTheme.emerald), 
                   fontWeight: FontWeight.w900, 
                   fontSize: 18
                 )
@@ -314,23 +337,23 @@ class QiblaView extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomInstruction(Color bg, Color orange, SettingsController s, Color textColor, bool isDark) {
+  Widget _buildBottomInstruction(Color bg, Color emerald, SettingsController s, Color textColor, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bg, 
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white.withOpacity(0.05) : orange.withOpacity(0.2)),
+        border: Border.all(color: isDark ? _QiblaTheme.emerald.withOpacity(0.15) : _QiblaTheme.emerald.withOpacity(0.06)),
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle_outline, color: orange, size: 30),
-          const SizedBox(width: 16),
+          const Icon(Icons.check_circle_outline_rounded, color: _QiblaTheme.gold, size: 30),
+          const SizedBox(width: 14),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(s.isBangla ? 'কিবলার দিকে মুখ করুন' : 'Face towards the Kaaba', style: TextStyle(color: isDark ? Colors.white : textColor, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(s.isBangla ? 'তীরচিহ্নটি কাবার সাথে মিলিয়ে নিন' : 'Align the arrow with the Kaaba icon', style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.5), fontSize: 12)),
+              Text(s.isBangla ? 'কিবলার দিকে মুখ করুন' : 'Face towards the Kaaba', style: TextStyle(color: isDark ? Colors.white : textColor, fontWeight: FontWeight.bold, fontSize: 15)),
+              Text(s.isBangla ? 'তীরচিহ্নটি কাবার সাথে মিলিয়ে নিন' : 'Align the arrow with the Kaaba icon', style: TextStyle(color: isDark ? Colors.white.withOpacity(0.5) : textColor.withOpacity(0.5), fontSize: 11)),
             ],
           )),
           Icon(Icons.accessibility_new_rounded, color: isDark ? Colors.white24 : textColor.withOpacity(0.1), size: 40),
@@ -367,7 +390,7 @@ class QiblaView extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: onRetry,
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: _QiblaTheme.emerald, foregroundColor: Colors.white),
               child: Text(s.isBangla ? 'আবার চেষ্টা করুন' : 'Try Again'),
             ),
           ],
@@ -405,4 +428,47 @@ class LuxuryNeedlePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// ─── Islamic Star / Geometric Pattern Painter ──────────────────────────────────
+class _StarPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    const step = 32.0;
+
+    for (double x = 0; x < size.width + step; x += step) {
+      for (double y = 0; y < size.height + step; y += step) {
+        _drawStar6(canvas, paint, Offset(x, y), 9);
+      }
+    }
+  }
+
+  void _drawStar6(Canvas canvas, Paint paint, Offset center, double r) {
+    final path = Path();
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30 - 90) * (3.14159 / 180);
+      final radius = i.isEven ? r : r * 0.45;
+      final point = Offset(
+        center.dx + radius * _cos(angle),
+        center.dy + radius * _sin(angle),
+      );
+      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  double _cos(double rad) => rad == 0
+      ? 1
+      : (rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120);
+  double _sin(double rad) =>
+      rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120;
+
+  @override
+  bool shouldRepaint(_StarPatternPainter old) => false;
 }

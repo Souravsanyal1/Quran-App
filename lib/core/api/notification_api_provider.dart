@@ -84,6 +84,34 @@ class NotificationApiProvider {
     }
   }
 
+  /// Deletes multiple notifications.
+  Future<void> deleteNotificationsBulk(String userId, List<String> notificationIds) async {
+    try {
+      final batch = _firestore.batch();
+      for (var id in notificationIds) {
+        final ref = _firestore.collection('users').doc(userId).collection('notifications').doc(id);
+        batch.delete(ref);
+      }
+      await batch.commit();
+    } catch (e) {
+      _logger.e('Error bulk deleting notifications: $e');
+    }
+  }
+
+  /// Deletes all personal notifications for a user.
+  Future<void> deleteAllPersonalNotifications(String userId) async {
+    try {
+      final personal = await _firestore.collection('users').doc(userId).collection('notifications').get();
+      final batch = _firestore.batch();
+      for (var doc in personal.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      _logger.e('Error deleting all personal notifications: $e');
+    }
+  }
+
   /// Sends a broadcast notification (Admin specific).
   Future<void> sendBroadcastNotification(String title, String body, {String? imageUrl}) async {
     try {

@@ -1,9 +1,8 @@
-import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -63,7 +62,7 @@ class NotificationService {
         await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('azan_channel', 'Azan Notifications', importance: Importance.max, playSound: true));
         await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('dua_channel', 'Daily Dua Reminder', importance: Importance.high, playSound: true));
 
-        if (Platform.isAndroid) {
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
           final status = await Permission.notification.status;
           if (!status.isGranted) {
             await Permission.notification.request();
@@ -160,7 +159,7 @@ class NotificationService {
   }
 
   Future<void> _requestExactAlarmPermission() async {
-    if (kIsWeb || !Platform.isAndroid) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
       final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       final bool canSchedule = await androidPlugin?.canScheduleExactNotifications() ?? true;
@@ -171,7 +170,7 @@ class NotificationService {
   }
 
   Future<void> requestBatteryOptimization() async {
-    if (kIsWeb || !Platform.isAndroid) return;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
       final status = await Permission.ignoreBatteryOptimizations.status;
       if (!status.isGranted) {
@@ -182,14 +181,14 @@ class NotificationService {
 
   Future<bool> requestNotificationPermission() async {
     if (kIsWeb) return true;
-    if (Platform.isAndroid) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final status = await Permission.notification.status;
       if (!status.isGranted) {
         final result = await Permission.notification.request();
         return result.isGranted;
       }
       return true;
-    } else if (Platform.isIOS) {
+    } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       final bool? granted = await _localNotifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
       return granted ?? false;
     }

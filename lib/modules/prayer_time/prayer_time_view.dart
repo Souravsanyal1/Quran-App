@@ -23,35 +23,35 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
       final now = DateTime.now();
 
       // ── Theme-aware colours ───────────────────────────────────────────────
-      final Color headerFg = isDark ? Colors.white : Colors.black87;
+      final Color headerFg = isDark ? Colors.white : const Color(0xFF0D3B1E);
       final Color headerFgMuted = isDark
-          ? Colors.white.withValues(alpha: 0.6)
-          : Colors.black.withValues(alpha: 0.6);
+          ? Colors.white.withOpacity(0.6)
+          : const Color(0xFF1B5E35).withOpacity(0.8);
 
       final Color gaugeTextColor =
-          isDark ? Colors.white : const Color(0xFF14302E);
+          isDark ? Colors.white : const Color(0xFF1B5E35);
       final Color gaugeTextMuted = isDark
-          ? Colors.white.withValues(alpha: 0.5)
-          : Colors.black.withValues(alpha: 0.5);
+          ? Colors.white.withOpacity(0.5)
+          : const Color(0xFF1B5E35).withOpacity(0.7);
       final Color gaugeProgressColor =
-          isDark ? AppColors.primary : const Color(0xFF14302E);
+          const Color(0xFFC9A84C); // Gold progress
       final Color gaugeTrackColor = isDark
-          ? Colors.white.withValues(alpha: 0.12)
-          : Colors.black.withValues(alpha: 0.08);
+          ? Colors.white.withOpacity(0.12)
+          : const Color(0xFF1B5E35).withOpacity(0.1);
 
       final Color pillBg = isDark
-          ? Colors.white.withValues(alpha: 0.10)
-          : Colors.black.withValues(alpha: 0.08);
-      final Color pillText = isDark ? Colors.white : Colors.black87;
-      final Color pillTextMuted = isDark ? Colors.white70 : Colors.black54;
+          ? Colors.white.withOpacity(0.10)
+          : const Color(0xFF1B5E35).withOpacity(0.08);
+      final Color pillText = isDark ? Colors.white : const Color(0xFF1B5E35);
+      final Color pillTextMuted = isDark ? Colors.white70 : const Color(0xFF2E7D52);
       final Color pillDivider = isDark
-          ? Colors.white.withValues(alpha: 0.2)
-          : Colors.black.withValues(alpha: 0.2);
+          ? Colors.white.withOpacity(0.2)
+          : const Color(0xFF1B5E35).withOpacity(0.2);
 
       final Color sheetBg =
-          isDark ? const Color(0xFF161A22) : const Color(0xFFF7F7F7);
+          isDark ? const Color(0xFF1E1E2E) : Colors.white;
 
-      final Color sheetTextMuted = isDark ? Colors.white60 : Colors.black54;
+      final Color sheetTextMuted = isDark ? Colors.white60 : const Color(0xFF2E7D52);
 
       // Date strings (non-reactive, computed once per rebuild)
       final String dayOfWeek = DateFormat('EEEE').format(now);
@@ -60,7 +60,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
           _translateGregorianDate(dayAndMonth, bn);
 
       return Scaffold(
-        backgroundColor: isDark ? AppColors.bgDark : const Color(0xFFFCFBEF),
+        backgroundColor: isDark ? const Color(0xFF141420) : const Color(0xFFFAF8F5),
         body: Obx(() {
           if (controller.isLoading.value) {
             return _PrayerLoadingWidget(isDark: isDark, bn: bn);
@@ -79,14 +79,14 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                     gradient: LinearGradient(
                       colors: isDark
                           ? const [
-                              Color(0xFF0D1B2A),
-                              Color(0xFF1B3A4B),
-                              Color(0xFF1A3C34),
+                              Color(0xFF0D3B1E),
+                              Color(0xFF1B5E35),
+                              Color(0xFF141420),
                             ]
                           : const [
-                              Color(0xFFFFF59D),
-                              Color(0xFFFFD54F),
-                              Color(0xFFFFC107),
+                              Color(0xFFFFF8E7),
+                              Color(0xFFFFF4E0),
+                              Color(0xFFFFE0B2),
                             ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -407,7 +407,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                                   children: [
                                     const Icon(
                                         Icons.settings_suggest_rounded,
-                                        color: AppColors.primary,
+                                        color: Color(0xFF1B5E35),
                                         size: 16),
                                     const SizedBox(width: 6),
                                     Obx(() {
@@ -480,7 +480,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
           child: Row(
             children: [
               Icon(icon,
-                  color: isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54), size: 24),
+                  color: isNext ? const Color(0xFF1B5E35) : (isDark ? Colors.white70 : Colors.black54), size: 24),
               const SizedBox(width: 16),
               Flexible(
                 child: Text(
@@ -488,7 +488,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                   style: TextStyle(
                     fontSize: 16.5,
                     fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                    color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+                    color: isNext ? const Color(0xFF1B5E35) : (isDark ? Colors.white : Colors.black87),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -505,7 +505,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
-                color: isNext ? AppColors.primary : (isDark ? Colors.white : Colors.black87),
+                color: isNext ? const Color(0xFF1B5E35) : (isDark ? Colors.white : Colors.black87),
                 letterSpacing: 0.5,
               ),
             ),
@@ -519,7 +519,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                       ? Icons.notifications_active_rounded
                       : Icons.notifications_off_outlined,
                   color: isAlertEnabled
-                      ? (isNext ? AppColors.primary : (isDark ? Colors.white70 : Colors.black54))
+                      ? (isNext ? const Color(0xFF1B5E35) : (isDark ? Colors.white70 : Colors.black54))
                       : (isDark ? Colors.white24 : Colors.black12),
                   size: 20,
                 ),
@@ -533,8 +533,8 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                         ? '${_translatePrayerName(name, true)} নামাজের জন্য অ্যালার্ট ${isAlertEnabled ? 'বন্ধ' : 'চালু'} করা হয়েছে।'
                         : 'Alert for $name prayer has been ${isAlertEnabled ? 'disabled' : 'enabled'}.',
                     snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.9),
-                    colorText: Colors.black,
+                    backgroundColor: const Color(0xFF1B5E35).withOpacity(0.9),
+                    colorText: Colors.white,
                   );
                 },
                 padding: EdgeInsets.zero,
@@ -639,7 +639,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                               ? FontWeight.bold
                               : FontWeight.normal,
                           color: isSelected
-                              ? AppColors.primary
+                              ? const Color(0xFF1B5E35)
                               : (isDark
                                   ? AppColors.textWhite
                                   : AppColors.textDark),
@@ -647,7 +647,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                       ),
                       trailing: isSelected
                           ? const Icon(Icons.check_circle_rounded,
-                              color: AppColors.primary, size: 20)
+                              color: Color(0xFF1B5E35), size: 20)
                           : null,
                       onTap: () {
                         controller.setCalculationMethod(methodId);
@@ -683,13 +683,13 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                     fontSize: 14,
                     fontWeight: isHanafi ? FontWeight.bold : FontWeight.normal,
                     color: isHanafi
-                        ? AppColors.primary
+                        ? const Color(0xFF1B5E35)
                         : (isDark ? AppColors.textWhite : AppColors.textDark),
                   ),
                 ),
                 trailing: isHanafi
                     ? const Icon(Icons.check_circle_rounded,
-                        color: AppColors.primary, size: 20)
+                        color: Color(0xFF1B5E35), size: 20)
                     : null,
                 onTap: () {
                   controller.setAsrSchool(1);
@@ -709,13 +709,13 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
                     fontSize: 14,
                     fontWeight: isStandard ? FontWeight.bold : FontWeight.normal,
                     color: isStandard
-                        ? AppColors.primary
+                        ? const Color(0xFF1B5E35)
                         : (isDark ? AppColors.textWhite : AppColors.textDark),
                   ),
                 ),
                 trailing: isStandard
                     ? const Icon(Icons.check_circle_rounded,
-                        color: AppColors.primary, size: 20)
+                        color: Color(0xFF1B5E35), size: 20)
                     : null,
                 onTap: () {
                   controller.setAsrSchool(0);
@@ -726,7 +726,7 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
             ElevatedButton(
               onPressed: () => Get.back(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF1B5E35),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(

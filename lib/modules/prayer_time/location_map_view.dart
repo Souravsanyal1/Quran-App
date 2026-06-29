@@ -1,11 +1,29 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:get/get.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import '../../core/theme/app_colors.dart';
+import '../../widgets/app_back_button.dart';
 import 'prayer_time_controller.dart';
 import '../settings/settings_controller.dart';
+
+// ── Design Tokens ────────────────────────────────────────────────────────────
+class _MapTheme {
+  _MapTheme._();
+  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emeraldLight = Color(0xFF2E7D52);
+  static const Color emeraldDark  = Color(0xFF0D3B1E);
+  static const Color gold         = Color(0xFFC9A84C);
+  static const Color goldLight    = Color(0xFFE8C97A);
+  static const Color goldSoft     = Color(0xFFFFF8E7);
+  static const Color darkSurface  = Color(0xFF141420);
+  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color lightSurface = Color(0xFFFAF8F5);
+  static const Color lightCard    = Color(0xFFFFFFFF);
+}
 
 class LocationMapView extends StatefulWidget {
   const LocationMapView({super.key});
@@ -109,12 +127,31 @@ class _LocationMapViewState extends State<LocationMapView> {
     final isDark = _settings.isDark;
 
     return Scaffold(
+      backgroundColor: isDark ? _MapTheme.darkSurface : _MapTheme.lightSurface,
       appBar: AppBar(
-        title: Text(bn ? 'ম্যাপে অবস্থান নির্বাচন' : 'Select Location on Map'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Get.back(),
+        leading: const AppBackButton(color: Colors.white),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [_MapTheme.emeraldDark, _MapTheme.emerald, _MapTheme.emeraldLight],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border(bottom: BorderSide(color: _MapTheme.gold, width: 1.5)),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+            ],
+          ),
         ),
+        title: Text(
+          bn ? 'ম্যাপে অবস্থান নির্বাচন' : 'Select Location on Map',
+          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -138,7 +175,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                                 0.0, -1.0, 0.0, 0.0, 255.0, // G
                                 0.0, 0.0, -1.0, 0.0, 255.0, // B
                                 0.0, 0.0, 0.0, 1.0, 0.0,   // A
-                              ]),
+                                                      ]),
                               child: tileWidget,
                             );
                           }
@@ -153,7 +190,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                         alignment: Alignment.topCenter,
                         child: const Icon(
                           Icons.location_on_rounded,
-                          color: AppColors.primary,
+                          color: _MapTheme.gold,
                           size: 45,
                         ),
                       ),
@@ -168,13 +205,13 @@ class _LocationMapViewState extends State<LocationMapView> {
             left: 16,
             right: 16,
             child: Card(
-              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-              elevation: 6,
+              color: isDark ? _MapTheme.darkCard : _MapTheme.lightCard,
+              elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  width: 0.5,
+                  color: isDark ? _MapTheme.emerald.withOpacity(0.15) : _MapTheme.emerald.withOpacity(0.06),
+                  width: 1,
                 ),
               ),
               child: Padding(
@@ -185,7 +222,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                       child: TextField(
                         controller: _searchController,
                         style: TextStyle(
-                          color: isDark ? AppColors.textWhite : AppColors.textDark,
+                          color: isDark ? Colors.white : AppColors.textDark,
                           fontSize: 14,
                         ),
                         decoration: InputDecoration(
@@ -210,14 +247,14 @@ class _LocationMapViewState extends State<LocationMapView> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.all(Radius.circular(2)),
                                 child: LinearProgressIndicator(
-                                  color: AppColors.primary,
+                                  color: _MapTheme.emerald,
                                   backgroundColor: Colors.transparent,
                                 ),
                               ),
                             ),
                           )
                         : IconButton(
-                            icon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                            icon: const Icon(Icons.search_rounded, color: _MapTheme.emerald),
                             onPressed: () => _performSearch(_searchController.text),
                           )),
                   ],
@@ -232,13 +269,13 @@ class _LocationMapViewState extends State<LocationMapView> {
             left: 16,
             right: 16,
             child: Card(
-              color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+              color: isDark ? _MapTheme.darkCard : _MapTheme.lightCard,
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
                 side: BorderSide(
-                  color: isDark ? AppColors.borderDark : AppColors.borderLight,
-                  width: 0.5,
+                  color: isDark ? _MapTheme.emerald.withOpacity(0.15) : _MapTheme.emerald.withOpacity(0.06),
+                  width: 1,
                 ),
               ),
               child: Padding(
@@ -252,12 +289,13 @@ class _LocationMapViewState extends State<LocationMapView> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: _MapTheme.emerald.withOpacity(0.1),
                             shape: BoxShape.circle,
+                            border: Border.all(color: _MapTheme.gold.withOpacity(0.5), width: 1),
                           ),
                           child: const Icon(
                             Icons.my_location_rounded,
-                            color: AppColors.primary,
+                            color: _MapTheme.emerald,
                             size: 24,
                           ),
                         ),
@@ -268,7 +306,7 @@ class _LocationMapViewState extends State<LocationMapView> {
                             children: [
                               Text(
                                 bn ? 'নির্বাচিত অবস্থান' : 'Selected Location',
-                                style: const TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                   color: AppColors.textGrey,
@@ -277,10 +315,10 @@ class _LocationMapViewState extends State<LocationMapView> {
                               const SizedBox(height: 4),
                               Obx(() => Text(
                                     geocodedAddress.value,
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
-                                      color: isDark ? AppColors.textWhite : AppColors.textDark,
+                                      color: isDark ? Colors.white : AppColors.textDark,
                                     ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -293,11 +331,12 @@ class _LocationMapViewState extends State<LocationMapView> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: isDark ? Colors.black : Colors.white,
+                        backgroundColor: _MapTheme.emerald,
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: _MapTheme.gold, width: 1),
                         ),
                       ),
                       onPressed: () {
@@ -313,13 +352,13 @@ class _LocationMapViewState extends State<LocationMapView> {
                               ? 'আপনার নতুন অবস্থানটি সফলভাবে সেট করা হয়েছে।'
                               : 'Your new location has been set successfully.',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.9),
-                          colorText: isDark ? Colors.black : Colors.white,
+                          backgroundColor: _MapTheme.emerald.withOpacity(0.9),
+                          colorText: Colors.white,
                         );
                       },
                       child: Text(
                         bn ? 'অবস্থান নিশ্চিত করুন' : 'Confirm Location',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                   ],
@@ -331,4 +370,47 @@ class _LocationMapViewState extends State<LocationMapView> {
       ),
     );
   }
+}
+
+// ─── Islamic Star / Geometric Pattern Painter ──────────────────────────────────
+class _StarPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    const step = 32.0;
+
+    for (double x = 0; x < size.width + step; x += step) {
+      for (double y = 0; y < size.height + step; y += step) {
+        _drawStar6(canvas, paint, Offset(x, y), 9);
+      }
+    }
+  }
+
+  void _drawStar6(Canvas canvas, Paint paint, Offset center, double r) {
+    final path = ui.Path();
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30 - 90) * (3.14159 / 180);
+      final radius = i.isEven ? r : r * 0.45;
+      final point = Offset(
+        center.dx + radius * _cos(angle),
+        center.dy + radius * _sin(angle),
+      );
+      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  double _cos(double rad) => rad == 0
+      ? 1
+      : (rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120);
+  double _sin(double rad) =>
+      rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120;
+
+  @override
+  bool shouldRepaint(_StarPatternPainter old) => false;
 }

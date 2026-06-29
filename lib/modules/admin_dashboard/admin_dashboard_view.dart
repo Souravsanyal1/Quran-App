@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,13 +21,16 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   Widget build(BuildContext context) {
     return Theme(
       data: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xff09090b),
-        cardColor: const Color(0xff121214),
-        primaryColor: AppColors.primary,
-        colorScheme: const ColorScheme.dark(primary: AppColors.primary),
+        scaffoldBackgroundColor: const Color(0xFF141420),
+        cardColor: const Color(0xFF1E1E2E),
+        primaryColor: const Color(0xFF1B5E35),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF1B5E35),
+          secondary: Color(0xFFC9A84C),
+        ),
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xff09090b),
+        backgroundColor: const Color(0xFF141420),
         appBar: _buildAppBar(),
         body: Obx(() {
           if (controller.isInitialLoading.value) {
@@ -52,12 +56,12 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: const Color(0xFF1B5E35).withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const CircularProgressIndicator(
               strokeWidth: 3,
-              color: AppColors.primary,
+              color: const Color(0xFF1B5E35),
             ).animate(onPlay: (c) => c.repeat()).rotate(duration: const Duration(seconds: 2)),
           ),
           const SizedBox(height: 24),
@@ -77,7 +81,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xff121214),
+      backgroundColor: const Color(0xFF1E1E2E),
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       title: Row(
@@ -85,7 +89,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              gradient: const LinearGradient(colors: [Color(0xFF1B5E35), Color(0xFFC9A84C)]),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.auto_awesome_mosaic_rounded, color: Colors.black, size: 20),
@@ -166,7 +170,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         Container(
           width: 260,
           decoration: const BoxDecoration(
-            color: Color(0xff121214),
+            color: Color(0xFF1E1E2E),
             border: Border(right: BorderSide(color: Colors.white10, width: 0.5)),
           ),
           child: Column(
@@ -186,7 +190,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         ),
         Expanded(
           child: Container(
-            color: const Color(0xff09090b),
+            color: const Color(0xFF141420),
             child: Obx(() => AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   child: Padding(
@@ -239,7 +243,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         Container(
           height: 60,
           decoration: const BoxDecoration(
-            color: Color(0xff121214),
+            color: Color(0xFF1E1E2E),
             border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
           ),
           child: Obx(() => ListView(
@@ -276,9 +280,9 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+            color: isSelected ? const Color(0xFF1B5E35).withOpacity(0.08) : Colors.transparent,
             border: Border.all(
-                color: isSelected ? AppColors.primary.withOpacity(0.2) : Colors.transparent,
+                color: isSelected ? const Color(0xFF1B5E35).withOpacity(0.2) : Colors.transparent,
                 width: 1),
           ),
           child: Row(
@@ -362,7 +366,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 2.2,
               children: [
-                _buildModernStatsCard('Support Inbox', controller.totalTicketsCount, Icons.forum_rounded, AppColors.primary),
+                _buildModernStatsCard('Support Inbox', controller.totalTicketsCount, Icons.forum_rounded, const Color(0xFF1B5E35)),
                 _buildModernStatsCard('Visual Banners', controller.totalBannersCount, Icons.collections_rounded, Colors.blueAccent),
                 _buildModernStatsCard('Active Campaigns', controller.totalAdsCount, Icons.campaign_rounded, Colors.purpleAccent),
                 _buildModernStatsCard('Administrators', controller.totalAdminsCount, Icons.admin_panel_settings_rounded, AppColors.emerald),
@@ -377,7 +381,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   Widget _buildModernStatsCard(String title, RxInt count, IconData icon, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xff121214),
+        color: const Color(0xFF1E1E2E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
       ),
@@ -439,7 +443,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               hintText: 'Search by user, email or subject...',
               prefixIcon: const Icon(Icons.search, size: 20),
               filled: true,
-              fillColor: const Color(0xff121214),
+              fillColor: const Color(0xFF1E1E2E),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
             ),
           ),
@@ -448,7 +452,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         Obx(() => DropdownButton<TicketStatus?>(
           value: controller.ticketStatusFilter.value,
           hint: const Text('All Status'),
-          dropdownColor: const Color(0xff121214),
+          dropdownColor: const Color(0xFF1E1E2E),
           underline: const SizedBox(),
           items: [
             const DropdownMenuItem(value: null, child: Text('All Status')),
@@ -463,7 +467,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   Widget _buildTicketCard(SupportTicket ticket) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xff121214),
+        color: const Color(0xFF1E1E2E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
@@ -540,16 +544,21 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     chatController.setupChat(userId, userName);
     Get.dialog(
       Dialog(
-        backgroundColor: const Color(0xff09090b),
-        insetPadding: const EdgeInsets.all(40),
-        child: Container(
-          width: 500, height: 700,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(24), border: Border.all(color: Colors.white.withOpacity(0.1))),
-          child: Column(
-            children: [
+        backgroundColor: const Color(0xFF141420),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF141420),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Column(
+              children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(color: Color(0xff121214), borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                decoration: const BoxDecoration(color: Color(0xFF1E1E2E), borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
                 child: Row(
                   children: [
                     IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close, color: Colors.white54)),
@@ -578,12 +587,12 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               ),
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(color: Color(0xff121214), borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))),
+                decoration: const BoxDecoration(color: Color(0xFF1E1E2E), borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Obx(() {
-                      if (chatController.selectedImage.value != null) {
+                      if (chatController.selectedImageBytes.value != null) {
                         return Container(
                           height: 80,
                           margin: const EdgeInsets.only(bottom: 12),
@@ -621,7 +630,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                       children: [
                         IconButton(
                           onPressed: chatController.pickImage,
-                          icon: const Icon(Icons.image_rounded, color: AppColors.primary),
+                          icon: const Icon(Icons.image_rounded, color: const Color(0xFF1B5E35)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(child: TextField(
@@ -634,9 +643,9 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                         Obx(() => IconButton(
                           onPressed: chatController.isSubmitting.value ? null : chatController.sendMessage,
                           icon: chatController.isSubmitting.value 
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
-                            : const Icon(Icons.send_rounded, color: AppColors.primary),
-                          style: IconButton.styleFrom(backgroundColor: AppColors.primary.withOpacity(0.1)),
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: const Color(0xFF1B5E35)))
+                            : const Icon(Icons.send_rounded, color: const Color(0xFF1B5E35)),
+                          style: IconButton.styleFrom(backgroundColor: const Color(0xFF1B5E35).withOpacity(0.1)),
                         )),
                       ],
                     ),
@@ -647,7 +656,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           ),
         ),
       ),
-    ).then((_) => Get.delete<AdminChatController>(tag: userId));
+    )).then((_) => Get.delete<AdminChatController>(tag: userId));
   }
 
   Widget _buildBannersTab() {
@@ -739,7 +748,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   trailing: Switch(
                     value: status == 'active',
                     onChanged: (_) => controller.toggleAdStatus(id, status),
-                    activeColor: AppColors.primary,
+                    activeColor: const Color(0xFF1B5E35),
                   ),
                 );
               },
@@ -817,7 +826,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       width: 600,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xff121214),
+        color: const Color(0xFF1E1E2E),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
@@ -833,11 +842,11 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13),
-        prefixIcon: Icon(icon, color: AppColors.primary.withOpacity(0.5), size: 18),
+        prefixIcon: Icon(icon, color: const Color(0xFF1B5E35).withOpacity(0.5), size: 18),
         filled: true,
         fillColor: Colors.black26,
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white.withOpacity(0.05))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: const Color(0xFF1B5E35), width: 1)),
       ),
     );
   }
@@ -849,7 +858,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: const Color(0xFF1B5E35),
           foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 0,
@@ -864,7 +873,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   Widget _buildItemCard(String? imageUrl, String title, String subtitle, VoidCallback onEdit, VoidCallback onDelete, {Widget? trailing}) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xff121214),
+        color: const Color(0xFF1E1E2E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
       ),
@@ -914,7 +923,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         margin: const EdgeInsets.only(top: 8, bottom: 4, right: 60),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: const BoxDecoration(
-          color: Color(0xff1A1A24),
+          color: Color(0xFF1E1E2E),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(16),
             topRight: Radius.circular(16),
@@ -930,7 +939,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             SizedBox(
               width: 12,
               height: 12,
-              child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.primary.withOpacity(0.3)),
+              child: CircularProgressIndicator(strokeWidth: 1.5, color: const Color(0xFF1B5E35).withOpacity(0.3)),
             ),
           ],
         ),
@@ -956,7 +965,7 @@ class _AdminMessageBubble extends StatelessWidget {
             margin: EdgeInsets.only(top: 8, bottom: 4, left: isMe ? 60 : 0, right: isMe ? 0 : 60),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isMe ? AppColors.primary : const Color(0xff1A1A24),
+              color: isMe ? AppColors.primary : const Color(0xFF1E1E2E),
               borderRadius: BorderRadius.only(topLeft: const Radius.circular(16), topRight: const Radius.circular(16), bottomLeft: Radius.circular(isMe ? 16 : 4), bottomRight: Radius.circular(isMe ? 4 : 16)),
             ),
             child: Column(
@@ -995,4 +1004,48 @@ class _AdminMessageBubble extends StatelessWidget {
       ).animate().fadeIn(duration: 200.ms),
     );
   }
+}
+
+
+// ─── Islamic Star / Geometric Pattern Painter ──────────────────────────────────
+class _StarPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    const step = 32.0;
+
+    for (double x = 0; x < size.width + step; x += step) {
+      for (double y = 0; y < size.height + step; y += step) {
+        _drawStar6(canvas, paint, Offset(x, y), 9);
+      }
+    }
+  }
+
+  void _drawStar6(Canvas canvas, Paint paint, Offset center, double r) {
+    final path = Path();
+    for (int i = 0; i < 12; i++) {
+      final angle = (i * 30 - 90) * (3.14159 / 180);
+      final radius = i.isEven ? r : r * 0.45;
+      final point = Offset(
+        center.dx + radius * _cos(angle),
+        center.dy + radius * _sin(angle),
+      );
+      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  double _cos(double rad) => rad == 0
+      ? 1
+      : (rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120);
+  double _sin(double rad) =>
+      rad - (rad * rad * rad) / 6 + (rad * rad * rad * rad * rad) / 120;
+
+  @override
+  bool shouldRepaint(_StarPatternPainter old) => false;
 }
