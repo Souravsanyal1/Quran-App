@@ -1142,7 +1142,7 @@ class _CompletionPage extends StatelessWidget {
                 Text(
                   isBn
                       ? 'আপনি ${isMale ? "পুরুষের" : "মহিলার"} নামাজ শিক্ষার সব ধাপ সম্পন্ন করেছেন!'
-                      : 'You have completed all steps of the ${isMale ? "Men\'s" : "Women\'s"} Namaz Guide!',
+                      : 'You have completed all steps of the ${isMale ? "Men's" : "Women's"} Namaz Guide!',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
