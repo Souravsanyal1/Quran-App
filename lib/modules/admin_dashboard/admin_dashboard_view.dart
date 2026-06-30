@@ -11,6 +11,8 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
 import '../auth/auth_controller.dart';
 import '../home/banner_controller.dart';
+import '../settings/settings_controller.dart';
+import '../settings/n8n_config_controller.dart';
 import 'admin_chat_controller.dart';
 import 'admin_dashboard_controller.dart';
 
@@ -185,6 +187,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
               _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
               _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
+              _buildSidebarItem(10, Icons.settings_suggest_rounded, 'n8n Webhook'),
               const Spacer(),
               _buildSidebarFooter(),
             ],
@@ -261,6 +264,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   _buildMobileTabItem(5, 'Prayers'),
                   _buildMobileTabItem(6, 'Ads'),
                   _buildMobileTabItem(9, 'Maint'),
+                  _buildMobileTabItem(10, 'n8n'),
                 ],
               )),
         ),
@@ -351,6 +355,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       case 7: return _buildSupportInboxTab();
       case 8: return _buildUsersTab();
       case 9: return _buildMaintenanceTab(context);
+      case 10: return _buildN8nConfigTab(context);
       default: return const SizedBox();
     }
   }
@@ -1318,6 +1323,191 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             IconButton(icon: const Icon(Icons.delete_rounded, color: Colors.redAccent, size: 20), onPressed: onDelete),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildN8nConfigTab(BuildContext context) {
+    final n8nController = Get.find<N8nConfigController>();
+    final settings = Get.find<SettingsController>();
+    final bn = settings.isBangla;
+
+    final borderColor = const Color(0xFF1B5E35).withOpacity(0.2);
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('n8n Webhook Config', 'Configure your n8n Live Chat Support webhook and test connection.'),
+          const SizedBox(height: 32),
+          _buildFormCard([
+            const Text('Endpoint Configuration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            _buildTextField(n8nController.urlController, 'Webhook / MCP Server URL', Icons.link_rounded),
+            const SizedBox(height: 16),
+            _buildTextField(n8nController.apiKeyController, 'API Key (Optional)', Icons.vpn_key_rounded),
+            const SizedBox(height: 16),
+            Obx(() => SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text(
+                    'Model Context Protocol (MCP) Mode',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    bn
+                        ? 'অন করলে JSON-RPC ফরম্যাটে ডাটা যাবে, অফ থাকলে সরাসরি POST রিকোয়েস্ট যাবে'
+                        : 'Enable JSON-RPC wrapping for MCP servers, or disable for standard webhooks',
+                    style: TextStyle(fontSize: 12, color: Colors.white54),
+                  ),
+                  value: n8nController.useMcp.value,
+                  activeColor: const Color(0xFFC9A84C),
+                  activeTrackColor: const Color(0xFF1B5E35),
+                  onChanged: (val) => n8nController.useMcp.value = val,
+                )),
+            Obx(() {
+              if (!n8nController.useMcp.value) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: _buildTextField(
+                  n8nController.toolNameController,
+                  'MCP Tool Name',
+                  Icons.build_circle_rounded,
+                ),
+              );
+            }),
+            const SizedBox(height: 24),
+            _buildActionButton(
+              'Save Configuration',
+              () async {
+                final success = await n8nController.saveConfig();
+                if (success) {
+                  Get.snackbar(
+                    bn ? 'সংরক্ষিত হয়েছে' : 'Settings Saved',
+                    bn
+                        ? 'লাইভ চ্যাট সেটিংস সফলভাবে আপডেট করা হয়েছে'
+                        : 'Live chat configurations updated successfully',
+                    snackPosition: SnackPosition.TOP,
+                    backgroundColor: const Color(0xFF1B5E35),
+                    colorText: Colors.white,
+                  );
+                }
+              },
+            ),
+          ]),
+          const SizedBox(height: 28),
+          _buildFormCard([
+            const Text('Connection Testing Console', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            _buildTextField(n8nController.testMessageController, 'Test Message', Icons.chat_bubble_outline_rounded),
+            const SizedBox(height: 24),
+            Obx(() => _buildActionButton(
+                  n8nController.isTesting.value ? 'Testing...' : 'Test Connection',
+                  () => n8nController.testConnection(),
+                  isLoading: n8nController.isTesting.value,
+                )),
+            Obx(() {
+              if (n8nController.testResultText.value.isEmpty &&
+                  n8nController.testResultStatus.value == null) {
+                return const SizedBox.shrink();
+              }
+
+              final status = n8nController.testResultStatus.value;
+              final isSuccess = status == 200;
+              final badgeColor = isSuccess ? Colors.green : Colors.redAccent;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white10),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Test Result:',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      if (status != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: badgeColor, width: 1),
+                          ),
+                          child: Text(
+                            'HTTP $status',
+                            style: TextStyle(
+                              color: badgeColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: Text(
+                      n8nController.testResultText.value,
+                      style: TextStyle(
+                        color: isSuccess ? Colors.white : Colors.redAccent,
+                        fontSize: 13.5,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Theme(
+                    data: ThemeData.dark().copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      tilePadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.terminal_rounded, color: Color(0xFFC9A84C), size: 20),
+                      title: Text(
+                        bn ? 'র-পেলোড ও ডাটা ডিটেইলস' : 'Raw Payload & Log Details',
+                        style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.4), fontWeight: FontWeight.w600),
+                      ),
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          constraints: const BoxConstraints(maxHeight: 250),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Text(
+                                n8nController.testResultDetails.value,
+                                style: GoogleFonts.sourceCodePro(
+                                  color: Colors.greenAccent,
+                                  fontSize: 11.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ]),
+        ],
       ),
     );
   }

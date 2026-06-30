@@ -290,24 +290,6 @@ class SettingsView extends GetView<SettingsController> {
               ],
             ),
 
-            // ── Developer Options ──────────────────────────────────
-            _SectionHeader(title: bn ? 'ডেভেলপার অপশন' : 'Developer Options'),
-
-            _SettingsCard(
-              isDark: isDark,
-              children: [
-                _SettingsTile(
-                  isDark: isDark,
-                  icon: Icons.developer_mode_rounded,
-                  title: bn ? 'লাইভ চ্যাট সেটিংস (n8n)' : 'Live Chat Settings (n8n)',
-                  subtitle: bn
-                      ? 'এপিআই কী এবং ইউআরএল কনফিগার করুন'
-                      : 'Configure URL, API Key & connection mode',
-                  onTap: () => Get.toNamed(AppRoutes.n8nConfig),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 32),
             Text(
               'Quran App v1.0.0\nMade with ❤️ for the Ummah',
