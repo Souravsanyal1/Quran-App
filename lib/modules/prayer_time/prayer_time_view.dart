@@ -463,7 +463,7 @@ class PrayerTimeView extends StatelessWidget {
                               size: const Size(110, 90), // Reduced from 130, 110
                               painter: SunArcPainter(
                                 progress: val,
-                                pathColor: Colors.white.withOpacity(0.2),
+                                pathColor: Colors.white.withOpacity(0.45),
                                 sunColor: !isDay ? Colors.white : AppColors.gold,
                                 isNight: !isDay,
                               ),
@@ -1184,7 +1184,7 @@ class SunArcPainter extends CustomPainter {
 
     // Node dots for prayer sequence (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha)
     final nodeFill = Paint()
-      ..color = pathColor.withOpacity(0.4)
+      ..color = pathColor.withOpacity(0.7)
       ..style = PaintingStyle.fill;
     
     for (final t in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) {
@@ -1197,8 +1197,8 @@ class SunArcPainter extends CustomPainter {
       Offset(10, h - 16),
       Offset(w - 10, h - 16),
       Paint()
-        ..color = pathColor.withOpacity(0.2)
-        ..strokeWidth = 1.0,
+        ..color = pathColor.withOpacity(0.4)
+        ..strokeWidth = 1.5,
     );
 
     // Current Position (Sun or Moon)
@@ -1208,19 +1208,19 @@ class SunArcPainter extends CustomPainter {
       // Realistic Crescent Moon
       canvas.drawCircle(
         pos,
-        10,
+        16,
         Paint()
-          ..color = Colors.white.withOpacity(0.12)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+          ..color = Colors.white.withOpacity(0.25)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
       );
       
-      final moonPaint = Paint()..color = Colors.white.withOpacity(0.95);
+      final moonPaint = Paint()..color = Colors.white;
       
       // Draw moon as a path (crescent shape)
       final moonPath = Path.combine(
         PathOperation.difference,
-        Path()..addOval(Rect.fromCircle(center: pos, radius: 7)),
-        Path()..addOval(Rect.fromCircle(center: pos + const Offset(-3, -2), radius: 7)),
+        Path()..addOval(Rect.fromCircle(center: pos, radius: 11)),
+        Path()..addOval(Rect.fromCircle(center: pos + const Offset(-3.5, -2.5), radius: 11)),
       );
       canvas.drawPath(moonPath, moonPaint);
     } else {
