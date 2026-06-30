@@ -141,8 +141,8 @@ class PrayerTimeView extends StatelessWidget {
         ),
         // Flying birds
         Positioned(
-          top: MediaQuery.of(context).size.height * 0.07,
-          right: 60,
+          top: MediaQuery.of(context).size.height * 0.13,
+          left: 36,
           child: _BirdsWidget(
               color:
                   isDark ? const Color(0xFF4A7C5E) : const Color(0xFF5A8A6A)),
@@ -410,11 +410,11 @@ class PrayerTimeView extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           child: Text(
                             controller.periodTimeRemaining.value,
-                            style: GoogleFonts.poppins(
+                            style: (bn ? GoogleFonts.hindSiliguri : GoogleFonts.poppins)(
                               color: AppColors.gold,
-                              fontSize: 34, // Reduced from 36
+                              fontSize: bn ? 32 : 34,
                               fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2,
+                              letterSpacing: bn ? 2.0 : 1.2,
                             ),
                           ),
                         )),
@@ -430,9 +430,9 @@ class PrayerTimeView extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   '$t  •  $formattedDate',
-                                  style: GoogleFonts.poppins(
+                                  style: (bn ? GoogleFonts.hindSiliguri : GoogleFonts.poppins)(
                                     color: Colors.white.withOpacity(0.85),
-                                    fontSize: 11, // Reduced from 12
+                                    fontSize: bn ? 12 : 11,
                                     fontWeight: FontWeight.w600,
                                   ),
                                   overflow: TextOverflow.ellipsis,
