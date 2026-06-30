@@ -28,6 +28,7 @@ class QuranApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Quran App',
       debugShowCheckedModeBanner: false,
+      enableLog: false,
 
       // Theme
       theme: AppTheme.lightTheme,

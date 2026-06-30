@@ -1542,6 +1542,7 @@ void main() {
   runApp(
     GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      enableLog: false,
       title: 'Prayer Times',
       theme: ThemeData(
         useMaterial3: true,
