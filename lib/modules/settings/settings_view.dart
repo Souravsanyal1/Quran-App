@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_urls.dart';
 import 'package:quran_app/widgets/shimmer_loading.dart';
 import '../../widgets/app_back_button.dart';
+import '../../core/constants/app_routes.dart';
 import 'settings_controller.dart';
 
 // ── Design Tokens ────────────────────────────────────────────────────────────
@@ -286,6 +287,24 @@ class SettingsView extends GetView<SettingsController> {
                       }
                     },
                   ),
+              ],
+            ),
+
+            // ── Developer Options ──────────────────────────────────
+            _SectionHeader(title: bn ? 'ডেভেলপার অপশন' : 'Developer Options'),
+
+            _SettingsCard(
+              isDark: isDark,
+              children: [
+                _SettingsTile(
+                  isDark: isDark,
+                  icon: Icons.developer_mode_rounded,
+                  title: bn ? 'লাইভ চ্যাট সেটিংস (n8n)' : 'Live Chat Settings (n8n)',
+                  subtitle: bn
+                      ? 'এপিআই কী এবং ইউআরএল কনফিগার করুন'
+                      : 'Configure URL, API Key & connection mode',
+                  onTap: () => Get.toNamed(AppRoutes.n8nConfig),
+                ),
               ],
             ),
 

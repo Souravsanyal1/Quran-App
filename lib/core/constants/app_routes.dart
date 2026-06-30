@@ -43,10 +43,13 @@ class AppRoutes {
 
   // Developer Info
   static const String developerInfo = '/developer-info';
+  static const String n8nConfig = '/n8n-config';
 
   // Map
   static const String locationMap = '/location-map';
 
   // Admin Dashboard
   static const String adminDashboard = '/admin-dashboard';
+  static const String maintenance = '/maintenance';
+  static const String forceUpdate = '/force-update';
 }

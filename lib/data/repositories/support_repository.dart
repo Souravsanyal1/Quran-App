@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../models/support_chat_model.dart';
 import '../../core/api/support_api_provider.dart';
 import '../../core/constants/app_keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class SupportRepository {
@@ -127,24 +128,23 @@ class SupportRepository {
     });
   }
 
-  // --- n8n MCP Server Chat ---
+  // --- n8n MCP Server / Webhook Chat ---
 
   Future<String?> sendToN8n(String message, String userId, {String? userName}) async {
     try {
-      final response = await _apiProvider.dio.post(
-        'https://islansourav.app.n8n.cloud/mcp-server/http',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer ${AppKeys.n8nApiKey}',
-            'X-N8N-API-KEY': AppKeys.n8nApiKey,
-            'Content-Type': 'application/json',
-          },
-        ),
-        data: {
+      final prefs = await SharedPreferences.getInstance();
+      final url = prefs.getString('n8n_url') ?? 'https://islansourav.app.n8n.cloud/webhook-test/chat';
+      final apiKey = prefs.getString('n8n_api_key') ?? AppKeys.n8nApiKey;
+      final toolName = prefs.getString('n8n_tool_name') ?? AppKeys.n8nToolName;
+      final useMcp = prefs.getBool('n8n_use_mcp') ?? (!url.contains('/webhook'));
+
+      final Map<String, dynamic> requestData;
+      if (useMcp) {
+        requestData = {
           'jsonrpc': '2.0',
           'method': 'tools/call',
           'params': {
-            'name': AppKeys.n8nToolName,
+            'name': toolName,
             'arguments': {
               'message': message,
               'userId': userId,
@@ -154,27 +154,68 @@ class SupportRepository {
             },
           },
           'id': 1,
-        },
+        };
+      } else {
+        requestData = {
+          'message': message,
+          'userId': userId,
+          'userName': userName ?? 'User',
+          'platform': 'android/ios',
+          'timestamp': DateTime.now().toIso8601String(),
+        };
+      }
+
+      final Map<String, dynamic> headers = {
+        'Content-Type': 'application/json',
+      };
+      if (apiKey.isNotEmpty && apiKey != 'your_n8n_api_key_here') {
+        headers['Authorization'] = 'Bearer $apiKey';
+        headers['X-N8N-API-KEY'] = apiKey;
+      }
+
+      final response = await _apiProvider.dio.post(
+        url,
+        options: Options(headers: headers),
+        data: requestData,
       );
 
       if (response.statusCode == 200) {
         final data = response.data;
         if (data != null) {
-          // 1. Try parsing standard MCP JSON-RPC format
-          if (data['result'] != null && data['result']['content'] is List) {
-            final contentList = data['result']['content'] as List;
-            if (contentList.isNotEmpty) {
-              final textItem = contentList.firstWhere(
-                (item) => item is Map && item['type'] == 'text',
-                orElse: () => null,
-              );
-              if (textItem != null && textItem['text'] != null) {
-                return textItem['text'].toString();
-              }
+          // 1. If response is a List (e.g. n8n workflow returning an array)
+          if (data is List) {
+            if (data.isEmpty) return null;
+            final first = data.first;
+            if (first is Map) {
+              return first['response'] ?? first['output'] ?? first['text'] ?? first['message'] ?? first['reply'];
+            } else {
+              return first.toString();
             }
           }
-          // 2. Fallback to direct output keys if the workflow isn't returning standard MCP format
-          return data['response'] ?? data['output'] ?? data['text'] ?? data['message'];
+
+          // 2. If response is a String (e.g. raw text from webhook)
+          if (data is String) {
+            return data;
+          }
+
+          // 3. If response is a Map
+          if (data is Map) {
+            // Try standard MCP JSON-RPC format first
+            if (data['result'] != null && data['result']['content'] is List) {
+              final contentList = data['result']['content'] as List;
+              if (contentList.isNotEmpty) {
+                final textItem = contentList.firstWhere(
+                  (item) => item is Map && item['type'] == 'text',
+                  orElse: () => null,
+                );
+                if (textItem != null && textItem['text'] != null) {
+                  return textItem['text'].toString();
+                }
+              }
+            }
+            // Fallback to direct output keys
+            return data['response'] ?? data['output'] ?? data['text'] ?? data['message'] ?? data['reply'];
+          }
         }
       }
     } catch (e) {

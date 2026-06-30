@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../modules/splash/splash_view.dart';
 import '../modules/splash/splash_controller.dart';
+import '../modules/splash/maintenance_update_views.dart';
 import '../modules/auth/login_view.dart';
 import '../modules/auth/auth_controller.dart';
 import '../modules/admin/admin_view.dart';
@@ -20,8 +21,6 @@ import '../modules/para_details/para_details_controller.dart';
 import '../modules/quran_download/quran_download_view.dart';
 import '../modules/quran_download/quran_download_controller.dart';
 import '../modules/prayer_time/prayer_time_view.dart';
-import '../modules/salah_guide/salah_guide_view.dart';
-import '../modules/salah_guide/salah_guide_controller.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_view.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_controller.dart';
 import '../modules/namaz_guide/namaz_guide_view.dart';
@@ -38,13 +37,12 @@ import '../modules/donation/donation_view.dart';
 import '../modules/support/support_center_view.dart';
 import '../modules/support/support_view.dart';
 import '../modules/support/support_form_view.dart';
-import '../modules/support/support_controller.dart';
 import '../modules/support/support_binding.dart';
 import '../modules/settings/settings_view.dart';
 import '../modules/settings/settings_controller.dart';
+import '../modules/settings/n8n_config_view.dart';
+import '../modules/settings/n8n_config_controller.dart';
 import '../modules/notifications/notifications_view.dart';
-import '../modules/notifications/notification_details_view.dart';
-import '../modules/notifications/notifications_controller.dart';
 import '../modules/prayer_time/location_map_view.dart';
 import '../modules/developer_info/developer_info_view.dart';
 import '../modules/developer_info/developer_info_controller.dart';
@@ -193,10 +191,24 @@ class AppPages {
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      name: AppRoutes.n8nConfig,
+      page: () => const N8nConfigView(),
+      binding: BindingsBuilder(() => Get.lazyPut(() => N8nConfigController())),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
       name: AppRoutes.adminDashboard,
       page: () => const AdminDashboardView(),
       binding: AdminDashboardBinding(),
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.maintenance,
+      page: () => const MaintenanceView(),
+    ),
+    GetPage(
+      name: AppRoutes.forceUpdate,
+      page: () => const ForceUpdateView(),
     ),
   ];
 }
