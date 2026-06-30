@@ -440,15 +440,17 @@ class PrayerTimeController extends GetxController {
 
     // Next prayer highlight
     if (nameEn == 'Fajr') {
-      nextPrayerName.value = 'Fajr';
-    } else if (nameEn.startsWith('Dhuhr')) {
+      nextPrayerName.value = 'Sunrise';
+    } else if (nameEn == 'Dhuhr (Upcoming)') {
       nextPrayerName.value = 'Dhuhr';
-    } else if (nameEn == 'Asr') {
+    } else if (nameEn == 'Dhuhr') {
       nextPrayerName.value = 'Asr';
-    } else if (nameEn == 'Maghrib') {
+    } else if (nameEn == 'Asr') {
       nextPrayerName.value = 'Maghrib';
-    } else {
+    } else if (nameEn == 'Maghrib') {
       nextPrayerName.value = 'Isha';
+    } else {
+      nextPrayerName.value = 'Fajr';
     }
 
     // Progress

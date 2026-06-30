@@ -385,15 +385,20 @@ class PrayerTimeView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: AppColors.gold.withOpacity(0.2)),
                           ),
-                          child: Text(
-                            bn ? 'পরবর্তী নামাজ' : 'UPCOMING PRAYER',
-                            style: GoogleFonts.poppins(
-                              color: AppColors.gold,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
+                          child: Obx(() {
+                            final isSunrise = controller.nextPrayerName.value == 'Sunrise';
+                            return Text(
+                              bn
+                                  ? (isSunrise ? 'পরবর্তী সময়সূচী' : 'পরবর্তী নামাজ')
+                                  : (isSunrise ? 'UPCOMING LIMIT' : 'UPCOMING PRAYER'),
+                              style: GoogleFonts.poppins(
+                                color: AppColors.gold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.5,
+                              ),
+                            );
+                          }),
                         ),
                         const SizedBox(height: 10),
                         Obx(() => Text(
