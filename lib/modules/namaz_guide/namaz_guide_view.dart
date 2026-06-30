@@ -766,7 +766,9 @@ class _ArabicSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isBn ? 'উচ্চারণ: ${step.translit}' : 'Transliteration: ${step.translit}',
+                    isBn
+                        ? 'উচ্চারণ: ${step.translitBn ?? step.translit}'
+                        : 'Transliteration: ${step.translit}',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,

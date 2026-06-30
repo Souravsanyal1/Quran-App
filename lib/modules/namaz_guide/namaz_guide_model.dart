@@ -18,7 +18,8 @@ class NamazStep {
   final String instructionEn;
   final String instructionBn;
   final String? arabic;
-  final String? translit;
+  final String? translit;      // English / roman transliteration
+  final String? translitBn;   // Bangla phonetic (উচ্চারণ)
   final String? meaningEn;
   final String? meaningBn;
 
@@ -31,6 +32,7 @@ class NamazStep {
     required this.instructionBn,
     this.arabic,
     this.translit,
+    this.translitBn,
     this.meaningEn,
     this.meaningBn,
   });
