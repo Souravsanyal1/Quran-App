@@ -21,6 +21,13 @@ class LoginView extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
+    // Redirect if already logged in as admin
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (controller.isAdmin.value && controller.user.value != null) {
+        Get.offAllNamed(AppRoutes.adminDashboard);
+      }
+    });
+
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
     final isObscured = true.obs;
