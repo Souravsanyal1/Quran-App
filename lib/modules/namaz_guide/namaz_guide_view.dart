@@ -57,8 +57,11 @@ class NamazGuideView extends GetView<NamazGuideController> {
               child: PageView.builder(
                 controller: controller.pageController,
                 onPageChanged: controller.onPageChanged,
-                itemCount: controller.steps.length,
+                itemCount: controller.steps.length + 1,
                 itemBuilder: (context, index) {
+                  if (index == controller.steps.length) {
+                    return _CompletionPage(isBn: isBn, isDark: isDark, onRestart: controller.restart);
+                  }
                   final step = controller.steps[index];
                   return _StepPage(
                     step: step,
@@ -345,6 +348,207 @@ class _StepPage extends StatelessWidget {
   }
 }
 
+// ── Completion Page ──────────────────────────────────────────────────────────
+class _CompletionPage extends StatelessWidget {
+  final bool isBn;
+  final bool isDark;
+  final VoidCallback onRestart;
+
+  const _CompletionPage({
+    required this.isBn,
+    required this.isDark,
+    required this.onRestart,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        children: [
+          // ── Celebration Icon ──────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 40),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [_NamazTheme.emerald.withValues(alpha: 0.12), _NamazTheme.darkCardAlt]
+                    : [_NamazTheme.emerald.withValues(alpha: 0.06), _NamazTheme.goldSoft],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: _NamazTheme.gold.withValues(alpha: isDark ? 0.2 : 0.25),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _NamazTheme.emerald.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Checkmark badge
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [_NamazTheme.emerald, _NamazTheme.emeraldLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _NamazTheme.emerald.withValues(alpha: 0.35),
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 42),
+                ),
+                const SizedBox(height: 20),
+                // Gold star row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (i) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Icon(Icons.star_rounded, color: _NamazTheme.gold, size: 20),
+                  )),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  isBn ? 'মাশাআল্লাহ! 🎉' : 'MashaAllah! 🎉',
+                  style: GoogleFonts.poppins(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : _NamazTheme.emeraldDark,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isBn
+                      ? 'আপনি নামাজ শিক্ষার সব ধাপ সম্পন্ন করেছেন!'
+                      : 'You have completed all steps of the Namaz Guide!',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.65)
+                        : _NamazTheme.emerald.withValues(alpha: 0.8),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.92, 0.92), curve: Curves.easeOutCubic),
+
+          const SizedBox(height: 24),
+
+          // ── Dua Card ─────────────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? _NamazTheme.darkCard : _NamazTheme.lightCard,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: _NamazTheme.gold.withValues(alpha: isDark ? 0.15 : 0.2),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ',
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
+                  style: GoogleFonts.amiri(
+                    fontSize: 22,
+                    color: isDark ? _NamazTheme.goldLight : _NamazTheme.gold,
+                    fontWeight: FontWeight.w700,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  isBn
+                      ? 'হে আমার প্রতিপালক! আমাকে নামাজ কায়েমকারী বানিয়ে দিন।\n(সূরা ইব্রাহিম: ৪০)'
+                      : 'O my Lord! Make me one who establishes prayer.\n(Surah Ibrahim: 40)',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : AppColors.textDark.withValues(alpha: 0.7),
+                    height: 1.6,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.04),
+
+          const SizedBox(height: 24),
+
+          // ── Restart Button ───────────────────────────────────────────
+          GestureDetector(
+            onTap: onRestart,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [_NamazTheme.emerald, _NamazTheme.emeraldLight],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: _NamazTheme.emerald.withValues(alpha: 0.3),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.replay_rounded, color: _NamazTheme.goldLight, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    isBn ? 'আবার শুরু করুন' : 'Restart Guide',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate(delay: 300.ms).fadeIn().slideY(begin: 0.06),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Illustration Card ────────────────────────────────────────────────────────
 class _IllustrationCard extends StatelessWidget {
   final dynamic step;
@@ -355,8 +559,9 @@ class _IllustrationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int stepNum = step.stepNumber as int;
-    final bool hasImage = stepNum >= 1 && stepNum <= 10;
-    final String imagePath = 'assets/images/$stepNum.png';
+    // Step 1 (Niyat) has no image. Steps 2–11 map to 1.png–10.png.
+    final bool hasImage = stepNum >= 2 && stepNum <= 11;
+    final String imagePath = 'assets/images/${stepNum - 1}.png';
 
     return Container(
       width: double.infinity,
@@ -862,22 +1067,19 @@ class _BottomNavigation extends StatelessWidget {
                       isDark: isDark,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  if (!controller.isLastStep) const SizedBox(width: 12),
                 ],
-                // Next / Restart button
-                Expanded(
-                  child: _NavButton(
-                    label: controller.isLastStep
-                        ? (isBn ? 'আবার শুরু করুন' : 'Restart Guide')
-                        : (isBn ? 'পরের ধাপ' : 'Next Step'),
-                    icon: controller.isLastStep
-                        ? Icons.replay_rounded
-                        : Icons.arrow_forward_rounded,
-                    onTap: controller.isLastStep ? controller.restart : controller.nextStep,
-                    isPrimary: true,
-                    isDark: isDark,
+                // Next button – hidden on completion page
+                if (!controller.isLastStep)
+                  Expanded(
+                    child: _NavButton(
+                      label: isBn ? 'পরের ধাপ' : 'Next Step',
+                      icon: Icons.arrow_forward_rounded,
+                      onTap: controller.nextStep,
+                      isPrimary: true,
+                      isDark: isDark,
+                    ),
                   ),
-                ),
               ],
             )),
       ),

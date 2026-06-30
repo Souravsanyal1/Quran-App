@@ -157,9 +157,10 @@ class NamazGuideController extends GetxController {
   ];
 
   bool get isFirstStep => currentIndex.value == 0;
-  bool get isLastStep => currentIndex.value == steps.length - 1;
-  double get progress => (currentIndex.value + 1) / steps.length;
-  NamazStep get currentStep => steps[currentIndex.value];
+  // +1 because PageView has steps.length + 1 pages (last = completion page)
+  bool get isLastStep => currentIndex.value >= steps.length;
+  double get progress => (currentIndex.value + 1) / (steps.length + 1);
+  NamazStep get currentStep => steps[currentIndex.value.clamp(0, steps.length - 1)];
 
   void nextStep() {
     if (!isLastStep) {
