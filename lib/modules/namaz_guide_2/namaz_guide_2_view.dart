@@ -662,7 +662,11 @@ class _StepPage extends StatelessWidget {
       child: Column(
         children: [
           // Illustration
-          _IllustrationCard(step: step, isDark: isDark, accentColor: accentColor),
+          _IllustrationCard(
+              step: step,
+              isDark: isDark,
+              accentColor: accentColor,
+              isMale: isMale),
           const SizedBox(height: 20),
           // Title
           _StepTitle(step: step, isBn: isBn, isDark: isDark, accentColor: accentColor),
@@ -685,15 +689,33 @@ class _IllustrationCard extends StatelessWidget {
   final NamazStep step;
   final bool isDark;
   final Color accentColor;
+  final bool isMale;
 
-  const _IllustrationCard(
-      {required this.step, required this.isDark, required this.accentColor});
+  const _IllustrationCard({
+    required this.step,
+    required this.isDark,
+    required this.accentColor,
+    required this.isMale,
+  });
+
+  int? _getImageNumber(int stepNumber) {
+    if (stepNumber == 1) return 0; // 0.png (niyat chele)
+    if (stepNumber == 2) return 1; // 1.png (takbir)
+    if (stepNumber == 3) return 2; // 2.png (qiyam)
+    if (stepNumber >= 4 && stepNumber <= 10) return stepNumber;
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final int stepNum = step.stepNumber;
+    final int? imgNum = isMale ? _getImageNumber(stepNum) : null;
+    final bool hasImage = imgNum != null;
+    final String imagePath = 'assets/images/$imgNum.png';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 30),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
@@ -715,13 +737,81 @@ class _IllustrationCard extends StatelessWidget {
           ),
         ],
       ),
+      child: hasImage
+          ? Stack(
+              children: [
+                Image.asset(
+                  imagePath,
+                  width: double.infinity,
+                  height: 260,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => _FallbackIllustration(step: step, color: accentColor),
+                  frameBuilder: (ctx, child, frame, wasSynced) {
+                    if (wasSynced || frame != null) return child;
+                    return Container(
+                      height: 260,
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        color: accentColor,
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                ),
+                Positioned(
+                  top: 0, left: 0, right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark ? _Theme.darkCardAlt : Colors.white).withValues(alpha: 0.5),
+                          Colors.transparent,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          (isDark ? _Theme.darkCardAlt : Colors.white).withValues(alpha: 0.4),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : _FallbackIllustration(step: step, color: accentColor),
+    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
+  }
+}
+
+class _FallbackIllustration extends StatelessWidget {
+  final NamazStep step;
+  final Color color;
+  const _FallbackIllustration({required this.step, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30),
       child: PostureIllustration(
         posture: step.posture,
-        color: accentColor,
+        color: color,
         size: 150,
       ),
-    ).animate().fadeIn(duration: 400.ms).scale(
-        begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
+    );
   }
 }
 
