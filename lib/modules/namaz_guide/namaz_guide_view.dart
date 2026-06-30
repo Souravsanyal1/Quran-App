@@ -354,9 +354,13 @@ class _IllustrationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int stepNum = step.stepNumber as int;
+    final bool hasImage = stepNum >= 1 && stepNum <= 10;
+    final String imagePath = 'assets/images/$stepNum.png';
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 28),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
@@ -380,16 +384,85 @@ class _IllustrationCard extends StatelessWidget {
           ),
         ],
       ),
+      child: hasImage
+          ? Stack(
+              children: [
+                // Step image — full width, fixed height
+                Image.asset(
+                  imagePath,
+                  width: double.infinity,
+                  height: 260,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => _FallbackIllustration(step: step),
+                  frameBuilder: (ctx, child, frame, wasSynced) {
+                    if (wasSynced || frame != null) return child;
+                    return Container(
+                      height: 260,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: _NamazTheme.emerald,
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                ),
+                // Subtle top gradient overlay so image blends with card
+                Positioned(
+                  top: 0, left: 0, right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark ? _NamazTheme.darkCardAlt : Colors.white).withValues(alpha: 0.5),
+                          Colors.transparent,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+                // Subtle bottom gradient overlay
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          (isDark ? _NamazTheme.darkCardAlt : Colors.white).withValues(alpha: 0.4),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : _FallbackIllustration(step: step),
+    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
+  }
+}
+
+// Fallback when no image is available
+class _FallbackIllustration extends StatelessWidget {
+  final dynamic step;
+  const _FallbackIllustration({required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Subtle decorative circles
           Positioned(
-            top: -10,
-            right: -10,
+            top: -10, right: -10,
             child: Container(
-              width: 60,
-              height: 60,
+              width: 60, height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _NamazTheme.emerald.withValues(alpha: 0.04),
@@ -397,18 +470,15 @@ class _IllustrationCard extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: -8,
-            left: -8,
+            bottom: -8, left: -8,
             child: Container(
-              width: 40,
-              height: 40,
+              width: 40, height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _NamazTheme.gold.withValues(alpha: 0.05),
               ),
             ),
           ),
-          // Illustration
           PostureIllustration(
             posture: step.posture,
             color: _NamazTheme.emerald,
@@ -416,7 +486,7 @@ class _IllustrationCard extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
+    );
   }
 }
 
