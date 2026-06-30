@@ -465,7 +465,7 @@ class PrayerTimeView extends StatelessWidget {
                             duration: const Duration(milliseconds: 1600),
                             curve: Curves.easeInOutCubic,
                             builder: (_, val, __) => CustomPaint(
-                              size: const Size(110, 90), // Reduced from 130, 110
+                              size: const Size(120, 70),
                               painter: SunArcPainter(
                                 progress: val,
                                 pathColor: Colors.white.withOpacity(0.45),
@@ -1165,84 +1165,142 @@ class SunArcPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final p0 = Offset(16, h - 16);
-    final p1 = Offset(w / 2, 16);
-    final p2 = Offset(w - 16, h - 16);
+    final p0 = Offset(12, h - 10);
+    final p1 = Offset(w / 2, 8);
+    final p2 = Offset(w - 12, h - 10);
 
-    // Cleaner dashed arc path
-    final dashPaint = Paint()
-      ..color = pathColor
+    // 1. Background arc (solid, thin, semi-transparent)
+    final bgPaint = Paint()
+      ..color = Colors.white.withOpacity(0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
       
-    final Path path = Path();
-    path.moveTo(p0.dx, p0.dy);
-    path.quadraticBezierTo(p1.dx, p1.dy, p2.dx, p2.dy);
-    
-    // Draw dashed effect manually for better control
-    for (double i = 0; i < 1.0; i += 0.05) {
-      final start = _bez(p0, p1, p2, i);
-      final end = _bez(p0, p1, p2, i + 0.025);
-      canvas.drawLine(start, end, dashPaint);
+    final bgPath = Path()
+      ..moveTo(p0.dx, p0.dy)
+      ..quadraticBezierTo(p1.dx, p1.dy, p2.dx, p2.dy);
+    canvas.drawPath(bgPath, bgPaint);
+
+    // 2. Progress arc (glowing neon-fiber line)
+    if (progress > 0.02) {
+      final activePaint = Paint()
+        ..color = isNight ? Colors.white.withOpacity(0.85) : AppColors.gold.withOpacity(0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..strokeCap = StrokeCap.round;
+      
+      final activePath = Path();
+      activePath.moveTo(p0.dx, p0.dy);
+      
+      final steps = (progress * 50).toInt().clamp(5, 50);
+      for (int i = 1; i <= steps; i++) {
+        final t = progress * (i / steps);
+        final pt = _bez(p0, p1, p2, t);
+        activePath.lineTo(pt.dx, pt.dy);
+      }
+      
+      // Draw neon glow underneath
+      canvas.drawPath(
+        activePath,
+        Paint()
+          ..color = (isNight ? Colors.white : AppColors.gold).withOpacity(0.2)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6.0
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+      );
+      
+      // Draw the active path
+      canvas.drawPath(activePath, activePaint);
     }
 
-    // Node dots for prayer sequence (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha)
-    final nodeFill = Paint()
-      ..color = pathColor.withOpacity(0.7)
+    // 3. Eastern & Western Horizon Dots (representing sunrise/sunset boundaries)
+    final nodePaint = Paint()
+      ..color = Colors.white.withOpacity(0.4)
       ..style = PaintingStyle.fill;
     
-    for (final t in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) {
-      final p = _bez(p0, p1, p2, t);
-      canvas.drawCircle(p, 2.5, nodeFill);
-    }
+    // Left horizon dot
+    canvas.drawCircle(p0, 3.0, nodePaint);
+    canvas.drawCircle(p0, 5.5, Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0);
+      
+    // Right horizon dot
+    canvas.drawCircle(p2, 3.0, nodePaint);
+    canvas.drawCircle(p2, 5.5, Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0);
 
-    // Baseline
+    // 4. Baseline (subtle horizon line)
     canvas.drawLine(
-      Offset(10, h - 16),
-      Offset(w - 10, h - 16),
+      Offset(p0.dx - 4, h - 10),
+      Offset(p2.dx + 4, h - 10),
       Paint()
-        ..color = pathColor.withOpacity(0.4)
-        ..strokeWidth = 1.5,
+        ..color = Colors.white.withOpacity(0.08)
+        ..strokeWidth = 1.0,
     );
 
-    // Current Position (Sun or Moon)
+    // 5. Current Position (Sun or Moon)
     final pos = _bez(p0, p1, p2, progress);
     
     if (isNight) {
-      // Realistic Crescent Moon
+      // Glow under crescent moon
+      canvas.drawCircle(
+        pos,
+        15,
+        Paint()
+          ..color = Colors.white.withOpacity(0.2)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      
+      // Moon Halo Ring
+      canvas.drawCircle(
+        pos,
+        13,
+        Paint()
+          ..color = Colors.white.withOpacity(0.18)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+      
+      final moonPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill;
+      
+      // Draw smooth crescent moon
+      final moonPath = Path.combine(
+        PathOperation.difference,
+        Path()..addOval(Rect.fromCircle(center: pos, radius: 9)),
+        Path()..addOval(Rect.fromCircle(center: pos + const Offset(-3, -2), radius: 9)),
+      );
+      canvas.drawPath(moonPath, moonPaint);
+    } else {
+      // Sun Glow
       canvas.drawCircle(
         pos,
         16,
         Paint()
-          ..color = Colors.white.withOpacity(0.25)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
-      );
-      
-      final moonPaint = Paint()..color = Colors.white;
-      
-      // Draw moon as a path (crescent shape)
-      final moonPath = Path.combine(
-        PathOperation.difference,
-        Path()..addOval(Rect.fromCircle(center: pos, radius: 11)),
-        Path()..addOval(Rect.fromCircle(center: pos + const Offset(-3.5, -2.5), radius: 11)),
-      );
-      canvas.drawPath(moonPath, moonPaint);
-    } else {
-      // Sun
-      // Glow
-      canvas.drawCircle(
-        pos,
-        14,
-        Paint()
-          ..color = sunColor.withOpacity(0.2)
+          ..color = AppColors.gold.withOpacity(0.28)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       );
+      
+      // Sun Halo Ring
+      canvas.drawCircle(
+        pos,
+        13,
+        Paint()
+          ..color = AppColors.gold.withOpacity(0.22)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+
       // Core
-      canvas.drawCircle(pos, 6, Paint()..color = sunColor);
+      canvas.drawCircle(pos, 6, Paint()..color = AppColors.gold);
+      
       // Rays
       final rayPaint = Paint()
-        ..color = sunColor.withOpacity(0.8)
+        ..color = AppColors.gold.withOpacity(0.7)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2
         ..strokeCap = StrokeCap.round;
@@ -1250,7 +1308,7 @@ class SunArcPainter extends CustomPainter {
         final angle = i * 2 * math.pi / 8;
         canvas.drawLine(
           pos + Offset(math.cos(angle) * 8, math.sin(angle) * 8),
-          pos + Offset(math.cos(angle) * 12, math.sin(angle) * 12),
+          pos + Offset(math.cos(angle) * 11, math.sin(angle) * 11),
           rayPaint,
         );
       }
