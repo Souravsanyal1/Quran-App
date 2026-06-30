@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
-import '../models/support_chat_model.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api/support_api_provider.dart';
 import '../../core/constants/app_keys.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../modules/settings/settings_controller.dart';
+import '../models/support_chat_model.dart';
 
 
 class SupportRepository {
@@ -133,10 +138,33 @@ class SupportRepository {
   Future<String?> sendToN8n(String message, String userId, {String? userName}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final url = prefs.getString('n8n_url') ?? 'https://islansourav.app.n8n.cloud/webhook-test/chat';
+      final url = prefs.getString('n8n_url') ?? 'https://islansourav.app.n8n.cloud/webhook/chat';
       final apiKey = prefs.getString('n8n_api_key') ?? AppKeys.n8nApiKey;
       final toolName = prefs.getString('n8n_tool_name') ?? AppKeys.n8nToolName;
       final useMcp = prefs.getBool('n8n_use_mcp') ?? (!url.contains('/webhook'));
+
+      // Retrieve dynamic package version info
+      String appVersion = '1.0.0';
+      try {
+        final packageInfo = await PackageInfo.fromPlatform();
+        appVersion = packageInfo.version;
+      } catch (e) {
+        debugPrint('Failed to get package info: $e');
+      }
+
+      // Retrieve language settings from SettingsController
+      String appLanguage = 'bn';
+      try {
+        if (Get.isRegistered<SettingsController>()) {
+          appLanguage = Get.find<SettingsController>().language.value;
+        } else {
+          appLanguage = Get.locale?.languageCode ?? 'bn';
+        }
+      } catch (e) {
+        debugPrint('Failed to get language settings: $e');
+      }
+
+      final platformStr = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'unknown');
 
       final Map<String, dynamic> requestData;
       if (useMcp) {
@@ -149,7 +177,9 @@ class SupportRepository {
               'message': message,
               'userId': userId,
               'userName': userName ?? 'User',
-              'platform': 'android/ios',
+              'appLanguage': appLanguage,
+              'appVersion': appVersion,
+              'platform': platformStr,
               'timestamp': DateTime.now().toIso8601String(),
             },
           },
@@ -160,7 +190,9 @@ class SupportRepository {
           'message': message,
           'userId': userId,
           'userName': userName ?? 'User',
-          'platform': 'android/ios',
+          'appLanguage': appLanguage,
+          'appVersion': appVersion,
+          'platform': platformStr,
           'timestamp': DateTime.now().toIso8601String(),
         };
       }
@@ -219,7 +251,7 @@ class SupportRepository {
         }
       }
     } catch (e) {
-      print('n8n MCP Error: $e');
+      debugPrint('n8n MCP Error: $e');
     }
     return null;
   }

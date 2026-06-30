@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="$FLUTTER_BASE_HREF">
+  <base href="/">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Quran App Web Portal">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Quran App Admin">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-  <link rel="icon" type="image/png" href="favicon.png"/>
-  <title>Quran App Admin Portal</title>
-  <link rel="manifest" href="manifest.json">
-  <script>
-    window.flutterConfiguration = {
-      renderer: "html",
-    };
-  </script>
+  <meta name="description" content="Quran App Admin Portal">
+  <title>Quran App Admin</title>
   <style>
     body {
-      background-color: #09090b !important; /* Force Zinc/Neutral Dark */
+      background-color: #141420;
       margin: 0;
-    }
-    #loading-indicator {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      color: #FFB300;
+      color: #C9A84C;
       font-family: sans-serif;
     }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(201, 168, 76, 0.1);
+      border-top-color: #C9A84C;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
   <div id="loading-indicator">
-    <div>
-      <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Nexora Cloud Engine</div>
-      <div style="text-align: center;">Loading...</div>
-    </div>
+    <div class="spinner"></div>
   </div>
+
+  <script>
+    // ফ্লাটার ইঞ্জিন লোড হওয়ার সময় পুরনো কনফিগারেশন এরর এড়াতে এটি পুরোপুরি রিমুভ করা হচ্ছে।
+    delete window.flutterConfiguration;
+
+    window.addEventListener('flutter-first-frame', function() {
+      var el = document.getElementById('loading-indicator');
+      if (el) el.remove();
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

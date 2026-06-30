@@ -3,33 +3,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Improved Admin check: checks if the document exists in the 'admins' collection
+    // Helper: checks if the user is an admin
     function isAdmin() {
       return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Helper: validates basic string length
+    function isValidString(val, min, max) {
+      return val is string && val.size() >= min && val.size() <= max;
+    }
+
     // Support tickets
     match /support_tickets/{ticketId} {
-      // Allow creation for any logged-in user
-      allow create: if request.auth != null;
+      allow create: if request.auth != null
+        && isValidString(request.resource.data.subject, 3, 100)
+        && request.resource.data.userId == request.auth.uid;
 
-      // Allow read/list/update if owner or admin
-      // Note: resource.data refers to the document as it exists on the server
-      allow read, list, update: if request.auth != null && (
-        isAdmin() ||
-        (resource != null && resource.data.userId == request.auth.uid) ||
-        (resource == null) // Allow if document doesn't exist yet (for create/first-write)
+      allow read, list: if request.auth != null && (
+        isAdmin() || resource.data.userId == request.auth.uid
       );
 
-      // Only admins can delete
+      allow update: if request.auth != null && (
+        isAdmin() || (resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid)
+      );
+
       allow delete: if isAdmin();
 
-      // Messages subcollection
       match /messages/{messageId} {
-        // Users can create messages if they are logged in
         allow create: if request.auth != null;
-
-        // Read requires being the ticket owner or an admin
+        allow update: if request.auth != null;
         allow read, list: if request.auth != null && (
           isAdmin() ||
           get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid
@@ -39,26 +41,45 @@ service cloud.firestore {
 
     // User profiles
     match /users/{userId} {
-      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Users can only write their own profile, admins can manage all
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
 
       match /notifications/{notificationId} {
         allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
     }
 
-    // Admins collection (Public read to allow isAdmin check to work efficiently)
+    // Admins collection - ONLY existing admins can add/remove other admins
     match /admins/{adminId} {
-      allow read: if true;
-      allow write: if isAdmin() || (request.auth != null && adminId == request.auth.uid);
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    // Public Collections
-    match /banners/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /custom_ads/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /static_top_banners/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /broadcast_notifications/{id} { allow read: if true; allow write: if isAdmin(); }
+    // Configuration & Public Content
+    match /banners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /custom_ads/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /static_top_banners/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /broadcast_notifications/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
-    // Global fallback
+    // Global settings and fallbacks
+    match /app_settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{document=**} {
       allow read: if true;
       allow write: if isAdmin();

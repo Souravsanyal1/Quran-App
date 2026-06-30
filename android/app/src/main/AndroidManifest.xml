@@ -49,9 +49,7 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <meta-data
-            android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="false" />
+        <!-- Removed deprecated Impeller opt-out -->
 
         <!-- For just_audio_background -->
         <service android:name="com.ryanheise.audioservice.AudioService"

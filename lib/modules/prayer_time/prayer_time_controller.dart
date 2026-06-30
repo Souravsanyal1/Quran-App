@@ -41,6 +41,7 @@ class PrayerTimeController extends GetxController {
   final RxMap<String, String> prayerTimes = <String, String>{}.obs;
   final RxString nextPrayerName = ''.obs;
   final RxMap<String, String> rawPrayerTimings = <String, String>{}.obs;
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
 
   // Sunrise & Sunset
   final RxString sunriseTimeStr = '05:11 AM'.obs;
@@ -49,6 +50,8 @@ class PrayerTimeController extends GetxController {
 
   // Arc & Semicircle period
   final RxDouble periodProgress = 0.0.obs;
+  final RxDouble dayNightProgress = 0.0.obs; // Global progress for Sun/Moon
+  final RxBool isDayTime = true.obs;         // Whether it's currently day
   final RxString periodName = ''.obs;
   final RxString periodTimeRemaining = '00:00:00'.obs;
   final RxString hijriDateStr = ''.obs;
@@ -270,18 +273,22 @@ class PrayerTimeController extends GetxController {
       _tomorrowPrayerTimes =
           adhan.PrayerTimes(coords, tomorrowComponents, params);
 
-      final pt = _todayPrayerTimes!;
+      // Compute display times for the selected date
+      final date = selectedDate.value;
+      final selComponents = adhan.DateComponents.from(date);
+      final selPrayerTimes = adhan.PrayerTimes(coords, selComponents, params);
 
-      // 12h formatted display strings
+      // 12h formatted display strings for the selected date
       prayerTimes.assignAll({
-        'Fajr': _fmt12h(pt.fajr),
-        'Dhuhr': _fmt12h(pt.dhuhr),
-        'Asr': _fmt12h(pt.asr),
-        'Maghrib': _fmt12h(pt.maghrib),
-        'Isha': _fmt12h(pt.isha),
+        'Fajr': _fmt12h(selPrayerTimes.fajr),
+        'Dhuhr': _fmt12h(selPrayerTimes.dhuhr),
+        'Asr': _fmt12h(selPrayerTimes.asr),
+        'Maghrib': _fmt12h(selPrayerTimes.maghrib),
+        'Isha': _fmt12h(selPrayerTimes.isha),
       });
 
-      // 24h raw strings for notification scheduler
+      // 24h raw strings for notification scheduler (always based on current date)
+      final pt = _todayPrayerTimes!;
       rawPrayerTimings.assignAll({
         'Fajr': _fmt24h(pt.fajr),
         'Sunrise': _fmt24h(pt.sunrise),
@@ -291,13 +298,13 @@ class PrayerTimeController extends GetxController {
         'Isha': _fmt24h(pt.isha),
       });
 
-      sunriseTimeStr.value = _fmt12h(pt.sunrise);
-      sunsetTimeStr.value = _fmt12h(pt.maghrib);
+      sunriseTimeStr.value = _fmt12h(selPrayerTimes.sunrise);
+      sunsetTimeStr.value = _fmt12h(selPrayerTimes.maghrib);
 
-      // Hijri date
-      hijriDateStr.value = _computeHijriDate(now);
+      // Hijri date based on the selected date
+      hijriDateStr.value = _computeHijriDate(date);
 
-      // Start real-time countdown
+      // Start real-time countdown (always uses _todayPrayerTimes / actual current date)
       _startCountdown();
 
       // Schedule Azan notifications for next 7 days
@@ -320,6 +327,11 @@ class PrayerTimeController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void selectDate(DateTime date) {
+    selectedDate.value = date;
+    loadPrayerTimes();
   }
 
   // ── Build 7-day timings list for notification scheduler ─────────────────
@@ -453,6 +465,34 @@ class PrayerTimeController extends GetxController {
     final countdown = '$h:$m:$s';
     periodTimeRemaining.value =
         settings.isBangla ? _toBanglaDigits(countdown) : countdown;
+
+    // Calculate Day/Night progress for Sun/Moon Animation
+    if (now.isAfter(sunrise) && now.isBefore(maghrib)) {
+      // Day time: Sunrise to Sunset
+      isDayTime.value = true;
+      final totalDaySec = maghrib.difference(sunrise).inSeconds;
+      final passedDaySec = now.difference(sunrise).inSeconds;
+      dayNightProgress.value = (passedDaySec / totalDaySec).clamp(0.0, 1.0);
+    } else {
+      // Night time: Sunset to next Sunrise
+      isDayTime.value = false;
+      DateTime nightStart;
+      DateTime nightEnd;
+
+      if (now.isAfter(maghrib)) {
+        // Between Sunset and Midnight
+        nightStart = maghrib;
+        nightEnd = ptTomorrow?.sunrise.toLocal() ?? sunrise.add(const Duration(days: 1));
+      } else {
+        // Between Midnight and Sunrise
+        nightStart = isha.subtract(const Duration(days: 1)); // Approximate start of previous night
+        nightEnd = sunrise;
+      }
+      
+      final totalNightSec = nightEnd.difference(nightStart).inSeconds;
+      final passedNightSec = now.difference(nightStart).inSeconds;
+      dayNightProgress.value = (passedNightSec / totalNightSec).clamp(0.0, 1.0);
+    }
 
     // Makruh banners
     final fmt = DateFormat('hh:mm a');

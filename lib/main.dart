@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'app.dart';
 import 'firebase_options.dart';
 
@@ -24,6 +25,8 @@ Future<void> main() async {
     // Parallelize core initializations to optimize start-up time
     SharedPreferences? prefsInstance;
     await Future.wait([
+      initializeDateFormatting('bn', null),
+      initializeDateFormatting('en', null),
       GetStorage.init(),
       Future(() async {
         try {

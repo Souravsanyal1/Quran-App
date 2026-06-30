@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:async';
+import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
+import '../auth/auth_controller.dart';
 import '../../services/audio_player_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -25,6 +30,10 @@ class SettingsController extends GetxController {
   final RxString selectedQari = 'ar.alafasy'.obs;
   final RxBool backgroundPlayEnabled = false.obs;
   final RxBool isLoading = true.obs;
+  final Rxn<DateTime> maintenanceEndTime = Rxn<DateTime>();
+  final Rx<DateTime> currentTime = DateTime.now().obs;
+  Timer? _maintenanceTimer;
+  Timer? _clockTimer;
 
   SharedPreferences? _prefs;
 
@@ -32,6 +41,102 @@ class SettingsController extends GetxController {
   void onInit() {
     super.onInit();
     _loadSettings();
+    _listenToMaintenanceMode();
+    _startClockTimer();
+  }
+
+  void _startClockTimer() {
+    _clockTimer?.cancel();
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      currentTime.value = DateTime.now();
+    });
+  }
+
+  @override
+  void onClose() {
+    _maintenanceTimer?.cancel();
+    _clockTimer?.cancel();
+    super.onClose();
+  }
+
+  void _listenToMaintenanceMode() {
+    FirebaseFirestore.instance
+        .collection('app_settings')
+        .doc('update_config')
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null) {
+          updateMaintenanceFromData(data);
+          
+          // 2. Check Force Update (Optional: can also be instant if we want to be strict)
+          if (data['forceUpdate'] == true) {
+            final packageInfo = await PackageInfo.fromPlatform();
+            final int currentBuild = int.tryParse(packageInfo.buildNumber) ?? 0;
+            final int requiredBuild = data['buildNumber'] ?? 0;
+            if (currentBuild < requiredBuild && Get.currentRoute != AppRoutes.forceUpdate) {
+              Get.offAllNamed(AppRoutes.forceUpdate);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void updateMaintenanceFromData(Map<String, dynamic> data) {
+    // 1. Check Maintenance Mode
+    bool isMaintenanceActive = data['maintenanceMode'] == true;
+    
+    if (data['maintenanceEndTime'] != null) {
+      final endTime = data['maintenanceEndTime'];
+      if (endTime is Timestamp) {
+        maintenanceEndTime.value = endTime.toDate();
+      } else if (endTime is DateTime) {
+        maintenanceEndTime.value = endTime;
+      }
+    } else {
+      maintenanceEndTime.value = null;
+    }
+
+    if (isMaintenanceActive && maintenanceEndTime.value != null) {
+      if (DateTime.now().isAfter(maintenanceEndTime.value!)) {
+        isMaintenanceActive = false;
+      }
+    }
+
+    _handleMaintenanceNavigation(isMaintenanceActive);
+  }
+
+  void _handleMaintenanceNavigation(bool isMaintenanceActive) {
+    if (isMaintenanceActive) {
+      bool isUserAdmin = false;
+      try {
+        isUserAdmin = Get.find<AuthController>().isAdmin.value;
+      } catch (_) {}
+
+      if (!isUserAdmin && Get.currentRoute != AppRoutes.maintenance) {
+        Get.offAllNamed(AppRoutes.maintenance);
+      }
+      _startMaintenanceCheckTimer();
+    } else {
+      _maintenanceTimer?.cancel();
+      if (Get.currentRoute == AppRoutes.maintenance) {
+        Get.offAllNamed(AppRoutes.splash);
+      }
+    }
+  }
+
+  void _startMaintenanceCheckTimer() {
+    _maintenanceTimer?.cancel();
+    if (maintenanceEndTime.value == null) return;
+
+    _maintenanceTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (maintenanceEndTime.value != null && DateTime.now().isAfter(maintenanceEndTime.value!)) {
+        timer.cancel();
+        _handleMaintenanceNavigation(false);
+      }
+    });
   }
 
   Future<void> _loadSettings() async {

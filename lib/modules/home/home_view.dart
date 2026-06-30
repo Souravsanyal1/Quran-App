@@ -344,36 +344,38 @@ class _StaticTopBannerArea extends StatelessWidget {
     return Obx(() {
       if (controller.staticTopBanners.isEmpty) return const SizedBox.shrink();
 
+      // Show the latest static banner with a more prominent size
       final banner = controller.staticTopBanners.first;
       return GestureDetector(
         onTap: () => controller.openLink(banner.linkUrl),
         child: Container(
           width: double.infinity,
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            // Gold border for the promo strip
-            border: Border.all(color: _QTheme.gold.withValues(alpha: 0.4), width: 1),
+            borderRadius: BorderRadius.circular(12),
+            // Elegant gold border
+            border: Border.all(color: _QTheme.gold.withValues(alpha: 0.5), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: _QTheme.shadow,
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+                color: _QTheme.emerald.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(7),
+            borderRadius: BorderRadius.circular(11),
             child: AspectRatio(
-              aspectRatio: 970 / 40,
+              aspectRatio: 4.8, // Much more prominent and clear size
               child: CachedNetworkImage(
                 imageUrl: banner.imageUrl,
                 fit: BoxFit.cover,
+                placeholder: (context, url) => ShimmerLoading.rectangular(height: 75),
                 errorWidget: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
           ),
-        ),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, curve: Curves.easeOut),
       );
     });
   }

@@ -178,11 +178,13 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               const SizedBox(height: 32),
               _buildSidebarItem(0, Icons.grid_view_rounded, 'Dashboard Overview'),
               _buildSidebarItem(7, Icons.forum_rounded, 'Support Inbox'),
+              _buildSidebarItem(8, Icons.people_rounded, 'User Management'),
               _buildSidebarItem(2, Icons.collections_rounded, 'Visual Banners'),
               _buildSidebarItem(3, Icons.horizontal_distribute_rounded, 'Static Banners'),
               _buildSidebarItem(4, Icons.notifications_active_rounded, 'Push Broadcast'),
               _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
               _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
+              _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
               const Spacer(),
               _buildSidebarFooter(),
             ],
@@ -196,7 +198,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   child: Padding(
                     key: ValueKey(controller.activeTabIndex.value),
                     padding: const EdgeInsets.all(40.0),
-                    child: _buildTabContent(controller.activeTabIndex.value),
+                    child: _buildTabContent(context, controller.activeTabIndex.value),
                   ),
                 )),
           ),
@@ -252,18 +254,20 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                 children: [
                   _buildMobileTabItem(0, 'Overview'),
                   _buildMobileTabItem(7, 'Inbox'),
+                  _buildMobileTabItem(8, 'Users'),
                   _buildMobileTabItem(2, 'Banners'),
                   _buildMobileTabItem(3, 'Static'),
                   _buildMobileTabItem(4, 'Push'),
                   _buildMobileTabItem(5, 'Prayers'),
                   _buildMobileTabItem(6, 'Ads'),
+                  _buildMobileTabItem(9, 'Maint'),
                 ],
               )),
         ),
         Expanded(
           child: Obx(() => SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
-                child: _buildTabContent(controller.activeTabIndex.value),
+                child: _buildTabContent(context, controller.activeTabIndex.value),
               )),
         ),
       ],
@@ -336,15 +340,17 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildTabContent(int index) {
+  Widget _buildTabContent(BuildContext context, int index) {
     switch (index) {
       case 0: return _buildOverviewTab();
-      case 2: return _buildBannersTab();
-      case 3: return _buildStaticBannersTab();
+      case 2: return _buildBannersTab(context);
+      case 3: return _buildStaticBannersTab(context);
       case 4: return _buildNotificationsTab();
       case 5: return _buildPrayerSettingsTab();
-      case 6: return _buildCustomAdsTab();
+      case 6: return _buildCustomAdsTab(context);
       case 7: return _buildSupportInboxTab();
+      case 8: return _buildUsersTab();
+      case 9: return _buildMaintenanceTab(context);
       default: return const SizedBox();
     }
   }
@@ -367,9 +373,9 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               childAspectRatio: 2.2,
               children: [
                 _buildModernStatsCard('Support Inbox', controller.totalTicketsCount, Icons.forum_rounded, const Color(0xFF1B5E35)),
+                _buildModernStatsCard('Total Users', controller.totalUsersCount, Icons.people_rounded, Colors.orangeAccent),
                 _buildModernStatsCard('Visual Banners', controller.totalBannersCount, Icons.collections_rounded, Colors.blueAccent),
                 _buildModernStatsCard('Active Campaigns', controller.totalAdsCount, Icons.campaign_rounded, Colors.purpleAccent),
-                _buildModernStatsCard('Administrators', controller.totalAdminsCount, Icons.admin_panel_settings_rounded, AppColors.emerald),
               ],
             );
           },
@@ -659,7 +665,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     )).then((_) => Get.delete<AdminChatController>(tag: userId));
   }
 
-  Widget _buildBannersTab() {
+  Widget _buildBannersTab(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -671,6 +677,33 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           _buildTextField(controller.bannerImageController, 'Image URL', Icons.image_rounded),
           const SizedBox(height: 16),
           _buildTextField(controller.bannerTargetController, 'Target URL / Route', Icons.link_rounded),
+          const SizedBox(height: 16),
+          const Text('Display Duration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+          const Text('Banner will auto-hide after this time.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+          const SizedBox(height: 12),
+          Obx(() => Wrap(
+            spacing: 8,
+            children: [
+              _buildExpiryChip(context, controller, 24, '24h', isSlider: true),
+              _buildExpiryChip(context, controller, 48, '2 days', isSlider: true),
+              _buildExpiryChip(context, controller, 168, '7 days', isSlider: true),
+              _buildExpiryChip(context, controller, 720, '30 days', isSlider: true),
+              _buildExpiryChip(context, controller, 0, 'No Expiry', isSlider: true),
+              ActionChip(
+                label: const Text('Custom'),
+                avatar: const Icon(Icons.calendar_month_rounded, size: 14),
+                onPressed: () => _pickCustomDateTime(context, (dt) => controller.bannerExpiresAt.value = dt),
+                backgroundColor: Colors.white.withOpacity(0.05),
+              ),
+            ],
+          )),
+          if (controller.bannerExpiresAt.value != null) ...[
+            const SizedBox(height: 8),
+            Obx(() => Text(
+              'Expires on: ${DateFormat('dd MMM, hh:mm a').format(controller.bannerExpiresAt.value!)}',
+              style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+            )),
+          ],
           const SizedBox(height: 24),
           Obx(() => _buildActionButton(
             controller.isEditMode.value ? 'Update Banner' : 'Publish Banner',
@@ -698,6 +731,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   data['linkUrl'] ?? 'No Link',
                   () => controller.enterBannerEditMode(id, data),
                   () => controller.deleteBanner(id),
+                  data: data,
                 );
               },
             );
@@ -707,7 +741,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildCustomAdsTab() {
+  Widget _buildCustomAdsTab(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -719,12 +753,41 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           _buildTextField(controller.adImageController, 'Ad Image URL', Icons.image_rounded),
           const SizedBox(height: 16),
           _buildTextField(controller.adTargetController, 'Ad Target URL', Icons.link_rounded),
+          const SizedBox(height: 16),
+          const Text('Campaign Duration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+          const Text('Ad will automatically pause after this time.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+          const SizedBox(height: 12),
+          Obx(() => Wrap(
+            spacing: 8,
+            children: [
+              _buildExpiryChip(context, controller, 24, '24h', isAd: true),
+              _buildExpiryChip(context, controller, 48, '2 days', isAd: true),
+              _buildExpiryChip(context, controller, 168, '7 days', isAd: true),
+              _buildExpiryChip(context, controller, 0, 'No Expiry', isAd: true),
+              ActionChip(
+                label: const Text('Custom'),
+                avatar: const Icon(Icons.calendar_month_rounded, size: 14),
+                onPressed: () => _pickCustomDateTime(context, (dt) => controller.adExpiresAt.value = dt),
+                backgroundColor: Colors.white.withOpacity(0.05),
+              ),
+            ],
+          )),
+          if (controller.adExpiresAt.value != null) ...[
+            const SizedBox(height: 8),
+            Obx(() => Text(
+              'Expires on: ${DateFormat('dd MMM, hh:mm a').format(controller.adExpiresAt.value!)}',
+              style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+            )),
+          ],
           const SizedBox(height: 24),
           Obx(() => _buildActionButton(
-            'Publish Campaign Ad',
+            controller.isAdEditMode.value ? 'Update Campaign Ad' : 'Publish Campaign Ad',
             controller.addCustomAd,
             isLoading: controller.isAdSubmitting.value,
           )),
+          Obx(() => controller.isAdEditMode.value 
+            ? TextButton(onPressed: controller.cancelAdEdit, child: const Text('Cancel Edit', style: TextStyle(color: Colors.grey)))
+            : const SizedBox.shrink()),
         ]),
         const SizedBox(height: 40),
         const Text('Active Campaigns', style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -743,8 +806,9 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   data['imageUrl'],
                   data['title'] ?? 'No Title',
                   data['targetUrl'] ?? 'No Link',
-                  () => controller.toggleAdStatus(id, status),
+                  () => controller.enterAdEditMode(id, data),
                   () => controller.deleteCustomAd(id),
+                  data: data,
                   trailing: Switch(
                     value: status == 'active',
                     onChanged: (_) => controller.toggleAdStatus(id, status),
@@ -759,13 +823,78 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildStaticBannersTab() {
+  Widget _buildStaticBannersTab(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Static Banners', 'Manage the thin banners directly below the AppBar.'),
+        _buildSectionHeader('Static Banners', 'Manage the prominent banners directly below the AppBar.'),
         const SizedBox(height: 32),
-        const Center(child: Text('Coming Soon: Static Banner Management')),
+        _buildFormCard([
+          _buildTextField(controller.staticBannerTitleController, 'Banner Title', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.staticBannerImageController, 'Image URL', Icons.image_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.staticBannerTargetController, 'Target URL / Route', Icons.link_rounded),
+          const SizedBox(height: 16),
+          const Text('Display Duration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+          const Text('Static banner will auto-hide after this time.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+          const SizedBox(height: 12),
+          Obx(() => Wrap(
+            spacing: 8,
+            children: [
+              _buildExpiryChip(context, controller, 24, '24h', isStatic: true),
+              _buildExpiryChip(context, controller, 48, '2 days', isStatic: true),
+              _buildExpiryChip(context, controller, 168, '7 days', isStatic: true),
+              _buildExpiryChip(context, controller, 0, 'No Expiry', isStatic: true),
+              ActionChip(
+                label: const Text('Custom'),
+                avatar: const Icon(Icons.calendar_month_rounded, size: 14),
+                onPressed: () => _pickCustomDateTime(context, (dt) => controller.staticBannerExpiresAt.value = dt),
+                backgroundColor: Colors.white.withOpacity(0.05),
+              ),
+            ],
+          )),
+          if (controller.staticBannerExpiresAt.value != null) ...[
+            const SizedBox(height: 8),
+            Obx(() => Text(
+              'Expires on: ${DateFormat('dd MMM, hh:mm a').format(controller.staticBannerExpiresAt.value!)}',
+              style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+            )),
+          ],
+          const SizedBox(height: 24),
+          Obx(() => _buildActionButton(
+                controller.isStaticEditMode.value ? 'Update Static Banner' : 'Publish Static Banner',
+                controller.addStaticBanner,
+                isLoading: controller.isStaticBannerSubmitting.value,
+              )),
+          Obx(() => controller.isStaticEditMode.value 
+            ? TextButton(onPressed: controller.cancelStaticBannerEdit, child: const Text('Cancel Edit', style: TextStyle(color: Colors.grey)))
+            : const SizedBox.shrink()),
+        ]),
+        const SizedBox(height: 40),
+        const Text('Active Static Banners', style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 16),
+        Expanded(
+          child: Obx(() {
+            if (controller.staticBanners.isEmpty) return const Center(child: Text('No static banners found', style: TextStyle(color: Colors.white24)));
+            return ListView.separated(
+              itemCount: controller.staticBanners.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final data = controller.staticBanners[index];
+                final id = data['id'] ?? '';
+                return _buildItemCard(
+                  data['imageUrl'],
+                  data['title'] ?? 'No Title',
+                  data['linkUrl'] ?? 'No Link',
+                  () => controller.enterStaticBannerEditMode(id, data),
+                  () => controller.deleteStaticBanner(id),
+                  data: data,
+                );
+              },
+            );
+          }),
+        ),
       ],
     );
   }
@@ -806,6 +935,278 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         ]),
       ],
     );
+  }
+
+  Widget _buildUsersTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('User Management', 'Monitor user growth and manage permissions.'),
+        const SizedBox(height: 32),
+        Expanded(
+          child: Obx(() {
+            if (controller.usersList.isEmpty) return _buildEmptyState(Icons.people_outline, 'No users registered yet');
+            return ListView.separated(
+              itemCount: controller.usersList.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final user = controller.usersList[index];
+                final role = user['role'] ?? 'user';
+                return Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E2E),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    leading: CircleAvatar(
+                      backgroundColor: role == 'admin' ? const Color(0xFF1B5E35) : Colors.white10,
+                      child: Text((user['displayName'] ?? user['email'] ?? 'U')[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
+                    ),
+                    title: Text(user['displayName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(user['email'] ?? 'No Email', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12)),
+                    trailing: _buildStatusBadge(role.toUpperCase(), role == 'admin' ? Colors.green : Colors.blue),
+                  ),
+                );
+              },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMaintenanceTab(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('App Maintenance', 'Control app versioning and force update behavior.'),
+        const SizedBox(height: 32),
+        _buildFormCard([
+          const Text('Live Support Bot (n8n Integration)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Obx(() => Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Live Support Bot / Agent', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        Text(
+                          controller.liveSupportEnabled.value
+                              ? 'Users will chat with the n8n AI Agent when support is opened.'
+                              : 'Live Support is currently disabled. Users will see "Live Support is currently unavailable."',
+                          style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  controller.isLiveSupportLoading.value
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1B5E35)),
+                        )
+                      : Switch(
+                          value: controller.liveSupportEnabled.value,
+                          onChanged: (val) => controller.toggleLiveSupport(val),
+                          activeColor: const Color(0xFF1B5E35),
+                        ),
+                ],
+              )),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Version Control', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          _buildTextField(controller.versionController, 'Current Version (e.g. 1.2.0)', Icons.vibration_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.buildNumberController, 'Build Number (e.g. 12)', Icons.format_list_numbered_rounded),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Force Update', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Users will be blocked until they update the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.forceUpdateEnabled.value,
+                    onChanged: (val) => controller.forceUpdateEnabled.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Maintenance Mode', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Block all user access for server maintenance.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.maintenanceModeEnabled.value,
+                    onChanged: (val) => controller.maintenanceModeEnabled.value = val,
+                    activeColor: Colors.orangeAccent,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Obx(() {
+            if (!controller.maintenanceModeEnabled.value) return const SizedBox.shrink();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Maintenance Duration', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                const Text('App will automatically reopen after this time.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _buildDurationChip(15, '15m'),
+                    _buildDurationChip(30, '30m'),
+                    _buildDurationChip(60, '1h'),
+                    _buildDurationChip(120, '2h'),
+                    _buildDurationChip(360, '6h'),
+                    _buildDurationChip(0, 'Manual'),
+                    ActionChip(
+                      label: const Text('Set Custom'),
+                      avatar: const Icon(Icons.more_time_rounded, size: 14),
+                      onPressed: () => _pickCustomDateTime(context, (dt) => controller.maintenanceEndTime.value = dt),
+                      backgroundColor: Colors.orangeAccent.withOpacity(0.1),
+                    ),
+                  ],
+                ),
+                if (controller.maintenanceEndTime.value != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Will end at: ${DateFormat('hh:mm:ss a, dd MMM').format(controller.maintenanceEndTime.value!)}',
+                    style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ],
+                const SizedBox(height: 16),
+              ],
+            );
+          }),
+          const SizedBox(height: 24),
+          Obx(() => _buildActionButton(
+                'Save Update Config',
+                controller.saveUpdateConfig,
+                isLoading: controller.isUpdateConfigSaving.value,
+              )),
+        ]),
+      ],
+    );
+  }
+
+  Future<void> _pickCustomDateTime(BuildContext context, Function(DateTime) onPicked) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(minutes: 5)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) => Theme(
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Color(0xFF1B5E35),
+            onPrimary: Colors.white,
+            surface: Color(0xFF1E1E2E),
+            onSurface: Colors.white,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (pickedDate != null && context.mounted) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final DateTime finalDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        onPicked(finalDateTime);
+      }
+    }
+  }
+
+  Widget _buildExpiryChip(BuildContext context, AdminDashboardController controller, int hours, String label, {bool isSlider = false, bool isStatic = false, bool isAd = false}) {
+    DateTime? expiry;
+    if (isSlider) expiry = controller.bannerExpiresAt.value;
+    else if (isStatic) expiry = controller.staticBannerExpiresAt.value;
+    else if (isAd) expiry = controller.adExpiresAt.value;
+    
+    bool isSelected = false;
+    
+    if (hours == 0) {
+      isSelected = expiry == null;
+    } else if (expiry != null) {
+      final diff = expiry.difference(DateTime.now()).inHours;
+      isSelected = (diff - hours).abs() <= 1;
+    }
+
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          if (hours <= 0) {
+            if (isSlider) controller.bannerExpiresAt.value = null;
+            else if (isStatic) controller.staticBannerExpiresAt.value = null;
+            else if (isAd) controller.adExpiresAt.value = null;
+          } else {
+            final newExpiry = DateTime.now().add(Duration(hours: hours));
+            if (isSlider) controller.bannerExpiresAt.value = newExpiry;
+            else if (isStatic) controller.staticBannerExpiresAt.value = newExpiry;
+            else if (isAd) controller.adExpiresAt.value = newExpiry;
+          }
+        }
+      },
+      selectedColor: const Color(0xFF1B5E35).withOpacity(0.3),
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.white60, fontSize: 12),
+    );
+  }
+
+  Widget _buildDurationChip(int minutes, String label) {
+    return Obx(() {
+      bool isSelected = false;
+      if (minutes == 0) {
+        isSelected = controller.maintenanceEndTime.value == null;
+      } else if (controller.maintenanceEndTime.value != null) {
+        // Approximate check
+        final diff = controller.maintenanceEndTime.value!.difference(DateTime.now()).inMinutes;
+        isSelected = (diff - minutes).abs() < 2; 
+      }
+
+      return ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (selected) controller.setMaintenanceDuration(minutes);
+        },
+        selectedColor: Colors.orangeAccent.withOpacity(0.2),
+        labelStyle: TextStyle(color: isSelected ? Colors.orangeAccent : Colors.white60, fontSize: 12),
+      );
+    });
   }
 
   // --- Helper Widgets ---
@@ -870,7 +1271,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildItemCard(String? imageUrl, String title, String subtitle, VoidCallback onEdit, VoidCallback onDelete, {Widget? trailing}) {
+  Widget _buildItemCard(String? imageUrl, String title, String subtitle, VoidCallback onEdit, VoidCallback onDelete, {Widget? trailing, Map<String, dynamic>? data}) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E2E),
@@ -890,7 +1291,25 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           ),
         ) : const Icon(Icons.image_not_supported_rounded),
         title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-        subtitle: Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12)),
+            if (data != null && data['expiresAt'] != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined, color: Colors.orangeAccent, size: 10),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Expires: ${DateFormat('dd MMM, hh:mm a').format((data['expiresAt'] as Timestamp).toDate())}',
+                    style: const TextStyle(color: Colors.orangeAccent, fontSize: 10),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

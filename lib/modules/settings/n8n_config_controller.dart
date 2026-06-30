@@ -57,7 +57,7 @@ class N8nConfigController extends GetxController {
       isLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
       
-      final url = prefs.getString('n8n_url') ?? 'https://islansourav.app.n8n.cloud/webhook-test/chat';
+      final url = prefs.getString('n8n_url') ?? 'https://islansourav.app.n8n.cloud/webhook/chat';
       final apiKey = prefs.getString('n8n_api_key') ?? AppKeys.n8nApiKey;
       final toolName = prefs.getString('n8n_tool_name') ?? AppKeys.n8nToolName;
       final savedUseMcp = prefs.getBool('n8n_use_mcp');
@@ -169,8 +169,8 @@ class N8nConfigController extends GetxController {
         'url': url,
         'headers': {
           ...headers,
-          if (apiKey.isNotEmpty) 'Authorization': 'Bearer ****' + apiKey.substring(apiKey.length > 4 ? apiKey.length - 4 : 0),
-          if (apiKey.isNotEmpty) 'X-N8N-API-KEY': '****' + apiKey.substring(apiKey.length > 4 ? apiKey.length - 4 : 0),
+          if (apiKey.isNotEmpty) 'Authorization': 'Bearer ****${apiKey.substring(apiKey.length > 4 ? apiKey.length - 4 : 0)}',
+          if (apiKey.isNotEmpty) 'X-N8N-API-KEY': '****${apiKey.substring(apiKey.length > 4 ? apiKey.length - 4 : 0)}',
         },
         'body': requestData,
       });

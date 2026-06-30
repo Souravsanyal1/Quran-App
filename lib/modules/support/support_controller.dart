@@ -243,10 +243,98 @@ class SupportController extends GetxController {
       selectedImage.value = null;
       selectedImageBytes.value = null;
       _scrollToBottom();
+
+      // Trigger AI Auto-reply
+      if (text.isNotEmpty) {
+        _handleAiAutoReply(ticket.id, text);
+      }
     } catch (e) {
       _logger.e('Error sending message: $e');
     } finally {
       isSubmitting.value = false;
+    }
+  }
+
+  Future<void> sendDirectMessage(String text) async {
+    final ticket = activeTicket.value;
+    final user = _authController.user.value;
+    if (ticket == null || user == null) return;
+
+    if (ticket.status == TicketStatus.closed) {
+      Get.snackbar('Ticket Closed', 'This chat is closed and cannot receive new messages.');
+      return;
+    }
+
+    try {
+      isSubmitting.value = true;
+      final message = SupportMessage(
+        id: const Uuid().v4(),
+        ticketId: ticket.id,
+        senderId: user.uid,
+        senderType: 'user',
+        message: text,
+        imageUrl: null,
+        timestamp: DateTime.now(),
+        isRead: false,
+      );
+
+      await _repository.sendFirestoreMessage(ticket.id, message);
+      _scrollToBottom();
+
+      // Trigger AI Auto-reply
+      _handleAiAutoReply(ticket.id, text);
+    } catch (e) {
+      _logger.e('Error sending message: $e');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  void _handleAiAutoReply(String ticketId, String userMessage) async {
+    final msg = userMessage.toLowerCase();
+    String? aiResponse;
+
+    // 1. Try n8n Live Chat Webhook first
+    final user = _authController.user.value;
+    aiResponse = await _repository.sendToN8n(
+      userMessage, 
+      user?.uid ?? 'anonymous', 
+      userName: user?.displayName
+    );
+
+    // 2. Fallback to local logic if n8n fails or returns empty
+    if (aiResponse == null || aiResponse.isEmpty) {
+      if (msg.contains('hello') || msg.contains('hi') || msg.contains('hey')) {
+        aiResponse = 'আসসালামু আলাইকুম! আমি আপনার এআই (AI) অ্যাসিস্ট্যান্ট। আপনাকে কিভাবে সাহায্য করতে পারি?';
+      } else if (msg.contains('help') || msg.contains('সাহায্য')) {
+        aiResponse = 'অবশ্যই! আপনি কুরআন পড়া, নামাজের সময় দেখা বা কিবলা কম্পাস ব্যবহারের বিষয়ে সাহায্য চাইলে আমাকে বলতে পারেন।';
+      } else if (msg.contains('prayer') || msg.contains('নামাজ')) {
+        aiResponse = 'নামাজের সময়সূচী দেখতে হোম স্ক্রিন থেকে "নামাজ" বাটনে ক্লিক করুন। আপনার লোকেশন অনুযায়ী সময় দেখানো হবে।';
+      } else if (msg.contains('quran') || msg.contains('কুরআন')) {
+        aiResponse = 'আপনি অ্যাপের মূল পাতা থেকে "কুরআন" সেকশনে গিয়ে সব সূরা এবং পারা পড়তে পারবেন।';
+      } else if (msg.contains('developer') || msg.contains('admin')) {
+        aiResponse = 'আমাদের অ্যাডমিন শীঘ্রই আপনার সাথে যোগাযোগ করবেন। অনুগ্রহ করে আপনার সমস্যাটি বিস্তারিত লিখে রাখুন।';
+      }
+    }
+
+    if (aiResponse != null && aiResponse.isNotEmpty) {
+      // Simulate typing
+      _repository.updateTypingStatus(ticketId, true, isAdmin: true);
+      await Future.delayed(const Duration(seconds: 2));
+      
+      final aiMsg = SupportMessage(
+        id: const Uuid().v4(),
+        ticketId: ticketId,
+        senderId: 'ai_assistant',
+        senderType: 'admin',
+        message: aiResponse,
+        timestamp: DateTime.now(),
+        isRead: false,
+      );
+
+      await _repository.sendFirestoreMessage(ticketId, aiMsg);
+      _repository.updateTypingStatus(ticketId, false, isAdmin: true);
+      _scrollToBottom();
     }
   }
 
@@ -336,6 +424,39 @@ class SupportController extends GetxController {
     } else {
       Get.snackbar('Support', 'Could not open Facebook.', snackPosition: SnackPosition.BOTTOM);
     }
+  }
+
+  Future<void> closeActiveTicket() async {
+    final ticket = activeTicket.value;
+    if (ticket == null) return;
+
+    try {
+      isSubmitting.value = true;
+      await _repository.updateStatus(ticket.id, TicketStatus.closed);
+      
+      // Send a system message that the chat is closed
+      await _repository.sendFirestoreMessage(ticket.id, SupportMessage(
+        id: const Uuid().v4(),
+        ticketId: ticket.id,
+        senderId: 'system',
+        senderType: 'admin',
+        message: 'এই চ্যাটটি বন্ধ করা হয়েছে। আপনার অন্য কোনো প্রশ্ন থাকলে নতুন চ্যাট শুরু করতে পারেন।',
+        timestamp: DateTime.now(),
+      ));
+      
+      Get.snackbar('Success', 'Chat closed successfully.');
+    } catch (e) {
+      _logger.e('Error closing ticket: $e');
+      Get.snackbar('Error', 'Failed to close chat.');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  Future<void> startNewChat() async {
+    activeTicket.value = null;
+    currentMessages.clear();
+    await startInstantChat();
   }
 
   @override

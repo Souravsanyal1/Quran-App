@@ -320,11 +320,12 @@ class PrayerTimeView extends StatelessWidget {
   Widget _buildNextPrayerCard(
       BuildContext context, bool bn, PrayerTimeController controller) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Container(
+        height: 240, // Slightly reduced to be more compact
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(32),
           gradient: const LinearGradient(
             colors: [
               Color(0xFF072413),
@@ -335,127 +336,160 @@ class PrayerTimeView extends StatelessWidget {
             end: Alignment.bottomRight,
           ),
           border: Border.all(
-            color: AppColors.gold.withOpacity(0.18),
-            width: 1.2,
+            color: AppColors.gold.withOpacity(0.25),
+            width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.darkGreen.withOpacity(0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: const Color(0xFF072413).withOpacity(0.4),
+              blurRadius: 25,
+              offset: const Offset(0, 15),
             ),
           ],
         ),
         child: Stack(
           children: [
-            // Faint mosque overlay inside card
+            // Horizon Mosque Watermark (Bottom Anchored)
             Positioned(
-              right: 10,
               bottom: 0,
-              width: 170,
-              height: 110,
+              left: 0,
+              right: 0,
               child: Opacity(
-                opacity: 0.12,
-                child: CustomPaint(
-                  painter: _MosqueSilhouettePainter(color: Colors.white),
+                opacity: 0.18,
+                child: Image.asset(
+                  'assets/images/mosque_silhouette.png',
+                  color: Colors.white,
+                  fit: BoxFit.fitWidth,
+                  height: 100,
+                  alignment: Alignment.bottomCenter,
                 ),
               ),
             ),
+            
+            // Content Overlay
             Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Left info
+                  // Left: Countdown & Labels
                   Expanded(
+                    flex: 6,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // NEXT PRAYER tag
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: AppColors.gold.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.gold.withOpacity(0.2)),
                           ),
                           child: Text(
-                            bn ? 'পরবর্তী নামাজ' : 'NEXT PRAYER',
+                            bn ? 'পরবর্তী নামাজ' : 'UPCOMING PRAYER',
                             style: GoogleFonts.poppins(
                               color: AppColors.gold,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
                             ),
                           ),
                         ),
                         const SizedBox(height: 10),
-                        // Prayer name
                         Obx(() => Text(
-                              _translatePrayer(
-                                  controller.nextPrayerName.value, bn),
-                              style: GoogleFonts.playfairDisplay(
-                                color: Colors.white,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                        const SizedBox(height: 4),
-                        // Countdown
-                        Obx(() => Text(
-                              controller.periodTimeRemaining.value,
-                              style: GoogleFonts.poppins(
-                                color: AppColors.gold,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.5,
-                              ),
-                            )),
-                        const SizedBox(height: 8),
-                        // Time • Date
-                        Obx(() {
-                          final t = controller.prayerTimes[
-                                  controller.nextPrayerName.value] ??
-                              '';
-                          final formattedDate = DateFormat('dd MMM yyyy', bn ? 'bn' : 'en').format(controller.selectedDate.value);
-                          return Text(
-                            '$t  •  $formattedDate',
+                          _translatePrayer(controller.nextPrayerName.value, bn),
+                          style: GoogleFonts.playfairDisplay(
+                            color: Colors.white,
+                            fontSize: 30, // Reduced from 32
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        )),
+                        const SizedBox(height: 2),
+                        Obx(() => FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            controller.periodTimeRemaining.value,
                             style: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              color: AppColors.gold,
+                              fontSize: 34, // Reduced from 36
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
                             ),
+                          ),
+                        )),
+                        const SizedBox(height: 12),
+                        // Small Time & Date Pill
+                        Obx(() {
+                          final t = controller.prayerTimes[controller.nextPrayerName.value] ?? '';
+                          final formattedDate = DateFormat('dd MMM yyyy', bn ? 'bn' : 'en').format(controller.selectedDate.value);
+                          return Row(
+                            children: [
+                              Icon(Icons.access_time_rounded, color: Colors.white.withOpacity(0.6), size: 14),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '$t  •  $formattedDate',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white.withOpacity(0.85),
+                                    fontSize: 11, // Reduced from 12
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           );
                         }),
-                        const SizedBox(height: 3),
-                        Obx(() => Text(
-                              controller.hijriDateStr.value,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white.withOpacity(0.52),
-                                fontSize: 11.5,
-                              ),
-                            )),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // Sun arc
-                  Obx(() {
-                    final prog = controller.periodProgress.value;
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0.0, end: prog),
-                      duration: const Duration(milliseconds: 1400),
-                      curve: Curves.easeOutBack,
-                      builder: (_, val, __) => CustomPaint(
-                        size: const Size(130, 110),
-                        painter: SunArcPainter(
-                          progress: val,
-                          pathColor: Colors.white.withOpacity(0.3),
-                          sunColor: AppColors.gold,
-                        ),
-                      ),
-                    );
-                  }),
+
+                  // Right: Sun/Moon Animation & Hijri
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Obx(() {
+                          final prog = controller.dayNightProgress.value;
+                          final isDay = controller.isDayTime.value;
+
+                          return TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.0, end: prog),
+                            duration: const Duration(milliseconds: 1600),
+                            curve: Curves.easeInOutCubic,
+                            builder: (_, val, __) => CustomPaint(
+                              size: const Size(110, 90), // Reduced from 130, 110
+                              painter: SunArcPainter(
+                                progress: val,
+                                pathColor: Colors.white.withOpacity(0.2),
+                                sunColor: !isDay ? Colors.white : AppColors.gold,
+                                isNight: !isDay,
+                              ),
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 12),
+                        Obx(() => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            controller.hijriDateStr.value,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.7),
+                              fontSize: 9, // Reduced from 10
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -495,14 +529,19 @@ class PrayerTimeView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  bn ? 'আজকের নামাজের সময়' : "Today's Prayer Times",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: isDark ? Colors.white : AppColors.darkGreen,
+                Expanded(
+                  child: Text(
+                    bn ? 'আজকের নামাজের সময়' : "Today's Prayer Times",
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isDark ? Colors.white : AppColors.darkGreen,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 8),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -511,17 +550,26 @@ class PrayerTimeView extends StatelessWidget {
                       firstDate:
                           DateTime.now().subtract(const Duration(days: 365)),
                       lastDate: DateTime.now().add(const Duration(days: 365)),
-                      builder: (ctx, child) => Theme(
-                        data: Theme.of(ctx).copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: AppColors.primaryGreen,
-                            onPrimary: Colors.white,
-                            onSurface:
-                                isDark ? Colors.white : AppColors.darkGreen,
-                          ),
-                          dialogBackgroundColor:
-                              isDark ? AppColors.surfaceDark : Colors.white,
-                        ),
+                    builder: (ctx, child) => Theme(
+                        data: isDark
+                            ? ThemeData.dark().copyWith(
+                                colorScheme: ColorScheme.dark(
+                                  primary: AppColors.gold,
+                                  onPrimary: AppColors.darkGreen,
+                                  surface: AppColors.surfaceDark,
+                                  onSurface: Colors.white,
+                                ),
+                                dialogBackgroundColor: AppColors.surfaceDark,
+                              )
+                            : ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColors.primaryGreen,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.darkGreen,
+                                ),
+                                dialogBackgroundColor: Colors.white,
+                              ),
                         child: child!,
                       ),
                     );
@@ -1091,11 +1139,13 @@ class SunArcPainter extends CustomPainter {
   final double progress;
   final Color pathColor;
   final Color sunColor;
+  final bool isNight;
 
   const SunArcPainter({
     required this.progress,
     required this.pathColor,
     required this.sunColor,
+    this.isNight = false,
   });
 
   Offset _bez(Offset p0, Offset p1, Offset p2, double t) {
@@ -1110,89 +1160,95 @@ class SunArcPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final p0 = Offset(16, h - 8);
-    final p1 = Offset(w / 2, 8);
-    final p2 = Offset(w - 16, h - 8);
+    final p0 = Offset(16, h - 16);
+    final p1 = Offset(w / 2, 16);
+    final p2 = Offset(w - 16, h - 16);
 
-    // Domed silhouette background
-    final domePaint = Paint()
-      ..color = pathColor.withOpacity(0.12)
-      ..style = PaintingStyle.fill;
-    final dome = Path()
-      ..moveTo(16, h)
-      ..lineTo(16, h - 16)
-      ..quadraticBezierTo(w * 0.22, h - 26, w * 0.34, h - 14)
-      ..cubicTo(w * 0.41, h - 40, w * 0.59, h - 40, w * 0.66, h - 14)
-      ..quadraticBezierTo(w * 0.78, h - 26, w - 16, h - 16)
-      ..lineTo(w - 16, h)
-      ..close();
-    canvas.drawPath(dome, domePaint);
-
-    // Dashed arc
+    // Cleaner dashed arc path
     final dashPaint = Paint()
-      ..color = pathColor.withOpacity(0.3)
+      ..color = pathColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round;
-    for (int i = 0; i < 40; i++) {
-      if (i % 2 == 0) {
+      
+    final Path path = Path();
+    path.moveTo(p0.dx, p0.dy);
+    path.quadraticBezierTo(p1.dx, p1.dy, p2.dx, p2.dy);
+    
+    // Draw dashed effect manually for better control
+    for (double i = 0; i < 1.0; i += 0.05) {
+      final start = _bez(p0, p1, p2, i);
+      final end = _bez(p0, p1, p2, i + 0.025);
+      canvas.drawLine(start, end, dashPaint);
+    }
+
+    // Node dots for prayer sequence (Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha)
+    final nodeFill = Paint()
+      ..color = pathColor.withOpacity(0.4)
+      ..style = PaintingStyle.fill;
+    
+    for (final t in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]) {
+      final p = _bez(p0, p1, p2, t);
+      canvas.drawCircle(p, 2.5, nodeFill);
+    }
+
+    // Baseline
+    canvas.drawLine(
+      Offset(10, h - 16),
+      Offset(w - 10, h - 16),
+      Paint()
+        ..color = pathColor.withOpacity(0.2)
+        ..strokeWidth = 1.0,
+    );
+
+    // Current Position (Sun or Moon)
+    final pos = _bez(p0, p1, p2, progress);
+    
+    if (isNight) {
+      // Realistic Crescent Moon
+      canvas.drawCircle(
+        pos,
+        10,
+        Paint()
+          ..color = Colors.white.withOpacity(0.12)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      
+      final moonPaint = Paint()..color = Colors.white.withOpacity(0.95);
+      
+      // Draw moon as a path (crescent shape)
+      final moonPath = Path.combine(
+        PathOperation.difference,
+        Path()..addOval(Rect.fromCircle(center: pos, radius: 7)),
+        Path()..addOval(Rect.fromCircle(center: pos + const Offset(-3, -2), radius: 7)),
+      );
+      canvas.drawPath(moonPath, moonPaint);
+    } else {
+      // Sun
+      // Glow
+      canvas.drawCircle(
+        pos,
+        14,
+        Paint()
+          ..color = sunColor.withOpacity(0.2)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+      // Core
+      canvas.drawCircle(pos, 6, Paint()..color = sunColor);
+      // Rays
+      final rayPaint = Paint()
+        ..color = sunColor.withOpacity(0.8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2
+        ..strokeCap = StrokeCap.round;
+      for (int i = 0; i < 8; i++) {
+        final angle = i * 2 * math.pi / 8;
         canvas.drawLine(
-          _bez(p0, p1, p2, i / 40),
-          _bez(p0, p1, p2, (i + 1) / 40),
-          dashPaint,
+          pos + Offset(math.cos(angle) * 8, math.sin(angle) * 8),
+          pos + Offset(math.cos(angle) * 12, math.sin(angle) * 12),
+          rayPaint,
         );
       }
-    }
-
-    // Node dots (5 prayer stops)
-    final nodeFill = Paint()
-      ..color = pathColor.withOpacity(0.55)
-      ..style = PaintingStyle.fill;
-    final nodeBorder = Paint()
-      ..color = pathColor.withOpacity(0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    for (final t in [0.0, 0.25, 0.5, 0.75, 1.0]) {
-      final p = _bez(p0, p1, p2, t);
-      canvas.drawCircle(p, 3.5, nodeFill);
-      canvas.drawCircle(p, 4.5, nodeBorder);
-    }
-
-    // Horizontal baseline
-    canvas.drawLine(
-      Offset(16, h - 8),
-      Offset(w - 16, h - 8),
-      Paint()
-        ..color = pathColor.withOpacity(0.35)
-        ..strokeWidth = 1.2
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Sun
-    final sunPos = _bez(p0, p1, p2, progress);
-    // Glow
-    canvas.drawCircle(
-      sunPos,
-      14,
-      Paint()
-        ..color = sunColor.withOpacity(0.22)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
-    );
-    // Core
-    canvas.drawCircle(sunPos, 5.5, Paint()..color = sunColor);
-    // Rays
-    final rayPaint = Paint()
-      ..color = sunColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-    for (int i = 0; i < 8; i++) {
-      final angle = i * 2 * math.pi / 8;
-      canvas.drawLine(
-        sunPos + Offset(math.cos(angle) * 7.5, math.sin(angle) * 7.5),
-        sunPos + Offset(math.cos(angle) * 12, math.sin(angle) * 12),
-        rayPaint,
-      );
     }
   }
 
@@ -1200,7 +1256,8 @@ class SunArcPainter extends CustomPainter {
   bool shouldRepaint(SunArcPainter old) =>
       old.progress != progress ||
       old.pathColor != pathColor ||
-      old.sunColor != sunColor;
+      old.sunColor != sunColor ||
+      old.isNight != isNight;
 }
 
 // ─── Mosque Silhouette Painter ────────────────────────────────────────────────

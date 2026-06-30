@@ -24,7 +24,9 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
     bannerAd = BannerAd(
       size: AdSize.banner,
-      adUnitId: 'ca-app-pub-9486838639385521/8686193277',
+      adUnitId: kDebugMode
+          ? 'ca-app-pub-3940256099942544/6300978111' // Google Test Ad Unit ID
+          : 'ca-app-pub-9486838639385521/8686193277',
       listener: BannerAdListener(
         onAdLoaded: (ad) {
           if (!mounted) {

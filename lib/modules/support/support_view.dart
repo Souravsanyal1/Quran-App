@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -81,6 +80,64 @@ class SupportChatView extends GetView<SupportController> {
             ],
           );
         }),
+        actions: [
+          Obx(() {
+            final ticket = controller.activeTicket.value;
+            final isClosed = ticket?.status == TicketStatus.closed;
+
+            return PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+              color: isDark ? _ChatTheme.darkCard : Colors.white,
+              onSelected: (val) {
+                if (val == 'close') {
+                  Get.dialog(
+                    AlertDialog(
+                      backgroundColor: isDark ? _ChatTheme.darkCard : Colors.white,
+                      title: Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                      content: Text(isBn ? 'আপনি কি নিশ্চিত যে আপনি এই চ্যাটটি বন্ধ করতে চান?' : 'Are you sure you want to close this chat?', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
+                      actions: [
+                        TextButton(onPressed: () => Get.back(), child: Text(isBn ? 'না' : 'No')),
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.closeActiveTicket();
+                            Get.back();
+                          },
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                          child: Text(isBn ? 'হ্যাঁ, বন্ধ করুন' : 'Yes, Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (val == 'new') {
+                  controller.startNewChat();
+                }
+              },
+              itemBuilder: (ctx) => [
+                if (!isClosed)
+                  PopupMenuItem(
+                    value: 'close',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.close_rounded, color: AppColors.error, size: 20),
+                        const SizedBox(width: 12),
+                        Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat', style: const TextStyle(color: AppColors.error)),
+                      ],
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'new',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_circle_outline_rounded, color: _ChatTheme.emerald, size: 20),
+                      const SizedBox(width: 12),
+                      Text(isBn ? 'নতুন চ্যাট শুরু করুন' : 'Start New Chat'),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }),
+        ],
       ),
       body: Column(
         children: [
@@ -179,34 +236,84 @@ class SupportChatView extends GetView<SupportController> {
 
   Widget _buildEmptyState(bool isBn, bool isDark) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _ChatTheme.emerald.withOpacity(0.08),
-              shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: _ChatTheme.emerald.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.chat_bubble_outline_rounded, size: 48, color: _ChatTheme.emerald),
             ),
-            child: const Icon(Icons.chat_bubble_outline_rounded, size: 48, color: _ChatTheme.emerald),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isBn ? 'কথোপকথন শুরু করুন' : 'No messages yet',
-            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppColors.textDark),
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Text(
-              isBn 
-                ? 'আপনার বার্তাটি লিখুন। আমাদের সাপোর্ট প্রতিনিধি শীঘ্রই উত্তর দেবেন।' 
-                : 'Send your query. A support agent will respond to you shortly.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.textGrey, height: 1.4),
+            const SizedBox(height: 16),
+            Text(
+              isBn ? 'কথোপকথন শুরু করুন' : 'No messages yet',
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppColors.textDark),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                isBn 
+                  ? 'আপনার বার্তাটি লিখুন। আমাদের সাপোর্ট প্রতিনিধি শীঘ্রই উত্তর দেবেন।' 
+                  : 'Send your query. A support agent will respond to you shortly.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: AppColors.textGrey, height: 1.4),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              isBn ? 'সরাসরি প্রশ্ন করুন:' : 'Ask a quick question:',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isDark ? _ChatTheme.goldLight : _ChatTheme.emerald,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: (isBn 
+                  ? [
+                      'আসসালামু আলাইকুম',
+                      'নামাজের সময়',
+                      'সূরা বুকমার্ক করার নিয়ম',
+                      'অডিও ডাউনলোড কিভাবে করব?',
+                    ]
+                  : [
+                      'Assalamu Alaikum',
+                      'Prayer times today',
+                      'How to bookmark a Surah?',
+                      'How to download audio?',
+                    ]).map((text) {
+                  return ActionChip(
+                    label: Text(
+                      text,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    backgroundColor: isDark ? _ChatTheme.darkCard : Colors.white,
+                    side: BorderSide(
+                      color: isDark ? Colors.white10 : Colors.grey.shade300,
+                    ),
+                    onPressed: () => controller.sendDirectMessage(text),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

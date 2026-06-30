@@ -36,9 +36,20 @@ class BannerController extends GetxController {
     // Simplified listener to avoid index requirements
     _firestore.collection('custom_ads')
         .snapshots().listen((snapshot) {
+      final now = DateTime.now();
       final List<Map<String, dynamic>> ads = snapshot.docs
           .map((doc) => {'id': doc.id, ...doc.data()})
-          .where((ad) => ad['status'] == 'active')
+          .where((ad) {
+            final bool isActive = ad['status'] == 'active';
+            DateTime? expiry;
+            if (ad['expiresAt'] != null) {
+              if (ad['expiresAt'] is Timestamp) {
+                expiry = (ad['expiresAt'] as Timestamp).toDate();
+              }
+            }
+            final bool notExpired = expiry == null || expiry.isAfter(now);
+            return isActive && notExpired;
+          })
           .toList();
           
       // Manual sorting by createdAt if needed
@@ -74,19 +85,15 @@ class BannerController extends GetxController {
     _firestore.collection('banners').snapshots().listen((snapshot) {
       debugPrint('[BannerController] Banners update received. Total docs: ${snapshot.docs.length}');
       
+      final now = DateTime.now();
       final List<BannerModel> fetchedBanners = snapshot.docs.map((doc) {
-        final data = doc.data();
-        // Ensure linkUrl exists even if it was saved as targetUrl
-        final String image = data['imageUrl'] ?? '';
-        final String link = data['linkUrl'] ?? data['targetUrl'] ?? '';
-        
-        return BannerModel(
-          id: doc.id,
-          imageUrl: image,
-          linkUrl: link,
-          isActive: true,
-        );
-      }).where((b) => b.imageUrl.isNotEmpty).toList();
+        return BannerModel.fromFirestore(doc.data(), doc.id);
+      }).where((b) {
+        // Filter: Must have image AND (Not expired OR No expiry set)
+        final bool hasImage = b.imageUrl.isNotEmpty;
+        final bool notExpired = b.expiresAt == null || b.expiresAt!.isAfter(now);
+        return hasImage && notExpired;
+      }).toList();
 
       banners.assignAll(fetchedBanners);
       isLoading.value = false;
@@ -96,6 +103,7 @@ class BannerController extends GetxController {
         'id': e.id,
         'imageUrl': e.imageUrl,
         'linkUrl': e.linkUrl,
+        'expiresAt': e.expiresAt?.toIso8601String(),
       }).toList();
       _storage.write('banners', cacheList);
     }, onError: (e) => debugPrint('[BannerController] Error: $e'));
@@ -103,15 +111,14 @@ class BannerController extends GetxController {
 
   void _initStaticBannerStream() {
     _firestore.collection('static_top_banners').snapshots().listen((snapshot) {
+      final now = DateTime.now();
       staticTopBanners.assignAll(snapshot.docs.map((doc) {
-        final data = doc.data();
-        return BannerModel(
-          id: doc.id,
-          imageUrl: data['imageUrl'] ?? '',
-          linkUrl: data['linkUrl'] ?? data['targetUrl'] ?? '',
-          isActive: true,
-        );
-      }).where((b) => b.imageUrl.isNotEmpty).toList());
+        return BannerModel.fromFirestore(doc.data(), doc.id);
+      }).where((b) {
+        final bool hasImage = b.imageUrl.isNotEmpty;
+        final bool notExpired = b.expiresAt == null || b.expiresAt!.isAfter(now);
+        return hasImage && notExpired;
+      }).toList());
     });
   }
 

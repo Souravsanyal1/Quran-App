@@ -341,7 +341,7 @@ class N8nConfigView extends GetView<N8nConfigController> {
                             Theme(
                               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                               child: ExpansionTile(
-                                contentPadding: EdgeInsets.zero,
+                                tilePadding: EdgeInsets.zero,
                                 leading: const Icon(Icons.terminal_rounded, color: _N8nTheme.gold, size: 20),
                                 title: Text(
                                   bn ? 'র-পেলোড ও ডাটা ডিটেইলস' : 'Raw Payload & Log Details',
@@ -356,7 +356,7 @@ class N8nConfigView extends GetView<N8nConfigController> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: Colors.white10),
                                     ),
-                                    maxHeight: 250,
+                                    constraints: const BoxConstraints(maxHeight: 250),
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.vertical,
                                       child: SingleChildScrollView(

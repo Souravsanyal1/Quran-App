@@ -7,6 +7,8 @@ class SupportApiProvider {
   final Dio _dio;
   final Logger _logger = Logger();
 
+  Dio get dio => _dio;
+
   SupportApiProvider() : _dio = Dio(BaseOptions(
     baseUrl: AppUrls.backendBaseUrl,
     connectTimeout: const Duration(seconds: 15),

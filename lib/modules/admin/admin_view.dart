@@ -128,7 +128,7 @@ class AdminView extends StatelessWidget {
             const SizedBox(height: 36),
 
             // Static Top Banner Section
-            _buildSectionTitle('Add Static Top Banner (728x90)'),
+            _buildSectionTitle('Add Static Top Banner (Header)'),
             const SizedBox(height: 16),
             _buildTextField(staticTitleController, 'Title', isDark),
             const SizedBox(height: 12),
