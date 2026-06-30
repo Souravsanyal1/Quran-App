@@ -111,7 +111,7 @@ class NotificationsController extends GetxController {
 
     try {
       isLoading.value = true;
-      final results = await _repository.getNotifications(user.uid);
+      final results = await _repository.getNotifications(user.uid, user.metadata.creationTime);
       allNotifications.assignAll(results);
       _applyFilters();
       _updateUnreadCount();

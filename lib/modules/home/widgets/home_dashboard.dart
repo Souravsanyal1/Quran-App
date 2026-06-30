@@ -143,15 +143,15 @@ class HomeDashboard extends StatelessWidget {
                   gradient: const [Color(0xFF2E7D32), Color(0xFF4CAF50)],
                   route: AppRoutes.tracker,
                 ),
-                _QuickActionCard(
-                  icon: Icons.menu_book_outlined,
-                  label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
-                  gradient: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
-                  route: AppRoutes.salahGuide,
-                ),
+                // _QuickActionCard(
+                //   icon: Icons.menu_book_outlined,
+                //   label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
+                //   gradient: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+                //   route: AppRoutes.salahGuide,
+                // ),
                 _QuickActionCard(
                   icon: Icons.menu_book_rounded,
-                  label: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide 2',
+                  label: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide',
                   gradient: const [Color(0xFF00796B), Color(0xFF009688)],
                   route: AppRoutes.salahGuide2,
                 ),

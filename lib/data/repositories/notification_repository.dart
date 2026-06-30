@@ -6,8 +6,8 @@ class NotificationRepository {
 
   NotificationRepository(this._apiProvider);
 
-  Future<List<AppNotification>> getNotifications(String userId) {
-    return _apiProvider.getNotifications(userId);
+  Future<List<AppNotification>> getNotifications(String userId, [DateTime? creationTime]) {
+    return _apiProvider.getNotifications(userId, creationTime: creationTime);
   }
 
   Future<void> markAsRead(String userId, String notificationId) {

@@ -10,7 +10,7 @@ class NotificationApiProvider {
   NotificationApiProvider();
 
   /// Fetches notifications for a specific user.
-  Future<List<app_notification_model.AppNotification>> getNotifications(String userId) async {
+  Future<List<app_notification_model.AppNotification>> getNotifications(String userId, {DateTime? creationTime}) async {
     try {
       // 1. Get personal notifications
       final personalQuery = await _firestore.collection('users')
@@ -23,8 +23,14 @@ class NotificationApiProvider {
       final personal = personalQuery.docs.map((doc) => 
         app_notification_model.AppNotification.fromJson({...doc.data(), 'id': doc.id})).toList();
 
-      // 2. Get broadcast notifications
-      final broadcastQuery = await _firestore.collection('broadcast_notifications')
+      // 2. Get broadcast notifications (Filter by creation time so new users don't see old ones)
+      Query broadcastBase = _firestore.collection('broadcast_notifications');
+      
+      if (creationTime != null) {
+        broadcastBase = broadcastBase.where('sentAt', isGreaterThan: Timestamp.fromDate(creationTime));
+      }
+
+      final broadcastQuery = await broadcastBase
           .orderBy('sentAt', descending: true)
           .limit(50)
           .get();

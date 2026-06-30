@@ -93,7 +93,7 @@ class _GenderSelectionScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              isBn ? 'নামাজ শিক্ষা — পর্ব ২' : 'Namaz Guide — Part 2',
+              isBn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
               style: GoogleFonts.poppins(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
@@ -183,37 +183,38 @@ class _GenderSelectionScreen extends StatelessWidget {
               const Spacer(),
 
               // Bottom note
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: _Theme.gold.withValues(alpha: isDark ? 0.08 : 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _Theme.gold.withValues(alpha: isDark ? 0.15 : 0.12),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded,
-                        size: 16, color: _Theme.gold.withValues(alpha: 0.7)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        isBn
-                            ? 'এই গাইডটি হানাফি মাযহাব অনুসারে তৈরি'
-                            : 'This guide is based on the Hanafi school of thought',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.5,
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.5)
-                              : AppColors.textDark.withValues(alpha: 0.5),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate(delay: 350.ms).fadeIn(),
+              // Container(
+              //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              //   decoration: BoxDecoration(
+              //     color: _Theme.gold.withValues(alpha: isDark ? 0.08 : 0.06),
+              //     borderRadius: BorderRadius.circular(12),
+              //     border: Border.all(
+              //       color: _Theme.gold.withValues(alpha: isDark ? 0.15 : 0.12),
+              //     ),
+              //   ),
+                // child: Row(
+                //   children: [
+                //     Icon(Icons.info_outline_rounded,
+                //         size: 16, color: _Theme.gold.withValues(alpha: 0.7)),
+                //     const SizedBox(width: 8),
+                //     // Expanded(
+                //     //   child: Text(
+                //     //     isBn
+                //     //         ? 'এই গাইডটি হানাফি মাযহাব অনুসারে তৈরি'
+                //     //         : 'This guide is based on the Hanafi school of thought',
+                //     //     style: GoogleFonts.poppins(
+                //     //       fontSize: 11.5,
+                //     //       color: isDark
+                //     //           ? Colors.white.withValues(alpha: 0.5)
+                //     //           : AppColors.textDark.withValues(alpha: 0.5),
+                //     //       height: 1.4,
+                //     //     ),
+                //     //   ),
+                //     // ),
+                //   ],
+                // ),
+              // // ).animate(delay: 350.ms).fadeIn(),
+              // ),
               const SizedBox(height: 8),
             ],
           ),
