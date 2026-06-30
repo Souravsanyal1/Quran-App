@@ -46,6 +46,12 @@ class QuranApiProvider {
     return await _dio.get(url);
   }
 
+  /// Fetch a Para (Juz) English transliteration
+  Future<Response> fetchParaTranslit(int number) async {
+    final url = AppUrls.quranParaTranslit.replaceFirst('{number}', number.toString());
+    return await _dio.get(url);
+  }
+
   /// Get audio URL for a Surah by Qari ID
   String getSurahAudioUrl(int surahNumber, {String qariId = AppUrls.defaultQariId}) {
     final paddedNumber = surahNumber.toString().padLeft(3, '0');

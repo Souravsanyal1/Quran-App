@@ -58,20 +58,55 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           )),
           actions: [
-            Obx(() => Row(
-              children: [
-                Text(
-                  settings.isBangla ? 'অটো-প্লে' : 'Auto Play',
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w600),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.settings_outlined, color: Colors.white),
+              onSelected: (value) {
+                if (value == 'translation') controller.showTranslation.toggle();
+                if (value == 'pronunciation') controller.showPronunciation.toggle();
+                if (value == 'autoplay') controller.setAutoPlay(!controller.autoPlayNext.value);
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'autoplay',
+                  child: Obx(() => Row(
+                    children: [
+                      Icon(
+                        controller.autoPlayNext.value ? Icons.check_box : Icons.check_box_outline_blank,
+                        color: _ParaTheme.emerald,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(settings.isBangla ? 'অটো-প্লে' : 'Auto Play'),
+                    ],
+                  )),
                 ),
-                Switch(
-                  value: controller.autoPlayNext.value,
-                  onChanged: (val) => controller.setAutoPlay(val),
-                  activeThumbColor: _ParaTheme.gold,
-                  activeTrackColor: _ParaTheme.emeraldLight,
+                PopupMenuItem(
+                  value: 'translation',
+                  child: Obx(() => Row(
+                    children: [
+                      Icon(
+                        controller.showTranslation.value ? Icons.check_box : Icons.check_box_outline_blank,
+                        color: _ParaTheme.emerald,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(settings.isBangla ? 'অর্থ দেখান' : 'Show Translation'),
+                    ],
+                  )),
+                ),
+                PopupMenuItem(
+                  value: 'pronunciation',
+                  child: Obx(() => Row(
+                    children: [
+                      Icon(
+                        controller.showPronunciation.value ? Icons.check_box : Icons.check_box_outline_blank,
+                        color: _ParaTheme.emerald,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(settings.isBangla ? 'উচ্চারণ দেখান' : 'Show Pronunciation'),
+                    ],
+                  )),
                 ),
               ],
-            )),
+            ),
           ],
         ),
         body: Obx(() {
@@ -188,14 +223,47 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Text(
-                              ayah.textBangla ?? '', 
-                              style: TextStyle(
-                                fontSize: settings.translationFontSize.value, 
-                                color: isDark ? AppColors.textGrey : AppColors.textDark, 
-                                height: 1.5,
+                            // Bengali Transliteration (Pronunciation)
+                            if (ayah.textBanglaTranslit != null && controller.showPronunciation.value)
+                              Container(
+                                margin: const EdgeInsets.only(top: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _ParaTheme.emerald.withOpacity(0.06),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _ParaTheme.emerald.withOpacity(0.1)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      settings.isBangla ? 'উচ্চারণ:' : 'Pronunciation:',
+                                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _ParaTheme.emerald),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      ayah.textBanglaTranslit!,
+                                      style: TextStyle(
+                                        fontSize: settings.translationFontSize.value - 1,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                            
+                            if (controller.showTranslation.value) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                ayah.textBangla ?? '', 
+                                style: TextStyle(
+                                  fontSize: settings.translationFontSize.value, 
+                                  color: isDark ? AppColors.textGrey : AppColors.textDark, 
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       );

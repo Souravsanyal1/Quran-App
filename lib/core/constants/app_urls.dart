@@ -17,6 +17,7 @@ class AppUrls {
   static const String quranSurah = '$quranBase/surah/{number}/editions/quran-uthmani,bn.bengali,en.asad,en.transliteration';
   static const String quranParaArabic = '$quranBase/juz/{number}/quran-uthmani';
   static const String quranParaBangla = '$quranBase/juz/{number}/bn.bengali';
+  static const String quranParaTranslit = '$quranBase/juz/{number}/en.transliteration';
 
   // ── Audio CDN ────────────────────────────────────────────────────────────
   // EveryAyah - High Quality & Stable

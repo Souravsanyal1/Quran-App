@@ -16,6 +16,8 @@ class ParaDetailsController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxList<AyahModel> ayahs = <AyahModel>[].obs;
   final List<SurahModel> _surahs = [];
+  final RxBool showTranslation = true.obs;
+  final RxBool showPronunciation = true.obs;
 
   late final int paraNumber;
   late final String paraName;

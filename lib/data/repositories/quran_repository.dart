@@ -11,6 +11,7 @@ import '../models/ayah_model.dart';
 import '../models/word_model.dart';
 import '../models/bookmark_model.dart';
 import '../models/last_read_model.dart';
+import '../../core/utils/bangla_transliterator.dart';
 
 class QuranRepository {
   static const String _surahListBox = 'surah_list_v2';
@@ -154,7 +155,9 @@ class QuranRepository {
         surahNumber: surahNum,
         text: arabic['text'] ?? '',
         textBangla: i < banglaAyahs.length ? banglaAyahs[i]['text'] : null,
-        textBanglaTranslit: i < translitAyahs.length ? translitAyahs[i]['text'] : null,
+        textBanglaTranslit: i < translitAyahs.length
+            ? BanglaQuranTransliterator.transliterate(translitAyahs[i]['text'] ?? '')
+            : null,
         textEnglish: i < englishAyahs.length ? englishAyahs[i]['text'] : null,
         page: arabic['page'] ?? 0,
         juz: arabic['juz'] ?? 0,
@@ -167,35 +170,44 @@ class QuranRepository {
   Future<List<AyahModel>> getParaAyahs(int paraNumber) async {
     await init();
     try {
-      // Use v3 cache key — previous versions stored broken 404 responses
-      final cacheKey = 'para_v3_$paraNumber';
+      // Use v5 cache key to store Arabic, Bangla, and Transliteration together
+      final cacheKey = 'para_v5_$paraNumber';
       final cached = _paraDataCache.get(cacheKey);
       if (cached != null) {
         final decoded = jsonDecode(cached as String) as Map<String, dynamic>;
         return _parseParaAyahsMerged(
           decoded['arabic'] as Map<String, dynamic>,
-          decoded['bangla']  as Map<String, dynamic>,
+          decoded['bangla'] as Map<String, dynamic>,
+          decoded['translit'] as Map<String, dynamic>?,
         );
       }
 
-      // Fetch Arabic and Bangla in parallel
+      // Fetch Arabic, Bangla, and Transliteration in parallel
       final results = await Future.wait([
         _api.fetchParaArabic(paraNumber),
         _api.fetchParaBangla(paraNumber),
+        _api.fetchParaTranslit(paraNumber),
       ]);
 
       final arabicResp = results[0];
       final banglaResp = results[1];
+      final translitResp = results[2];
 
       if (arabicResp.statusCode == 200 && banglaResp.statusCode == 200) {
         final arabicData = arabicResp.data as Map<String, dynamic>;
-        final banglaData  = banglaResp.data  as Map<String, dynamic>;
-        // Cache both together
+        final banglaData = banglaResp.data as Map<String, dynamic>;
+        final translitData = translitResp.statusCode == 200 ? translitResp.data as Map<String, dynamic> : null;
+
+        // Cache all together
         await _paraDataCache.put(
           cacheKey,
-          jsonEncode({'arabic': arabicData, 'bangla': banglaData}),
+          jsonEncode({
+            'arabic': arabicData,
+            'bangla': banglaData,
+            'translit': translitData,
+          }),
         );
-        return _parseParaAyahsMerged(arabicData, banglaData);
+        return _parseParaAyahsMerged(arabicData, banglaData, translitData);
       }
     } catch (e) {
       _logger.e('getParaAyahs($paraNumber): $e');
@@ -206,22 +218,30 @@ class QuranRepository {
   List<AyahModel> _parseParaAyahsMerged(
     Map<String, dynamic> arabicData,
     Map<String, dynamic> banglaData,
+    Map<String, dynamic>? translitData,
   ) {
-    // Each single-edition response has shape: {data: {ayahs: [...], edition: {...}, surahs: {...}}}
     final arabicWrapper = arabicData['data'];
-    final banglaWrapper  = banglaData['data'];
+    final banglaWrapper = banglaData['data'];
+    final translitWrapper = translitData != null ? translitData['data'] : null;
 
     final arabicAyahs = arabicWrapper is Map
         ? List<Map<String, dynamic>>.from((arabicWrapper['ayahs'] as List?) ?? [])
         : <Map<String, dynamic>>[];
-    final banglaAyahs  = banglaWrapper  is Map
-        ? List<Map<String, dynamic>>.from((banglaWrapper['ayahs']  as List?) ?? [])
+    final banglaAyahs = banglaWrapper is Map
+        ? List<Map<String, dynamic>>.from((banglaWrapper['ayahs'] as List?) ?? [])
+        : <Map<String, dynamic>>[];
+    final translitAyahs = translitWrapper is Map
+        ? List<Map<String, dynamic>>.from((translitWrapper['ayahs'] as List?) ?? [])
         : <Map<String, dynamic>>[];
 
-    // Build a fast lookup: global ayah number -> bangla text
+    // Build fast lookup maps
     final banglaMap = <int, String>{
       for (final b in banglaAyahs)
         if (b['number'] != null) (b['number'] as int): (b['text'] as String? ?? '')
+    };
+    final translitMap = <int, String>{
+      for (final t in translitAyahs)
+        if (t['number'] != null) (t['number'] as int): (t['text'] as String? ?? '')
     };
 
     return arabicAyahs.map((arabic) {
@@ -229,12 +249,14 @@ class QuranRepository {
       final surahNum = arabic['surah'] is Map
           ? (arabic['surah']['number'] as int?)
           : null;
+      final rawTranslit = translitMap[num];
       return AyahModel(
         number: num,
         numberInSurah: arabic['numberInSurah'] as int? ?? 0,
         surahNumber: surahNum,
         text: arabic['text'] as String? ?? '',
         textBangla: banglaMap[num],
+        textBanglaTranslit: rawTranslit != null ? BanglaQuranTransliterator.transliterate(rawTranslit) : null,
         page: arabic['page'] as int? ?? 0,
         juz: arabic['juz'] as int? ?? 0,
       );
