@@ -35,7 +35,7 @@ class QuranApp extends StatelessWidget {
       themeMode: initialThemeMode,
 
       // Routing
-      initialRoute: kIsWeb ? AppRoutes.login : AppRoutes.splash,
+      initialRoute: AppRoutes.splash,
       getPages: AppPages.pages,
 
       // Global dependencies

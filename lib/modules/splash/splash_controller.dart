@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,11 +6,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import '../settings/settings_controller.dart';
+import '../auth/auth_controller.dart';
 
 class SplashController extends GetxController {
   static const String _onboardingKey = 'onboarding_done';
@@ -28,7 +31,7 @@ class SplashController extends GetxController {
       statusMessage.value = 'Preparing local storage...';
       progress.value = 0.15;
 
-      // Initialize SharedPreferences first (which is fast since it is cached)
+      // Initialize SharedPreferences first
       final prefs = await SharedPreferences.getInstance();
 
       statusMessage.value = 'Setting up services...';
@@ -36,14 +39,19 @@ class SplashController extends GetxController {
 
       // Run non-interdependent services in parallel
       await Future.wait([
-        // 1. Hive Local Storage
-        Future(() async {
-          final appDocDir = await getApplicationDocumentsDirectory();
-          await Hive.initFlutter(appDocDir.path);
-        }),
+        // 1. Hive Local Storage (only on non-web)
+        if (!kIsWeb)
+          Future(() async {
+            try {
+              final appDocDir = await getApplicationDocumentsDirectory();
+              await Hive.initFlutter(appDocDir.path);
+            } catch (e) {
+              Get.log('Hive init error: $e');
+            }
+          }),
         
-        // 2. Notification Service Initialization
-        NotificationService.instance.init(),
+        // 2. Notification Service Initialization (Mobile only)
+        if (!kIsWeb) NotificationService.instance.init(),
         
         // 3. Check for maintenance or updates
         _checkUpdateAndMaintenance(),
@@ -62,33 +70,58 @@ class SplashController extends GetxController {
         return;
       }
 
-      progress.value = 0.85;
+      progress.value = 0.70;
+      statusMessage.value = 'Checking authentication...';
 
-      // Perform background/asynchronous setup tasks that shouldn't block routing
-      // 1. Battery optimization prompt
-      final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
-      if (!batteryAsked) {
-        prefs.setBool('battery_opt_asked', true);
-        NotificationService.instance.requestBatteryOptimization();
+      // Wait for AuthController to resolve user state
+      final auth = Get.find<AuthController>();
+      
+      // Give it a moment to finish its bindStream and _checkAdminStatus
+      int retryCount = 0;
+      while (auth.user.value == null && FirebaseAuth.instance.currentUser != null && retryCount < 20) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retryCount++;
       }
 
-      // 2. Restore daily dua reminder
-      final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
-      if (duaEnabled) {
-        final int h = prefs.getInt('dua_reminder_hour') ?? 8;
-        final int m = prefs.getInt('dua_reminder_minute') ?? 0;
-        NotificationService.instance.scheduleDuaReminder(
-          TimeOfDay(hour: h, minute: m),
-        );
+      progress.value = 0.90;
+
+      // Decide where to go
+      if (auth.user.value != null) {
+        if (auth.isAdmin.value) {
+          Get.offAllNamed(AppRoutes.adminDashboard);
+          return;
+        }
       }
 
-      // Step 3: Loading complete (85% -> 100%)
+      if (kIsWeb && auth.user.value == null) {
+        Get.offAllNamed(AppRoutes.login);
+        return;
+      }
+
+      // Perform background/asynchronous setup tasks (Mobile only)
+      if (!kIsWeb) {
+        final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
+        if (!batteryAsked) {
+          prefs.setBool('battery_opt_asked', true);
+          NotificationService.instance.requestBatteryOptimization();
+        }
+
+        final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
+        if (duaEnabled) {
+          final int h = prefs.getInt('dua_reminder_hour') ?? 8;
+          final int m = prefs.getInt('dua_reminder_minute') ?? 0;
+          NotificationService.instance.scheduleDuaReminder(
+            TimeOfDay(hour: h, minute: m),
+          );
+        }
+      }
+
       statusMessage.value = 'Ready!';
       progress.value = 1.0;
       await Future.delayed(const Duration(milliseconds: 100));
 
       final onboardingDone = prefs.getBool(_onboardingKey) ?? false;
-      if (!onboardingDone) {
+      if (!onboardingDone && !kIsWeb) {
         Get.offAllNamed(AppRoutes.onboarding);
       } else {
         Get.offAllNamed(AppRoutes.home);
@@ -97,7 +130,7 @@ class SplashController extends GetxController {
       statusMessage.value = 'Initialization error: $e';
       Get.log('Initialization error: $e');
       await Future.delayed(const Duration(seconds: 3));
-      Get.offAllNamed(AppRoutes.onboarding);
+      Get.offAllNamed(kIsWeb ? AppRoutes.login : AppRoutes.onboarding);
     }
   }
 

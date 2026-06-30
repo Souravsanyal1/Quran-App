@@ -50,6 +50,9 @@ class NotificationsController extends GetxController {
         if (change.type == DocumentChangeType.added) {
           final data = change.doc.data();
           if (data != null) {
+            final sentAt = (data['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+            final isRecent = DateTime.now().difference(sentAt).inSeconds < 30;
+
             // Avoid adding duplicates if already fetched via API
             final exists = allNotifications.any((n) => n.id == change.doc.id);
             if (!exists) {
@@ -58,13 +61,31 @@ class NotificationsController extends GetxController {
                 title: data['title'] ?? 'Notification',
                 body: data['body'] ?? '',
                 imageUrl: data['imageUrl'],
-                createdAt: (data['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                createdAt: sentAt,
                 category: _parseCategory(data['type']),
                 isRead: data['isRead'] ?? false,
               );
               allNotifications.insert(0, newNotif);
               _applyFilters();
               _updateUnreadCount();
+
+              // Show snackbar for new messages if the notification is recent
+              if (isRecent) {
+                Get.snackbar(
+                  newNotif.title, 
+                  newNotif.body,
+                  snackPosition: SnackPosition.TOP,
+                  backgroundColor: Get.theme.cardColor.withOpacity(0.9),
+                  colorText: Get.theme.textTheme.bodyLarge?.color,
+                  duration: const Duration(seconds: 4),
+                  icon: Icon(
+                    newNotif.category == NotificationCategory.support 
+                      ? Icons.support_agent_rounded 
+                      : Icons.notifications_active_rounded,
+                    color: Colors.amber,
+                  ),
+                );
+              }
             }
           }
         }
