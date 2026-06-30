@@ -286,6 +286,11 @@ class NamazGuide2Controller extends GetxController {
   void selectGender(NamazGender gender) {
     selectedGender.value = gender;
     currentIndex.value = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (pageController.hasClients) {
+        pageController.jumpToPage(0);
+      }
+    });
   }
 
   void backToGenderSelection() {
