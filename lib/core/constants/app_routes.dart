@@ -19,6 +19,7 @@ class AppRoutes {
 
   // Salah Guide
   static const String salahGuide = '/salah-guide';
+  static const String salahGuide2 = '/salah-guide-2';
   static const String newMuslimGuide = '/new-muslim-guide';
 
   // Duas & Azkar

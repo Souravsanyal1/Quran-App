@@ -150,6 +150,16 @@ class AppDrawer extends StatelessWidget {
                       },
                       isDark: isDark,
                     ),
+                    _DrawerItem(
+                      icon: Icons.menu_book_rounded,
+                      title: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide 2',
+                      gradientColors: const [Color(0xFF00796B), Color(0xFF009688)],
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.salahGuide2);
+                      },
+                      isDark: isDark,
+                    ),
 
                     const SizedBox(height: 8),
 

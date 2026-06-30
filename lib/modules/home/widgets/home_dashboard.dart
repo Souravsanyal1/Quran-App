@@ -150,6 +150,12 @@ class HomeDashboard extends StatelessWidget {
                   route: AppRoutes.salahGuide,
                 ),
                 _QuickActionCard(
+                  icon: Icons.menu_book_rounded,
+                  label: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide 2',
+                  gradient: const [Color(0xFF00796B), Color(0xFF009688)],
+                  route: AppRoutes.salahGuide2,
+                ),
+                _QuickActionCard(
                   showcaseKey: homeController.settingsKey,
                   showcaseTitle: bn ? 'প্রোফাইল' : 'Profile',
                   showcaseDesc: bn

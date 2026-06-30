@@ -25,6 +25,8 @@ import '../modules/new_muslim_guide/new_muslim_guide_view.dart';
 import '../modules/new_muslim_guide/new_muslim_guide_controller.dart';
 import '../modules/namaz_guide/namaz_guide_view.dart';
 import '../modules/namaz_guide/namaz_guide_binding.dart';
+import '../modules/namaz_guide_2/namaz_guide_2_view.dart';
+import '../modules/namaz_guide_2/namaz_guide_2_binding.dart';
 import '../modules/duas/duas_view.dart';
 import '../modules/duas/duas_controller.dart';
 import '../modules/tasbih/tasbih_view.dart';
@@ -113,6 +115,12 @@ class AppPages {
       name: AppRoutes.salahGuide,
       page: () => const NamazGuideView(),
       binding: NamazGuideBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.salahGuide2,
+      page: () => const NamazGuide2View(),
+      binding: NamazGuide2Binding(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
