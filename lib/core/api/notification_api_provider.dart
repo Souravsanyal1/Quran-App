@@ -21,7 +21,7 @@ class NotificationApiProvider {
           .get();
       
       final personal = personalQuery.docs.map((doc) => 
-        app_notification_model.AppNotification.fromJson({...doc.data(), 'id': doc.id})).toList();
+        app_notification_model.AppNotification.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id})).toList();
 
       // 2. Get broadcast notifications (Filter by creation time so new users don't see old ones)
       Query broadcastBase = _firestore.collection('broadcast_notifications');
@@ -36,7 +36,7 @@ class NotificationApiProvider {
           .get();
       
       final broadcast = broadcastQuery.docs.map((doc) => 
-        app_notification_model.AppNotification.fromJson({...doc.data(), 'id': doc.id})).toList();
+        app_notification_model.AppNotification.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id})).toList();
 
       // Combine and sort
       final all = [...personal, ...broadcast];
