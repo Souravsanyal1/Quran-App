@@ -671,6 +671,11 @@ class _StepPage extends StatelessWidget {
           // Title
           _StepTitle(step: step, isBn: isBn, isDark: isDark, accentColor: accentColor),
           const SizedBox(height: 14),
+          // Rakah completed badge
+          if (step.stepNumber == 8) ...[
+            _RakahCompletedBadge(isBn: isBn, isDark: isDark),
+            const SizedBox(height: 14),
+          ],
           // Instruction
           _InstructionCard(step: step, isBn: isBn, isDark: isDark, accentColor: accentColor),
           // Arabic
@@ -681,6 +686,61 @@ class _StepPage extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ── Rakah Completed Badge ──────────────────────────────────────────────────
+class _RakahCompletedBadge extends StatelessWidget {
+  final bool isBn;
+  final bool isDark;
+  const _RakahCompletedBadge({required this.isBn, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFFC9A84C).withValues(alpha: 0.15), const Color(0xFF1E1E2E)]
+              : [const Color(0xFFFFF8E7), const Color(0xFFFFFFFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFC9A84C).withValues(alpha: isDark ? 0.3 : 0.4),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFC9A84C).withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.verified_rounded,
+            color: Color(0xFFC9A84C),
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            isBn ? '১ রাকাত সম্পন্ন হলো' : '1 Rakah Completed',
+            style: GoogleFonts.poppins(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFFC9A84C),
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 350.ms).scale(begin: const Offset(0.95, 0.95));
   }
 }
 
