@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dio/dio.dart';
 import '../models/support_chat_model.dart';
 import '../../core/api/support_api_provider.dart';
+import '../../core/constants/app_keys.dart';
+
 
 class SupportRepository {
   final SupportApiProvider _apiProvider;
@@ -122,6 +125,62 @@ class SupportRepository {
       'status': status,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // --- n8n MCP Server Chat ---
+
+  Future<String?> sendToN8n(String message, String userId, {String? userName}) async {
+    try {
+      final response = await _apiProvider.dio.post(
+        'https://islansourav.app.n8n.cloud/mcp-server/http',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer ${AppKeys.n8nApiKey}',
+            'X-N8N-API-KEY': AppKeys.n8nApiKey,
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: {
+          'jsonrpc': '2.0',
+          'method': 'tools/call',
+          'params': {
+            'name': AppKeys.n8nToolName,
+            'arguments': {
+              'message': message,
+              'userId': userId,
+              'userName': userName ?? 'User',
+              'platform': 'android/ios',
+              'timestamp': DateTime.now().toIso8601String(),
+            },
+          },
+          'id': 1,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data != null) {
+          // 1. Try parsing standard MCP JSON-RPC format
+          if (data['result'] != null && data['result']['content'] is List) {
+            final contentList = data['result']['content'] as List;
+            if (contentList.isNotEmpty) {
+              final textItem = contentList.firstWhere(
+                (item) => item is Map && item['type'] == 'text',
+                orElse: () => null,
+              );
+              if (textItem != null && textItem['text'] != null) {
+                return textItem['text'].toString();
+              }
+            }
+          }
+          // 2. Fallback to direct output keys if the workflow isn't returning standard MCP format
+          return data['response'] ?? data['output'] ?? data['text'] ?? data['message'];
+        }
+      }
+    } catch (e) {
+      print('n8n MCP Error: $e');
+    }
+    return null;
   }
 
   // --- Helpers ---
