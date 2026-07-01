@@ -151,9 +151,10 @@ class HomeDashboard extends StatelessWidget {
                 // ),
                 _QuickActionCard(
                   icon: Icons.menu_book_rounded,
-                  label: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide',
+                  label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
                   gradient: const [Color(0xFF00796B), Color(0xFF009688)],
                   route: AppRoutes.salahGuide2,
+                  badgeText: bn ? 'শীঘ্রই' : 'Soon',
                 ),
                 _QuickActionCard(
                   showcaseKey: homeController.settingsKey,
@@ -501,6 +502,7 @@ class _QuickActionCard extends StatelessWidget {
   final GlobalKey? showcaseKey;
   final String? showcaseTitle;
   final String? showcaseDesc;
+  final String? badgeText;
 
   const _QuickActionCard({
     required this.icon,
@@ -510,6 +512,7 @@ class _QuickActionCard extends StatelessWidget {
     this.showcaseKey,
     this.showcaseTitle,
     this.showcaseDesc,
+    this.badgeText,
   });
 
   @override
@@ -518,69 +521,111 @@ class _QuickActionCard extends StatelessWidget {
     final isDark = settings.isDark;
 
     Widget card = GestureDetector(
-      onTap: () => Get.toNamed(route),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? _DashTheme.darkCard : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isDark
-                ? _DashTheme.darkBorder
-                : gradient.first.withOpacity(0.12),
-            width: 1,
+      onTap: () {
+        if (route == AppRoutes.salahGuide || route == AppRoutes.salahGuide2) {
+          settings.checkNamazGuideAccessAndNavigate(route);
+        } else {
+          Get.toNamed(route);
+        }
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark ? _DashTheme.darkCard : Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? _DashTheme.darkBorder
+                    : gradient.first.withOpacity(0.12),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: gradient.first.withOpacity(isDark ? 0.08 : 0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon container with gradient
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        gradient.first.withOpacity(isDark ? 0.25 : 0.15),
+                        gradient.last.withOpacity(isDark ? 0.15 : 0.08),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: gradient.first.withOpacity(isDark ? 0.15 : 0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(icon, color: gradient.first, size: 24),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? Colors.white.withOpacity(0.85)
+                          : AppColors.textDark,
+                      letterSpacing: 0.1,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: gradient.first.withOpacity(isDark ? 0.08 : 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Icon container with gradient
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    gradient.first.withOpacity(isDark ? 0.25 : 0.15),
-                    gradient.last.withOpacity(isDark ? 0.15 : 0.08),
+          if (badgeText != null)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFC9A84C), Color(0xFFE8C97A)],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFC9A84C).withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: gradient.first.withOpacity(isDark ? 0.15 : 0.1),
-                  width: 1,
+                child: Text(
+                  badgeText!,
+                  style: GoogleFonts.poppins(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              child: Icon(icon, color: gradient.first, size: 24),
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              child: Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? Colors.white.withOpacity(0.85)
-                      : AppColors.textDark,
-                  letterSpacing: 0.1,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
 

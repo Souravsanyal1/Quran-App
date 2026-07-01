@@ -8,7 +8,6 @@ import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
 import 'package:quran_app/widgets/shimmer_loading.dart';
 import 'namaz_guide_controller.dart';
-import 'widgets/posture_illustration.dart';
 
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _NamazTheme {
@@ -619,11 +618,6 @@ class _IllustrationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int stepNum = step.stepNumber as int;
-    // Step 1 (Niyat) has no image. Steps 2–11 map to 1.png–10.png.
-    final bool hasImage = stepNum >= 2 && stepNum <= 11;
-    final String imagePath = 'assets/images/${stepNum - 1}.png';
-
     return Container(
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
@@ -650,65 +644,7 @@ class _IllustrationCard extends StatelessWidget {
           ),
         ],
       ),
-      child: hasImage
-          ? Stack(
-              children: [
-                // Step image — full width, fixed height
-                Image.asset(
-                  imagePath,
-                  width: double.infinity,
-                  height: 260,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => _FallbackIllustration(step: step),
-                  frameBuilder: (ctx, child, frame, wasSynced) {
-                    if (wasSynced || frame != null) return child;
-                    return Container(
-                      height: 260,
-                      alignment: Alignment.center,
-                      child: const CircularProgressIndicator(
-                        color: _NamazTheme.emerald,
-                        strokeWidth: 2,
-                      ),
-                    );
-                  },
-                ),
-                // Subtle top gradient overlay so image blends with card
-                Positioned(
-                  top: 0, left: 0, right: 0,
-                  child: Container(
-                    height: 32,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          (isDark ? _NamazTheme.darkCardAlt : Colors.white).withValues(alpha: 0.5),
-                          Colors.transparent,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
-                // Subtle bottom gradient overlay
-                Positioned(
-                  bottom: 0, left: 0, right: 0,
-                  child: Container(
-                    height: 32,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          (isDark ? _NamazTheme.darkCardAlt : Colors.white).withValues(alpha: 0.4),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : _FallbackIllustration(step: step),
+      child: _FallbackIllustration(step: step),
     ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
   }
 }
@@ -745,10 +681,10 @@ class _FallbackIllustration extends StatelessWidget {
               ),
             ),
           ),
-          PostureIllustration(
-            posture: step.posture,
-            color: _NamazTheme.emerald,
-            size: 150,
+          Icon(
+            Icons.accessibility_new_rounded,
+            color: _NamazTheme.emerald.withValues(alpha: 0.1),
+            size: 120,
           ),
         ],
       ),

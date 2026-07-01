@@ -159,6 +159,23 @@ class AdminDashboardController extends GetxController {
     });
   }
 
+  Future<void> toggleUserNamazAccess(String userId, bool hasAccess) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'hasNamazGuideAccess': hasAccess,
+      });
+      final index = usersList.indexWhere((u) => u['id'] == userId);
+      if (index != -1) {
+        final updatedUser = Map<String, dynamic>.from(usersList[index]);
+        updatedUser['hasNamazGuideAccess'] = hasAccess;
+        usersList[index] = updatedUser;
+      }
+      Get.snackbar('Success', 'User Namaz Guide access updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update user access: $e');
+    }
+  }
+
   Future<void> _loadAppUpdateConfig() async {
     final doc = await _firestore.collection('app_settings').doc('update_config').get();
     if (doc.exists) {

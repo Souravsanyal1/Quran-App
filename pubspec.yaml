@@ -106,6 +106,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/namaj woman/
     - assets/icons/
     - assets/animations/
     - assets/audio/

@@ -971,7 +971,31 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                     ),
                     title: Text(user['displayName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(user['email'] ?? 'No Email', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12)),
-                    trailing: _buildStatusBadge(role.toUpperCase(), role == 'admin' ? Colors.green : Colors.blue),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildStatusBadge(role.toUpperCase(), role == 'admin' ? Colors.green : Colors.blue),
+                        if (role != 'admin') ...[
+                          const SizedBox(width: 12),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text('Namaz Access', style: TextStyle(color: Colors.white30, fontSize: 8)),
+                              SizedBox(
+                                height: 28,
+                                child: Switch(
+                                  value: user['hasNamazGuideAccess'] == true,
+                                  activeColor: const Color(0xFF1B5E35),
+                                  onChanged: (val) {
+                                    controller.toggleUserNamazAccess(user['id'], val);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 );
               },

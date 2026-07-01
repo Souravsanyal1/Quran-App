@@ -74,7 +74,7 @@ class DuasView extends GetView<DuasController> {
                 itemBuilder: (context, index) {
                   final catEn = controller.categoriesEn[index];
                   final catBn = controller.categoriesBn[index];
-                  
+
                   return Obx(() {
                     final isSelected = controller.selectedCategoryEn.value == catEn;
                     return GestureDetector(
@@ -86,25 +86,25 @@ class DuasView extends GetView<DuasController> {
                         decoration: BoxDecoration(
                           gradient: isSelected
                               ? const LinearGradient(
-                                  colors: [_DuaTheme.emerald, _DuaTheme.emeraldLight],
-                                )
+                            colors: [_DuaTheme.emerald, _DuaTheme.emeraldLight],
+                          )
                               : null,
                           color: isSelected ? null : (isDark ? _DuaTheme.darkCard : Colors.grey.shade100),
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(
                             color: isSelected
                                 ? _DuaTheme.gold
-                                : (isDark ? _DuaTheme.emerald.withOpacity(0.15) : _DuaTheme.emerald.withOpacity(0.06)),
+                                : (isDark ? _DuaTheme.emerald.withValues(alpha: 0.15) : _DuaTheme.emerald.withValues(alpha: 0.06)),
                             width: 1,
                           ),
                           boxShadow: isSelected
                               ? [
-                                  BoxShadow(
-                                    color: _DuaTheme.emerald.withOpacity(0.25),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  )
-                                ]
+                            BoxShadow(
+                              color: _DuaTheme.emerald.withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            )
+                          ]
                               : [],
                         ),
                         child: Text(
@@ -152,12 +152,12 @@ class DuasView extends GetView<DuasController> {
                         color: isDark ? _DuaTheme.darkCard : _DuaTheme.lightCard,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isDark ? _DuaTheme.emerald.withOpacity(0.15) : _DuaTheme.emerald.withOpacity(0.06),
+                          color: isDark ? _DuaTheme.emerald.withValues(alpha: 0.15) : _DuaTheme.emerald.withValues(alpha: 0.06),
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: _DuaTheme.emerald.withOpacity(0.02),
+                            color: _DuaTheme.emerald.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -193,14 +193,14 @@ class DuasView extends GetView<DuasController> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            
+
                             // Arabic
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: isDark ? _DuaTheme.darkSurface : _DuaTheme.goldSoft,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: _DuaTheme.emerald.withOpacity(0.1)),
+                                border: Border.all(color: _DuaTheme.emerald.withValues(alpha: 0.1)),
                               ),
                               child: Text(
                                 dua.arabic,
@@ -250,7 +250,7 @@ class DuasView extends GetView<DuasController> {
                               bn ? dua.translationBn : dua.translationEn,
                               style: TextStyle(
                                 fontSize: 13.5,
-                                color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.85),
+                                color: isDark ? AppColors.textGrey : AppColors.textDark.withValues(alpha: 0.85),
                                 height: 1.45,
                               ),
                             ),

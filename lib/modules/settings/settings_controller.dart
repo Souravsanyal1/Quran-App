@@ -11,6 +11,7 @@ import '../../services/audio_player_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SettingsController extends GetxController {
   static const String _keyTheme = 'theme_mode';
@@ -321,5 +322,114 @@ class SettingsController extends GetxController {
   /// Toggle between dark and light
   void toggleTheme() {
     setTheme(isDark ? 'light' : 'dark');
+  }
+
+  Future<void> checkNamazGuideAccessAndNavigate(String route) async {
+    final auth = Get.find<AuthController>();
+    if (auth.isAdmin.value) {
+      Get.toNamed(route);
+      return;
+    }
+
+    final currentUser = auth.user.value;
+    if (currentUser == null) {
+      _showComingSoonDialog();
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      if (userDoc.exists && userDoc.data()?['hasNamazGuideAccess'] == true) {
+        isLoading.value = false;
+        Get.toNamed(route);
+        return;
+      }
+    } catch (e) {
+      Get.log('Error checking Namaz Guide access: $e');
+    } finally {
+      isLoading.value = false;
+    }
+
+    _showComingSoonDialog();
+  }
+
+  void _showComingSoonDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141420),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFC9A84C).withValues(alpha: 0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1B5E35).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B5E35).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.lock_clock_outlined,
+                  color: Color(0xFFC9A84C),
+                  size: 64,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                isBangla ? 'নামাজ শিক্ষা (Coming Soon)' : 'Namaz Guide (Coming Soon)',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isBangla
+                    ? 'এই ফিচারটি বর্তমানে বন্ধ আছে এবং শীঘ্রই সবার জন্য উন্মুক্ত করা হবে। অনুগ্রহ করে অপেক্ষা করুন।'
+                    : 'This feature is currently under development and will be available to everyone soon. Please check back later.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1B5E35),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Get.back(),
+                child: Text(
+                  isBangla ? 'ঠিক আছে' : 'OK',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -146,7 +146,7 @@ class AppDrawer extends StatelessWidget {
                       gradientColors: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
                       onTap: () {
                         Get.back();
-                        Get.toNamed(AppRoutes.salahGuide);
+                        settings.checkNamazGuideAccessAndNavigate(AppRoutes.salahGuide);
                       },
                       isDark: isDark,
                     ),
@@ -156,7 +156,7 @@ class AppDrawer extends StatelessWidget {
                       gradientColors: const [Color(0xFF00796B), Color(0xFF009688)],
                       onTap: () {
                         Get.back();
-                        Get.toNamed(AppRoutes.salahGuide2);
+                        settings.checkNamazGuideAccessAndNavigate(AppRoutes.salahGuide2);
                       },
                       isDark: isDark,
                     ),

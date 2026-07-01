@@ -7,7 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
 import '../namaz_guide/namaz_guide_model.dart';
-import '../namaz_guide/widgets/posture_illustration.dart';
+
 import 'namaz_guide_2_controller.dart';
 
 // ── Design Tokens ────────────────────────────────────────────────────────────
@@ -771,8 +771,10 @@ class _IllustrationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final int stepNum = step.stepNumber;
     final int? imgNum = isMale ? _getImageNumber(stepNum) : null;
-    final bool hasImage = imgNum != null;
-    final String imagePath = 'assets/images/$imgNum.png';
+    final bool hasImage = isMale ? (imgNum != null) : (stepNum >= 1 && stepNum <= 10);
+    final String imagePath = isMale
+        ? 'assets/images/$imgNum.png'
+        : 'assets/images/namaj woman/$stepNum.png';
 
     return Container(
       width: double.infinity,
@@ -867,10 +869,10 @@ class _FallbackIllustration extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 30),
-      child: PostureIllustration(
-        posture: step.posture,
-        color: color,
-        size: 150,
+      child: Icon(
+        Icons.accessibility_new_rounded,
+        color: color.withValues(alpha: 0.1),
+        size: 120,
       ),
     );
   }
