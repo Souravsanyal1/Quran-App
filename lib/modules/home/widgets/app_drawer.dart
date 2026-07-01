@@ -140,19 +140,19 @@ class AppDrawer extends StatelessWidget {
                       },
                       isDark: isDark,
                     ),
-                    _DrawerItem(
-                      icon: Icons.menu_book_outlined,
-                      title: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
-                      gradientColors: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
-                      onTap: () {
-                        Get.back();
-                        settings.checkNamazGuideAccessAndNavigate(AppRoutes.salahGuide);
-                      },
-                      isDark: isDark,
-                    ),
+                    // _DrawerItem(
+                    //   icon: Icons.menu_book_outlined,
+                    //   title: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
+                    //   gradientColors: const [Color(0xFF6A1B9A), Color(0xFF9C27B0)],
+                    //   onTap: () {
+                    //     Get.back();
+                    //     settings.checkNamazGuideAccessAndNavigate(AppRoutes.salahGuide);
+                    //   },
+                    //   isDark: isDark,
+                    // ),
                     _DrawerItem(
                       icon: Icons.menu_book_rounded,
-                      title: bn ? 'নামাজ শিক্ষা ২' : 'Namaz Guide 2',
+                      title: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
                       gradientColors: const [Color(0xFF00796B), Color(0xFF009688)],
                       onTap: () {
                         Get.back();
