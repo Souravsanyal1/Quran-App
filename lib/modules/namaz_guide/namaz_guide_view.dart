@@ -40,7 +40,8 @@ class NamazGuideView extends GetView<NamazGuideController> {
     final isDark = settings.isDark;
 
     return Scaffold(
-      backgroundColor: isDark ? _NamazTheme.darkSurface : _NamazTheme.lightSurface,
+      backgroundColor:
+          isDark ? _NamazTheme.darkSurface : _NamazTheme.lightSurface,
       appBar: _buildAppBar(isBn, isDark),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -49,7 +50,8 @@ class NamazGuideView extends GetView<NamazGuideController> {
         return Column(
           children: [
             // ── Progress Section ──────────────────────────────────────
-            _ProgressSection(controller: controller, isBn: isBn, isDark: isDark),
+            _ProgressSection(
+                controller: controller, isBn: isBn, isDark: isDark),
 
             // ── Swipeable Step Pages ──────────────────────────────────
             Expanded(
@@ -59,7 +61,10 @@ class NamazGuideView extends GetView<NamazGuideController> {
                 itemCount: controller.steps.length + 1,
                 itemBuilder: (context, index) {
                   if (index == controller.steps.length) {
-                    return _CompletionPage(isBn: isBn, isDark: isDark, onRestart: controller.restart);
+                    return _CompletionPage(
+                        isBn: isBn,
+                        isDark: isDark,
+                        onRestart: controller.restart);
                   }
                   final step = controller.steps[index];
                   return _StepPage(
@@ -73,7 +78,8 @@ class NamazGuideView extends GetView<NamazGuideController> {
             ),
 
             // ── Bottom Navigation ─────────────────────────────────────
-            _BottomNavigation(controller: controller, isBn: isBn, isDark: isDark),
+            _BottomNavigation(
+                controller: controller, isBn: isBn, isDark: isDark),
           ],
         );
       }),
@@ -89,7 +95,11 @@ class NamazGuideView extends GetView<NamazGuideController> {
       flexibleSpace: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [_NamazTheme.emeraldDark, _NamazTheme.emerald, _NamazTheme.emeraldLight],
+            colors: [
+              _NamazTheme.emeraldDark,
+              _NamazTheme.emerald,
+              _NamazTheme.emeraldLight
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -141,7 +151,8 @@ class NamazGuideView extends GetView<NamazGuideController> {
                 color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.refresh_rounded, color: _NamazTheme.goldLight, size: 18),
+              child: const Icon(Icons.refresh_rounded,
+                  color: _NamazTheme.goldLight, size: 18),
             ),
             tooltip: isBn ? 'পুনরায় শুরু করুন' : 'Restart',
             onPressed: controller.restart,
@@ -196,7 +207,8 @@ class _ProgressSection extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : _NamazTheme.emerald).withValues(alpha: 0.06),
+            color: (isDark ? Colors.black : _NamazTheme.emerald)
+                .withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -220,7 +232,10 @@ class _ProgressSection extends StatelessWidget {
                       height: 28,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [_NamazTheme.emerald, _NamazTheme.emeraldLight],
+                          colors: [
+                            _NamazTheme.emerald,
+                            _NamazTheme.emeraldLight
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -243,15 +258,19 @@ class _ProgressSection extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
-                        color: isDark ? Colors.white.withValues(alpha: 0.7) : AppColors.textDark.withValues(alpha: 0.6),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : AppColors.textDark.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _NamazTheme.emerald.withValues(alpha: isDark ? 0.15 : 0.08),
+                    color: _NamazTheme.emerald
+                        .withValues(alpha: isDark ? 0.15 : 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -281,14 +300,18 @@ class _ProgressSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: isCompleted
                               ? const LinearGradient(
-                                  colors: [_NamazTheme.emerald, _NamazTheme.emeraldLight],
+                                  colors: [
+                                    _NamazTheme.emerald,
+                                    _NamazTheme.emeraldLight
+                                  ],
                                 )
                               : null,
                           color: isCompleted
                               ? null
                               : (isDark
                                   ? Colors.white.withValues(alpha: 0.08)
-                                  : _NamazTheme.emerald.withValues(alpha: 0.08)),
+                                  : _NamazTheme.emerald
+                                      .withValues(alpha: 0.08)),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -345,7 +368,8 @@ class _StepPage extends StatelessWidget {
           // ── Arabic Section ────────────────────────────────────────
           if (step.arabic != null) ...[
             const SizedBox(height: 16),
-            _ArabicSection(step: step, isBn: isBn, isDark: isDark, settings: settings),
+            _ArabicSection(
+                step: step, isBn: isBn, isDark: isDark, settings: settings),
           ],
         ],
       ),
@@ -366,7 +390,10 @@ class _RakahCompletedBadge extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0xFFC9A84C).withValues(alpha: 0.15), const Color(0xFF1E1E2E)]
+              ? [
+                  const Color(0xFFC9A84C).withValues(alpha: 0.15),
+                  const Color(0xFF1E1E2E)
+                ]
               : [const Color(0xFFFFF8E7), const Color(0xFFFFFFFF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -434,8 +461,14 @@ class _CompletionPage extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [_NamazTheme.emerald.withValues(alpha: 0.12), _NamazTheme.darkCardAlt]
-                    : [_NamazTheme.emerald.withValues(alpha: 0.06), _NamazTheme.goldSoft],
+                    ? [
+                        _NamazTheme.emerald.withValues(alpha: 0.12),
+                        _NamazTheme.darkCardAlt
+                      ]
+                    : [
+                        _NamazTheme.emerald.withValues(alpha: 0.06),
+                        _NamazTheme.goldSoft
+                      ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -473,16 +506,20 @@ class _CompletionPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 42),
+                  child: const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 42),
                 ),
                 const SizedBox(height: 20),
                 // Gold star row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (i) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: Icon(Icons.star_rounded, color: _NamazTheme.gold, size: 20),
-                  )),
+                  children: List.generate(
+                      5,
+                      (i) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Icon(Icons.star_rounded,
+                                color: _NamazTheme.gold, size: 20),
+                          )),
                 ),
                 const SizedBox(height: 18),
                 Text(
@@ -510,7 +547,8 @@ class _CompletionPage extends StatelessWidget {
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.92, 0.92), curve: Curves.easeOutCubic),
+          ).animate().fadeIn(duration: 500.ms).scale(
+              begin: const Offset(0.92, 0.92), curve: Curves.easeOutCubic),
 
           const SizedBox(height: 24),
 
@@ -588,7 +626,8 @@ class _CompletionPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.replay_rounded, color: _NamazTheme.goldLight, size: 20),
+                  const Icon(Icons.replay_rounded,
+                      color: _NamazTheme.goldLight, size: 20),
                   const SizedBox(width: 10),
                   Text(
                     isBn ? 'আবার শুরু করুন' : 'Restart Guide',
@@ -618,14 +657,25 @@ class _IllustrationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final int stepNum = step.stepNumber as int;
+    // Step 1 (Niyat) has no image. Steps 2–11 map to 1.png–10.png.
+    final bool hasImage = stepNum >= 2 && stepNum <= 11;
+    final String imagePath = 'assets/images/${stepNum - 1}.png';
+
     return Container(
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [_NamazTheme.emerald.withValues(alpha: 0.08), _NamazTheme.darkCardAlt]
-              : [_NamazTheme.emerald.withValues(alpha: 0.04), _NamazTheme.goldSoft.withValues(alpha: 0.3)],
+              ? [
+                  _NamazTheme.emerald.withValues(alpha: 0.08),
+                  _NamazTheme.darkCardAlt
+                ]
+              : [
+                  _NamazTheme.emerald.withValues(alpha: 0.04),
+                  _NamazTheme.goldSoft.withValues(alpha: 0.3)
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -644,8 +694,76 @@ class _IllustrationCard extends StatelessWidget {
           ),
         ],
       ),
-      child: _FallbackIllustration(step: step),
-    ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
+      child: hasImage
+          ? Stack(
+              children: [
+                // Step image — full width, fixed height
+                Image.asset(
+                  imagePath,
+                  width: double.infinity,
+                  height: 260,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) =>
+                      _FallbackIllustration(step: step),
+                  frameBuilder: (ctx, child, frame, wasSynced) {
+                    if (wasSynced || frame != null) return child;
+                    return Container(
+                      height: 260,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(
+                        color: _NamazTheme.emerald,
+                        strokeWidth: 2,
+                      ),
+                    );
+                  },
+                ),
+                // Subtle top gradient overlay so image blends with card
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark ? _NamazTheme.darkCardAlt : Colors.white)
+                              .withValues(alpha: 0.5),
+                          Colors.transparent,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+                // Subtle bottom gradient overlay
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    height: 32,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          (isDark ? _NamazTheme.darkCardAlt : Colors.white)
+                              .withValues(alpha: 0.4),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : _FallbackIllustration(step: step),
+    )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutCubic);
   }
 }
 
@@ -662,9 +780,11 @@ class _FallbackIllustration extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Positioned(
-            top: -10, right: -10,
+            top: -10,
+            right: -10,
             child: Container(
-              width: 60, height: 60,
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _NamazTheme.emerald.withValues(alpha: 0.04),
@@ -672,19 +792,16 @@ class _FallbackIllustration extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: -8, left: -8,
+            bottom: -8,
+            left: -8,
             child: Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: _NamazTheme.gold.withValues(alpha: 0.05),
               ),
             ),
-          ),
-          Icon(
-            Icons.accessibility_new_rounded,
-            color: _NamazTheme.emerald.withValues(alpha: 0.1),
-            size: 120,
           ),
         ],
       ),
@@ -698,7 +815,8 @@ class _StepTitle extends StatelessWidget {
   final bool isBn;
   final bool isDark;
 
-  const _StepTitle({required this.step, required this.isBn, required this.isDark});
+  const _StepTitle(
+      {required this.step, required this.isBn, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -757,7 +875,8 @@ class _InstructionCard extends StatelessWidget {
   final bool isBn;
   final bool isDark;
 
-  const _InstructionCard({required this.step, required this.isBn, required this.isDark});
+  const _InstructionCard(
+      {required this.step, required this.isBn, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -815,7 +934,8 @@ class _InstructionCard extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: _NamazTheme.emeraldLight.withValues(alpha: 0.6),
+                          color:
+                              _NamazTheme.emeraldLight.withValues(alpha: 0.6),
                           letterSpacing: 1,
                         ),
                       ),
@@ -827,7 +947,9 @@ class _InstructionCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 13.5,
                       height: 1.7,
-                      color: isDark ? Colors.white.withValues(alpha: 0.8) : AppColors.textDark.withValues(alpha: 0.85),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : AppColors.textDark.withValues(alpha: 0.85),
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -882,7 +1004,10 @@ class _ArabicSection extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [_NamazTheme.gold.withValues(alpha: 0.08), Colors.transparent]
+                    ? [
+                        _NamazTheme.gold.withValues(alpha: 0.08),
+                        Colors.transparent
+                      ]
                     : [_NamazTheme.goldSoft, _NamazTheme.lightCard],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -903,7 +1028,8 @@ class _ArabicSection extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 14),
+                  child: const Icon(Icons.auto_stories_rounded,
+                      color: Colors.white, size: 14),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -931,7 +1057,8 @@ class _ArabicSection extends StatelessWidget {
                     : _NamazTheme.goldSoft.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: _NamazTheme.gold.withValues(alpha: isDark ? 0.08 : 0.12),
+                  color:
+                      _NamazTheme.gold.withValues(alpha: isDark ? 0.08 : 0.12),
                 ),
               ),
               child: Obx(() => Text(
@@ -974,7 +1101,9 @@ class _ArabicSection extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
-                      color: isDark ? Colors.white.withValues(alpha: 0.5) : AppColors.textMuted,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.5)
+                          : AppColors.textMuted,
                       height: 1.5,
                     ),
                   ),
@@ -998,10 +1127,14 @@ class _ArabicSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isBn ? 'অর্থ: ${step.meaningBn}' : 'Meaning: ${step.meaningEn}',
+                    isBn
+                        ? 'অর্থ: ${step.meaningBn}'
+                        : 'Meaning: ${step.meaningEn}',
                     style: GoogleFonts.poppins(
                       fontSize: 13,
-                      color: isDark ? Colors.white.withValues(alpha: 0.75) : AppColors.textDark.withValues(alpha: 0.8),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.75)
+                          : AppColors.textDark.withValues(alpha: 0.8),
                       height: 1.5,
                       fontWeight: FontWeight.w400,
                     ),
@@ -1244,7 +1377,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * math.cos(angle),
         center.dy + radius * math.sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);
