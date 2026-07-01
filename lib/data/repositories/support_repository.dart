@@ -28,11 +28,15 @@ class SupportRepository {
 
   // --- Firestore Real-time Methods ---
 
-  Stream<List<SupportTicket>> streamAllTickets() {
+  Stream<List<SupportTicket>> streamMyTickets(String userId) {
     return _firestore.collection('support_tickets')
-        .orderBy('updatedAt', descending: true)
+        .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => _ticketFromDoc(doc)).toList());
+        .map((snapshot) {
+          final list = snapshot.docs.map((doc) => _ticketFromDoc(doc)).toList();
+          list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+          return list;
+        });
   }
 
   Stream<List<SupportMessage>> streamMessages(String ticketId) {
@@ -164,7 +168,7 @@ class SupportRepository {
         debugPrint('Failed to get language settings: $e');
       }
 
-      final platformStr = Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'unknown');
+      final platformStr = kIsWeb ? 'web' : (Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : 'unknown'));
 
       final Map<String, dynamic> requestData;
       if (useMcp) {

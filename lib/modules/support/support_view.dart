@@ -157,7 +157,7 @@ class SupportChatView extends GetView<SupportController> {
                     return _buildTypingIndicator(isDark);
                   }
                   final msg = messages[index];
-                  final isMe = msg.senderId == userId;
+                  final isMe = msg.senderId == controller.effectiveUserId;
                   return _MessageBubble(msg: msg, isMe: isMe, isDark: isDark);
                 },
               );

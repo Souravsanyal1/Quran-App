@@ -8,6 +8,11 @@ service cloud.firestore {
       return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
 
+    // Helper: checks if a UID is anonymous (guest user)
+    function isAnonymous(uid) {
+      return uid is string && uid >= 'anon_' && uid < 'anona';
+    }
+
     // Helper: validates basic string length
     function isValidString(val, min, max) {
       return val is string && val.size() >= min && val.size() <= max;
@@ -15,27 +20,30 @@ service cloud.firestore {
 
     // Support tickets
     match /support_tickets/{ticketId} {
-      allow create: if request.auth != null
+      allow create: if (request.auth != null
         && isValidString(request.resource.data.subject, 3, 100)
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == request.auth.uid)
+        || (request.auth == null
+        && isValidString(request.resource.data.subject, 3, 100)
+        && isAnonymous(request.resource.data.userId));
 
-      allow read, list: if request.auth != null && (
+      allow read, list: if (request.auth != null && (
         isAdmin() || resource.data.userId == request.auth.uid
-      );
+      )) || (request.auth == null && isAnonymous(resource.data.userId));
 
-      allow update: if request.auth != null && (
+      allow update: if (request.auth != null && (
         isAdmin() || (resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid)
-      );
+      )) || (request.auth == null && isAnonymous(resource.data.userId) && request.resource.data.userId == resource.data.userId);
 
       allow delete: if isAdmin();
 
       match /messages/{messageId} {
-        allow create: if request.auth != null;
-        allow update: if request.auth != null;
-        allow read, list: if request.auth != null && (
+        allow create: if request.auth != null || isAnonymous(get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId);
+        allow update: if request.auth != null || isAnonymous(get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId);
+        allow read, list: if (request.auth != null && (
           isAdmin() ||
           get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid
-        );
+        )) || isAnonymous(get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId);
       }
     }
 

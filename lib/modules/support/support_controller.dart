@@ -111,9 +111,8 @@ class SupportController extends GetxController {
 
   void _listenToMyTickets() {
     final uid = effectiveUserId;
-    _repository.streamAllTickets().listen((tickets) {
-      final myOnly = tickets.where((t) => t.userId == uid).toList();
-      myTickets.assignAll(myOnly);
+    _repository.streamMyTickets(uid).listen((tickets) {
+      myTickets.assignAll(tickets);
       
       // Auto-select active chat
       if (myTickets.isNotEmpty && activeTicket.value == null) {
