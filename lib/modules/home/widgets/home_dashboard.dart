@@ -974,8 +974,9 @@ class _CustomAdBanner extends StatelessWidget {
     return Obx(() {
       if (bannerController.campaignAds.isEmpty) return const SizedBox.shrink();
 
-      final ad =
-          bannerController.campaignAds[bannerController.currentAdIndex.value];
+      final int totalAds = bannerController.campaignAds.length;
+      final int activeIndex = bannerController.currentAdIndex.value.clamp(0, totalAds - 1);
+      final ad = bannerController.campaignAds[activeIndex];
       final String title = ad['title'] ?? '';
       final String imageUrl = ad['imageUrl'] ?? '';
       final String targetUrl = ad['targetUrl'] ?? '';
