@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/cloudinary_service.dart';
 import '../../data/models/support_chat_model.dart';
 import '../../data/repositories/support_repository.dart';
@@ -18,6 +19,10 @@ class SupportController extends GetxController {
   final AuthController _authController = Get.find<AuthController>();
   final ImagePicker _picker = ImagePicker();
   final Logger _logger = Logger();
+
+  String? _anonymousUserId;
+  String? _anonymousUserName;
+  String? _anonymousUserEmail;
 
   SupportController(this._repository);
 
@@ -57,12 +62,38 @@ class SupportController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _listenToMyTickets();
-    _listenToPersonalNotifications();
+    _initAnonymousUser().then((_) {
+      _listenToMyTickets();
+      _listenToPersonalNotifications();
+    });
 
     // Debounce message input for typing indicator
     messageController.addListener(_onMessageChanged);
   }
+
+  Future<void> _initAnonymousUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? storedId = prefs.getString('anonymous_user_id');
+      if (storedId == null) {
+        storedId = 'anon_${const Uuid().v4().substring(0, 8)}';
+        await prefs.setString('anonymous_user_id', storedId);
+      }
+      _anonymousUserId = storedId;
+      
+      _anonymousUserName = prefs.getString('anonymous_user_name') ?? 'Guest User';
+      _anonymousUserEmail = prefs.getString('anonymous_user_email') ?? 'guest@anonymous.com';
+    } catch (e) {
+      _logger.e('Error initializing anonymous user: $e');
+      _anonymousUserId ??= 'anon_fallback';
+      _anonymousUserName ??= 'Guest User';
+      _anonymousUserEmail ??= 'guest@anonymous.com';
+    }
+  }
+
+  String get effectiveUserId => _authController.user.value?.uid ?? _anonymousUserId ?? 'anonymous';
+  String get effectiveUserName => _authController.user.value?.displayName ?? _authController.user.value?.email?.split('@').first ?? _anonymousUserName ?? 'Guest';
+  String get effectiveUserEmail => _authController.user.value?.email ?? _anonymousUserEmail ?? 'guest@anonymous.com';
 
   void _onMessageChanged() {
     if (activeTicket.value == null) return;
@@ -79,14 +110,9 @@ class SupportController extends GetxController {
   }
 
   void _listenToMyTickets() {
-    final user = _authController.user.value;
-    if (user == null) {
-      isLoading.value = false;
-      return;
-    }
-
+    final uid = effectiveUserId;
     _repository.streamAllTickets().listen((tickets) {
-      final myOnly = tickets.where((t) => t.userId == user.uid).toList();
+      final myOnly = tickets.where((t) => t.userId == uid).toList();
       myTickets.assignAll(myOnly);
       
       // Auto-select active chat
@@ -105,10 +131,10 @@ class SupportController extends GetxController {
   }
 
   void _listenToPersonalNotifications() {
-    final user = _authController.user.value;
-    if (user == null) return;
+    final uid = effectiveUserId;
+    if (uid == 'anonymous') return;
 
-    FirebaseFirestore.instance.collection('users').doc(user.uid).collection('notifications')
+    FirebaseFirestore.instance.collection('users').doc(uid).collection('notifications')
         .where('sentAt', isGreaterThan: DateTime.now().subtract(const Duration(minutes: 1)))
         .snapshots()
         .listen((snapshot) {
@@ -124,9 +150,6 @@ class SupportController extends GetxController {
   }
 
   Future<void> createTicket() async {
-    final user = _authController.user.value;
-    if (user == null) return;
-
     if (subjectController.text.isEmpty || descriptionController.text.isEmpty) {
       Get.snackbar('Error', 'Please fill all fields');
       return;
@@ -141,9 +164,9 @@ class SupportController extends GetxController {
 
       final ticket = SupportTicket(
         id: '', 
-        userId: user.uid,
-        userName: user.displayName ?? user.email?.split('@').first ?? 'User',
-        email: user.email ?? '',
+        userId: effectiveUserId,
+        userName: effectiveUserName,
+        email: effectiveUserEmail,
         subject: subjectController.text,
         description: descriptionController.text,
         createdAt: DateTime.now(),
@@ -207,8 +230,7 @@ class SupportController extends GetxController {
 
   Future<void> sendMessage() async {
     final ticket = activeTicket.value;
-    final user = _authController.user.value;
-    if (ticket == null || user == null) return;
+    if (ticket == null) return;
     
     if (ticket.status == TicketStatus.closed) {
       Get.snackbar('Ticket Closed', 'This ticket is closed and cannot receive new messages.');
@@ -229,7 +251,7 @@ class SupportController extends GetxController {
       final message = SupportMessage(
         id: const Uuid().v4(),
         ticketId: ticket.id,
-        senderId: user.uid,
+        senderId: effectiveUserId,
         senderType: 'user',
         message: text,
         imageUrl: imageUrl,
@@ -257,8 +279,7 @@ class SupportController extends GetxController {
 
   Future<void> sendDirectMessage(String text) async {
     final ticket = activeTicket.value;
-    final user = _authController.user.value;
-    if (ticket == null || user == null) return;
+    if (ticket == null) return;
 
     if (ticket.status == TicketStatus.closed) {
       Get.snackbar('Ticket Closed', 'This chat is closed and cannot receive new messages.');
@@ -270,7 +291,7 @@ class SupportController extends GetxController {
       final message = SupportMessage(
         id: const Uuid().v4(),
         ticketId: ticket.id,
-        senderId: user.uid,
+        senderId: effectiveUserId,
         senderType: 'user',
         message: text,
         imageUrl: null,
@@ -347,21 +368,15 @@ class SupportController extends GetxController {
   }
 
   Future<void> startInstantChat() async {
-    final user = _authController.user.value;
-    if (user == null) {
-      Get.snackbar('Login Required', 'Please login to start a live chat.');
-      return;
-    }
-
     try {
       isSubmitting.value = true;
-      _logger.i('Starting chat for Firebase UID: ${user.uid}');
+      _logger.i('Starting chat for UID: $effectiveUserId');
       
       final ticket = SupportTicket(
         id: '', 
-        userId: user.uid,
-        userName: user.displayName ?? user.email?.split('@').first ?? 'User',
-        email: user.email ?? '',
+        userId: effectiveUserId,
+        userName: effectiveUserName,
+        email: effectiveUserEmail,
         subject: 'Live Chat Support',
         description: 'Direct message session',
         createdAt: DateTime.now(),
