@@ -193,7 +193,7 @@ class DonationView extends StatelessWidget {
               context,
               settings,
               'Islami Bank Bangladesh Ltd',
-              'A/C No: 2050 356 67 00160203\nName: Quran App Project',
+              'A/C No: 2050 356 67 00160203\nName: Qurania Project',
               Icons.account_balance_rounded,
             ),
           ],

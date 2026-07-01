@@ -257,7 +257,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                 
                 // Footer
                 Text(
-                  bn ? 'Quran App এর সাথে থাকার জন্য ধন্যবাদ।' : 'Thank you for supporting Quran App.',
+                  bn ? 'Qurania এর সাথে থাকার জন্য ধন্যবাদ।' : 'Thank you for supporting Qurania.',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: subtitleColor,

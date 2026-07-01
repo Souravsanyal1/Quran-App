@@ -78,9 +78,11 @@ class SplashController extends GetxController {
       
       // Give it a moment to finish its bindStream and _checkAdminStatus
       int retryCount = 0;
-      while (auth.user.value == null && FirebaseAuth.instance.currentUser != null && retryCount < 20) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        retryCount++;
+      if (FirebaseAuth.instance.currentUser != null) {
+        while (auth.user.value == null && retryCount < 10) {
+          await Future.delayed(const Duration(milliseconds: 50));
+          retryCount++;
+        }
       }
 
       progress.value = 0.90;
@@ -100,25 +102,29 @@ class SplashController extends GetxController {
 
       // Perform background/asynchronous setup tasks (Mobile only)
       if (!kIsWeb) {
-        final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
-        if (!batteryAsked) {
-          prefs.setBool('battery_opt_asked', true);
-          NotificationService.instance.requestBatteryOptimization();
-        }
+        // Run these without awaiting to speed up transition
+        Future(() async {
+          final bool batteryAsked = prefs.getBool('battery_opt_asked') ?? false;
+          if (!batteryAsked) {
+            prefs.setBool('battery_opt_asked', true);
+            NotificationService.instance.requestBatteryOptimization();
+          }
 
-        final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
-        if (duaEnabled) {
-          final int h = prefs.getInt('dua_reminder_hour') ?? 8;
-          final int m = prefs.getInt('dua_reminder_minute') ?? 0;
-          NotificationService.instance.scheduleDuaReminder(
-            TimeOfDay(hour: h, minute: m),
-          );
-        }
+          final bool duaEnabled = prefs.getBool('dua_reminder_enabled') ?? false;
+          if (duaEnabled) {
+            final int h = prefs.getInt('dua_reminder_hour') ?? 8;
+            final int m = prefs.getInt('dua_reminder_minute') ?? 0;
+            NotificationService.instance.scheduleDuaReminder(
+              TimeOfDay(hour: h, minute: m),
+            );
+          }
+        });
       }
 
       statusMessage.value = 'Ready!';
       progress.value = 1.0;
-      await Future.delayed(const Duration(milliseconds: 100));
+      // No extra delay needed here
+
 
       final onboardingDone = prefs.getBool(_onboardingKey) ?? false;
       if (!onboardingDone && !kIsWeb) {

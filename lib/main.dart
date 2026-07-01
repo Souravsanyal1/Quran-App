@@ -67,8 +67,8 @@ Future<void> main() async {
       }),
       if (!kIsWeb)
         JustAudioBackground.init(
-          androidNotificationChannelId: 'com.quranapp.quran_app.channel.audio',
-          androidNotificationChannelName: 'Quran Recitation',
+          androidNotificationChannelId: 'com.qurania.app.channel.audio',
+          androidNotificationChannelName: 'Qurania Recitation',
           androidNotificationOngoing: true,
         ),
     ]);

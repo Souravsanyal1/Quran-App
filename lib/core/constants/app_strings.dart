@@ -3,8 +3,8 @@ class AppStrings {
   AppStrings._();
 
   // ── App ───────────────────────────────────────────────────────────────────
-  static const String appName = 'Quran App';
-  static const String appNameBn = 'কুরআন অ্যাপ';
+  static const String appName = 'Qurania';
+  static const String appNameBn = 'কুরানিয়া';
   static const String tagline = 'Read · Listen · Reflect';
   static const String taglineBn = 'পড়ুন · শুনুন · চিন্তা করুন';
 

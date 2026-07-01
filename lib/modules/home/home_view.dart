@@ -169,7 +169,7 @@ class _IslamicAppBar extends StatelessWidget implements PreferredSizeWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            isBangla ? 'কুরআন অ্যাপ' : 'Quran App',
+            isBangla ? 'কুরানিয়া' : 'Qurania',
             style: _QTheme.appBarTitle(isBangla),
           ),
           // Gold accent underline

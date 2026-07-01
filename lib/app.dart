@@ -26,7 +26,7 @@ class QuranApp extends StatelessWidget {
     }
 
     return GetMaterialApp(
-      title: 'Quran App',
+      title: 'Qurania',
       debugShowCheckedModeBanner: false,
       enableLog: false,
 

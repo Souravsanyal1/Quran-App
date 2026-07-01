@@ -117,7 +117,7 @@ class SplashView extends StatelessWidget {
 
                   // App name
                   const Text(
-                    'Quran App',
+                    'Qurania',
                     style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w800,

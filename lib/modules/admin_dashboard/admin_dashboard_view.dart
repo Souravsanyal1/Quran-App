@@ -98,7 +98,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           ),
           const SizedBox(width: 12),
           const Text(
-            'Quran App Cloud Engine',
+            'Qurania Cloud Engine',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: -0.5),
           ),
           const SizedBox(width: 12),

@@ -331,7 +331,7 @@ class _DrawerHeader extends StatelessWidget {
                 const SizedBox(height: 18),
                 // App name
                 Text(
-                  bn ? 'কুরআন অ্যাপ' : 'Quran App',
+                  bn ? 'কুরানিয়া' : 'Qurania',
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 22,

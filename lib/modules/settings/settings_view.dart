@@ -292,7 +292,7 @@ class SettingsView extends GetView<SettingsController> {
 
             const SizedBox(height: 32),
             Text(
-              'Quran App v1.0.0\nMade with ❤️ for the Ummah',
+              'Qurania v1.0.0\nMade with ❤️ for the Ummah',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 color: AppColors.textMuted,

@@ -73,7 +73,7 @@ class LoginView extends GetView<AuthController> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Access your Quran App dashboard',
+                    'Access your Qurania dashboard',
                     style: GoogleFonts.poppins(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 14,

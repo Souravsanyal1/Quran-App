@@ -805,8 +805,8 @@ class _DailyVerseCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     onTap: () {
                       final text = isBangla
-                          ? '${verse.arabic}\n\n${verse.bangla}\n\n${verse.referenceBn}\n\nShared from Quran App'
-                          : '${verse.arabic}\n\n${verse.english}\n\n${verse.referenceEn}\n\nShared from Quran App';
+                          ? '${verse.arabic}\n\n${verse.bangla}\n\n${verse.referenceBn}\n\nShared from Qurania'
+                          : '${verse.arabic}\n\n${verse.english}\n\n${verse.referenceEn}\n\nShared from Qurania';
                       Share.share(text);
                     },
                     child: Container(
