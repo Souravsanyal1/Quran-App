@@ -39,6 +39,13 @@ class SupportRepository {
         });
   }
 
+  Stream<List<SupportTicket>> streamAllTickets() {
+    return _firestore.collection('support_tickets')
+        .orderBy('updatedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => _ticketFromDoc(doc)).toList());
+  }
+
   Stream<List<SupportMessage>> streamMessages(String ticketId) {
     return _firestore.collection('support_tickets').doc(ticketId).collection('messages')
         .orderBy('timestamp', descending: false)
