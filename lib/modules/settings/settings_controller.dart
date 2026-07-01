@@ -201,21 +201,48 @@ class SettingsController extends GetxController {
 
   Future<void> setAzanEnabled(bool enabled) async {
     if (enabled) {
-      final granted = await NotificationService.instance.requestNotificationPermission();
-      if (!granted) {
+      final status = await Permission.notification.status;
+      if (!status.isGranted) {
         azanEnabled.value = false;
         await _prefs?.setBool(_keyAzan, false);
+        showPermissionExplanationDialog(
+          title: isBangla ? 'আযানের নোটিফিকেশন অনুমতি' : 'Azan Notification Permission',
+          explanation: isBangla
+              ? 'সঠিক সময়ে আযানের নোটিফিকেশন শোনার জন্য বিজ্ঞপ্তির অনুমতি দেওয়া আবশ্যক।'
+              : 'Azan notification permission is required to sound alerts at the correct prayer times.',
+          icon: Icons.notifications_active_outlined,
+          onGrant: () async {
+            final result = await Permission.notification.request();
+            if (result.isGranted) {
+              azanEnabled.value = true;
+              await _prefs?.setBool(_keyAzan, true);
+              try {
+                final prayerController = Get.find<PrayerTimeController>();
+                if (prayerController.prayerTimes.isNotEmpty) {
+                  await prayerController.loadPrayerTimes();
+                }
+              } catch (_) {}
+            } else {
+              Get.snackbar(
+                isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
+                isBangla ? 'বিজ্ঞপ্তির অনুমতি ছাড়া আযান অ্যালার্ট চালু করা সম্ভব নয়।' : 'Cannot enable Azan alerts without permission.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red.withValues(alpha: 0.8),
+                colorText: Colors.white,
+              );
+            }
+          },
+        );
         return;
       }
     }
+
     azanEnabled.value = enabled;
     await _prefs?.setBool(_keyAzan, enabled);
     if (enabled) {
-      // Re-schedule if prayer times are already loaded
       try {
         final prayerController = Get.find<PrayerTimeController>();
         if (prayerController.prayerTimes.isNotEmpty) {
-          // Re-fetch to trigger scheduling with current timings
           await prayerController.loadPrayerTimes();
         }
       } catch (_) {}
@@ -226,13 +253,37 @@ class SettingsController extends GetxController {
 
   Future<void> setNotificationsEnabled(bool enabled) async {
     if (enabled) {
-      final granted = await NotificationService.instance.requestNotificationPermission();
-      if (!granted) {
+      final status = await Permission.notification.status;
+      if (!status.isGranted) {
         notificationsEnabled.value = false;
         await _prefs?.setBool(_keyNotifications, false);
+        showPermissionExplanationDialog(
+          title: isBangla ? 'বিজ্ঞপ্তির অনুমতি প্রয়োজন' : 'Notification Permission Required',
+          explanation: isBangla
+              ? 'আপনাকে অ্যাপের গুরুত্বপূর্ণ আপডেট ও নোটিফিকেশন পাঠাতে বিজ্ঞপ্তির অনুমতি প্রয়োজন।'
+              : 'Notification permission is required to send you important updates and notifications.',
+          icon: Icons.notifications_active_outlined,
+          onGrant: () async {
+            final result = await Permission.notification.request();
+            if (result.isGranted) {
+              notificationsEnabled.value = true;
+              await _prefs?.setBool(_keyNotifications, true);
+              await NotificationService.instance.toggleFCM(true);
+            } else {
+              Get.snackbar(
+                isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
+                isBangla ? 'বিজ্ঞপ্তির অনুমতি ছাড়া নোটিফিকেশন চালু করা সম্ভব নয়।' : 'Cannot enable notifications without permission.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red.withValues(alpha: 0.8),
+                colorText: Colors.white,
+              );
+            }
+          },
+        );
         return;
       }
     }
+
     notificationsEnabled.value = enabled;
     await _prefs?.setBool(_keyNotifications, enabled);
     await NotificationService.instance.toggleFCM(enabled);
@@ -242,25 +293,157 @@ class SettingsController extends GetxController {
     selectedQari.value = qariId;
     await _prefs?.setString(_keyQari, qariId);
     
-    // Auto-update the active audio session with the new Qari
     try {
       final audioService = Get.find<AudioPlayerService>();
       if (audioService.isPlaying.value || audioService.player.processingState != ProcessingState.idle) {
-        // If something is playing or loaded, we might need to reload or just let the next one take it
-        // For now, let's at least ensure the preference is saved.
+        // Preference saved.
       }
     } catch (_) {}
   }
 
   Future<void> setBackgroundPlay(bool enabled) async {
-    backgroundPlayEnabled.value = enabled;
-    await _prefs?.setBool(_keyBackgroundPlay, enabled);
     if (enabled) {
       final status = await Permission.ignoreBatteryOptimizations.status;
       if (!status.isGranted) {
-        await Permission.ignoreBatteryOptimizations.request();
+        backgroundPlayEnabled.value = false;
+        await _prefs?.setBool(_keyBackgroundPlay, false);
+        showPermissionExplanationDialog(
+          title: isBangla ? 'ব্যাকগ্রাউন্ড প্লে অনুমতি' : 'Background Play Permission',
+          explanation: isBangla
+              ? 'স্ক্রিন অফ থাকা অবস্থায় বা অন্য অ্যাপ ব্যবহারের সময় প্লেয়ার সচল রাখতে ব্যাটারি অপ্টিমাইজেশন নিষ্ক্রিয় করার অনুমতি দিন।'
+              : 'Allow disabling battery optimization to keep the audio player active when the screen is off or when using other apps.',
+          icon: Icons.battery_saver_outlined,
+          onGrant: () async {
+            final result = await Permission.ignoreBatteryOptimizations.request();
+            if (result.isGranted) {
+              backgroundPlayEnabled.value = true;
+              await _prefs?.setBool(_keyBackgroundPlay, true);
+            } else {
+              Get.snackbar(
+                isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
+                isBangla ? 'ব্যাটারি অপ্টিমাইজেশন নিষ্ক্রিয় না করলে ব্যাকগ্রাউন্ড প্লে কাজ করবে না।' : 'Background play will not work without battery optimization exemption.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red.withValues(alpha: 0.8),
+                colorText: Colors.white,
+              );
+            }
+          },
+        );
+        return;
       }
     }
+
+    backgroundPlayEnabled.value = enabled;
+    await _prefs?.setBool(_keyBackgroundPlay, enabled);
+  }
+
+  void showPermissionExplanationDialog({
+    required String title,
+    required String explanation,
+    required IconData icon,
+    required VoidCallback onGrant,
+  }) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141420),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFC9A84C).withValues(alpha: 0.3), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1B5E35).withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1B5E35).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  color: const Color(0xFFC9A84C),
+                  size: 56,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                explanation,
+                style: GoogleFonts.poppins(
+                  fontSize: 13.5,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white60,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: Colors.white10),
+                        ),
+                      ),
+                      onPressed: () => Get.back(),
+                      child: Text(
+                        isBangla ? 'বাতিল' : 'Cancel',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1B5E35),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.back();
+                        onGrant();
+                      },
+                      child: Text(
+                        isBangla ? 'অনুমতি দিন' : 'Grant',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ── Daily Dua Reminder ────────────────────────────────────────────────────
