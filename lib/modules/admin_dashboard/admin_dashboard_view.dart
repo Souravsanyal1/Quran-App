@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/support_chat_model.dart';
+import '../../data/repositories/support_repository.dart';
 import '../auth/auth_controller.dart';
 import '../home/banner_controller.dart';
 import '../settings/settings_controller.dart';
