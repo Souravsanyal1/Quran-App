@@ -1425,13 +1425,13 @@
                 </div>
               </div>
               
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; margin-bottom: 20px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; margin-bottom: 10px;">
                 <div class="checkbox-group">
                   <input type="checkbox" id="config-force-update">
                   <label for="config-force-update">Enable Force Update</label>
                 </div>
                 <div class="checkbox-group">
-                  <input type="checkbox" id="config-maintenance">
+                  <input type="checkbox" id="config-maintenance" onchange="toggleMaintenanceFields(this.checked)">
                   <label for="config-maintenance">Enable Maintenance Mode</label>
                 </div>
                 <div class="checkbox-group">
@@ -1441,6 +1441,15 @@
                 <div class="checkbox-group">
                   <input type="checkbox" id="config-live-support">
                   <label for="config-live-support">Live Support Bot Active</label>
+                </div>
+              </div>
+
+              <!-- Maintenance End Time -->
+              <div id="maintenance-fields" style="display:none; margin-bottom:20px; padding:16px; background:rgba(255,165,0,0.07); border-left:3px solid #FFA500; border-radius:10px;">
+                <div class="form-group" style="margin-bottom:0">
+                  <label style="color:#FFA500;">⏰ Maintenance End Date & Time (optional)</label>
+                  <input type="datetime-local" id="config-maintenance-end" style="color-scheme: dark;">
+                  <p style="font-size:0.78rem; color:rgba(255,255,255,0.35); margin-top:6px;">Leave blank for indefinite maintenance. App will auto-recover when this time passes.</p>
                 </div>
               </div>
 
@@ -1807,6 +1816,20 @@
           document.getElementById('config-ann-title').value = data.announcementTitle || '';
           document.getElementById('config-ann-body').value = data.announcementBody || '';
           document.getElementById('config-ann-img').value = data.announcementImageUrl || '';
+
+          // Load maintenance end time
+          const maintenanceOn = data.maintenanceMode || false;
+          toggleMaintenanceFields(maintenanceOn);
+          if (data.maintenanceEndTime) {
+            const ts = data.maintenanceEndTime;
+            const dt = ts.toDate ? ts.toDate() : new Date(ts);
+            // Convert to local datetime-local format (YYYY-MM-DDTHH:mm)
+            const pad = (n) => String(n).padStart(2, '0');
+            const local = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+            document.getElementById('config-maintenance-end').value = local;
+          } else {
+            document.getElementById('config-maintenance-end').value = '';
+          }
           
           toggleAnnounceInputs(showAnn);
         }
@@ -1818,6 +1841,10 @@
 
     function toggleAnnounceInputs(show) {
       document.getElementById('announce-fields').style.display = show ? 'block' : 'none';
+    }
+
+    function toggleMaintenanceFields(show) {
+      document.getElementById('maintenance-fields').style.display = show ? 'block' : 'none';
     }
 
     // Save App Config
@@ -1840,20 +1867,30 @@
         const annBody = document.getElementById('config-ann-body').value.trim();
         const annImg = document.getElementById('config-ann-img').value.trim();
 
-        await db.collection('app_settings').doc('update_config').set({
+        // Maintenance end time handling
+        const endTimeStr = document.getElementById('config-maintenance-end').value;
+        let maintenanceEndTime = null;
+        if (maintenance && endTimeStr) {
+          maintenanceEndTime = firebase.firestore.Timestamp.fromDate(new Date(endTimeStr));
+        }
+
+        const payload = {
           version: version,
           buildNumber: build,
           forceUpdate: forceUpdate,
           maintenanceMode: maintenance,
+          maintenanceEndTime: maintenanceEndTime,
           isNamazGuideActive: namazActive,
           isLiveSupportBotEnabled: liveSupport,
           showAnnouncement: showAnnounce,
           announcementTitle: annTitle,
           announcementBody: annBody,
           announcementImageUrl: annImg,
-          announcementId: Date.now().toString(), // Force popup trigger
+          announcementId: Date.now().toString(),
           lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        };
+
+        await db.collection('app_settings').doc('update_config').set(payload, { merge: true });
 
         showAlert('panel-alert', 'Configuration saved successfully!', 'success');
       } catch (err) {

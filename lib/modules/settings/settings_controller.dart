@@ -157,10 +157,14 @@ class SettingsController extends GetxController {
       if (!isUserAdmin && Get.currentRoute != AppRoutes.maintenance) {
         Get.offAllNamed(AppRoutes.maintenance);
       }
-      _startMaintenanceCheckTimer();
+      // Start timer only if there's an end time set
+      if (maintenanceEndTime.value != null) {
+        _startMaintenanceCheckTimer();
+      }
     } else {
       _maintenanceTimer?.cancel();
       if (Get.currentRoute == AppRoutes.maintenance) {
+        // Restart app flow properly — splash handles auth & routing
         Get.offAllNamed(AppRoutes.splash);
       }
     }
