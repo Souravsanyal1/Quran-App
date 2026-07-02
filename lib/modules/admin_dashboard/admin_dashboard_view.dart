@@ -67,6 +67,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             ).animate(onPlay: (c) => c.repeat()).rotate(duration: const Duration(seconds: 2)),
           ),
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           const Text(
             'Initializing Cloud Engine...',
             style: TextStyle(
@@ -423,8 +476,114 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       children: [
         _buildSectionHeader('Support Tickets', 'Manage and respond to user requests.'),
         const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
         _buildTicketFilters(),
         const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
         Expanded(
           child: Obx(() {
             if (controller.filteredTickets.isEmpty) {
@@ -710,6 +869,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             )),
           ],
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           Obx(() => _buildActionButton(
             controller.isEditMode.value ? 'Update Banner' : 'Publish Banner',
             controller.addBanner,
@@ -785,6 +997,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             )),
           ],
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           Obx(() => _buildActionButton(
             controller.isAdEditMode.value ? 'Update Campaign Ad' : 'Publish Campaign Ad',
             controller.addCustomAd,
@@ -867,6 +1132,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             )),
           ],
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           Obx(() => _buildActionButton(
                 controller.isStaticEditMode.value ? 'Update Static Banner' : 'Publish Static Banner',
                 controller.addStaticBanner,
@@ -917,6 +1235,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           const SizedBox(height: 16),
           _buildTextField(controller.notificationImageController, 'Image URL (Optional)', Icons.image_rounded),
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           Obx(() => _buildActionButton(
             'Broadcast Now',
             controller.sendBroadcastNotification,
@@ -936,6 +1307,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         _buildFormCard([
           _buildTextField(controller.prayerMessageController, 'Global Prayer Message', Icons.message_rounded),
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           _buildActionButton('Save Configuration', controller.savePrayerSettings, isLoading: controller.isSettingsSaving.value),
         ]),
       ],
@@ -1049,6 +1473,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
         ]),
         const SizedBox(height: 24),
         _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
+        _buildFormCard([
           const Text('Version Control', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 16),
           _buildTextField(controller.versionController, 'Current Version (e.g. 1.2.0)', Icons.vibration_rounded),
@@ -1130,6 +1607,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             );
           }),
           const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
           Obx(() => _buildActionButton(
                 'Save Update Config',
                 controller.saveUpdateConfig,
@@ -1401,6 +1931,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               );
             }),
             const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
             _buildActionButton(
               'Save Configuration',
               () async {
@@ -1425,6 +2008,59 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             const SizedBox(height: 16),
             _buildTextField(n8nController.testMessageController, 'Test Message', Icons.chat_bubble_outline_rounded),
             const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('In-App Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Show Announcement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('Displays a popup dialog when user opens the app.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.showAnnouncement.value,
+                    onChanged: (val) => controller.showAnnouncement.value = val,
+                    activeColor: const Color(0xFFC9A84C),
+                  )),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementTitleController, 'Title (e.g. 📢 Important Update)', Icons.title_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementBodyController, 'Message Body', Icons.message_rounded, maxLines: 3),
+          const SizedBox(height: 16),
+          _buildTextField(controller.announcementImageController, 'Image URL (Optional)', Icons.image_rounded),
+        ]),
+        const SizedBox(height: 24),
+        _buildFormCard([
+          const Text('Feature Toggles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Namaz Guide Active', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    Text('If off, users will see "Coming Soon". If on, page is available.', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                  ],
+                ),
+              ),
+              Obx(() => Switch(
+                    value: controller.isNamazGuideActive.value,
+                    onChanged: (val) => controller.isNamazGuideActive.value = val,
+                    activeColor: const Color(0xFF1B5E35),
+                  )),
+            ],
+          ),
+        ]),
+        const SizedBox(height: 24),
+
             Obx(() => _buildActionButton(
                   n8nController.isTesting.value ? 'Testing...' : 'Test Connection',
                   () => n8nController.testConnection(),

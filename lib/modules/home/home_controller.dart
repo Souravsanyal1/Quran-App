@@ -5,7 +5,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../../core/constants/app_routes.dart';
 
+import '../settings/settings_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 class HomeController extends GetxController {
+
   final RxInt currentIndex = 0.obs;
   final RxInt currentHour = DateTime.now().hour.obs;
   Timer? _greetingTimer;
@@ -29,7 +33,93 @@ class HomeController extends GetxController {
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       currentHour.value = DateTime.now().hour;
     });
+    _checkAndShowAnnouncement();
   }
+
+  void _checkAndShowAnnouncement() async {
+    final settings = Get.find<SettingsController>();
+    final prefs = await SharedPreferences.getInstance();
+
+    // Small delay to ensure UI is ready
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    if (settings.showAnnouncement.value) {
+      final lastId = prefs.getString('last_announcement_id') ?? '';
+      if (lastId != settings.announcementId.value) {
+        _showAnnouncementDialog(settings);
+        prefs.setString('last_announcement_id', settings.announcementId.value);
+      }
+    }
+  }
+
+  void _showAnnouncementDialog(SettingsController settings) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: settings.isDark ? const Color(0xFF141420) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFC9A84C).withOpacity(0.3), width: 1.5),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header Image
+              if (settings.announcementImageUrl.value.isNotEmpty)
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(23)),
+                  child: CachedNetworkImage(
+                    imageUrl: settings.announcementImageUrl.value,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(height: 150, color: Colors.grey.withOpacity(0.1)),
+                  ),
+                ),
+              
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Text(
+                      settings.announcementTitle.value.isEmpty ? '📢 Announcement' : settings.announcementTitle.value,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      settings.announcementBody.value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: settings.isDark ? Colors.white70 : Colors.black87,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1B5E35),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () => Get.back(),
+                        child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   void startShowcase(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();

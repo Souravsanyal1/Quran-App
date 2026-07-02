@@ -33,6 +33,17 @@ class SettingsController extends GetxController {
   final RxBool isLoading = true.obs;
   final Rxn<DateTime> maintenanceEndTime = Rxn<DateTime>();
   final Rx<DateTime> currentTime = DateTime.now().obs;
+
+  // Announcement
+  final RxBool showAnnouncement = false.obs;
+  final RxString announcementTitle = ''.obs;
+  final RxString announcementBody = ''.obs;
+  final RxString announcementImageUrl = ''.obs;
+  final RxString announcementId = ''.obs;
+
+  // Feature Toggles
+  final RxBool isNamazGuideActive = false.obs;
+
   Timer? _maintenanceTimer;
   Timer? _clockTimer;
 
@@ -89,6 +100,14 @@ class SettingsController extends GetxController {
     // 1. Check Maintenance Mode
     bool isMaintenanceActive = data['maintenanceMode'] == true;
     
+    // 2. Load Announcement & Feature Toggles
+    showAnnouncement.value = data['showAnnouncement'] ?? false;
+    announcementTitle.value = data['announcementTitle'] ?? '';
+    announcementBody.value = data['announcementBody'] ?? '';
+    announcementImageUrl.value = data['announcementImageUrl'] ?? '';
+    announcementId.value = data['announcementId'] ?? '';
+    isNamazGuideActive.value = data['isNamazGuideActive'] ?? false;
+
     if (data['maintenanceEndTime'] != null) {
       final endTime = data['maintenanceEndTime'];
       if (endTime is Timestamp) {
@@ -517,6 +536,11 @@ class SettingsController extends GetxController {
     final currentUser = auth.user.value;
     if (currentUser == null) {
       _showComingSoonDialog();
+      return;
+    }
+
+    if (isNamazGuideActive.value) {
+      Get.toNamed(route);
       return;
     }
 

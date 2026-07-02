@@ -53,6 +53,13 @@ class AdminDashboardController extends GetxController {
 
   final prayerMessageController = TextEditingController();
 
+  final announcementTitleController = TextEditingController();
+  final announcementBodyController = TextEditingController();
+  final announcementImageController = TextEditingController();
+  final RxBool showAnnouncement = false.obs;
+  final RxBool isNamazGuideActive = false.obs;
+
+
   // Support Tickets
   final RxList<SupportTicket> allTickets = <SupportTicket>[].obs;
   final RxList<SupportTicket> filteredTickets = <SupportTicket>[].obs;
@@ -184,6 +191,11 @@ class AdminDashboardController extends GetxController {
       buildNumberController.text = (data?['buildNumber'] ?? 1).toString();
       forceUpdateEnabled.value = data?['forceUpdate'] ?? false;
       maintenanceModeEnabled.value = data?['maintenanceMode'] ?? false;
+      showAnnouncement.value = data?['showAnnouncement'] ?? false;
+      isNamazGuideActive.value = data?['isNamazGuideActive'] ?? false;
+      announcementTitleController.text = data?['announcementTitle'] ?? '';
+      announcementBodyController.text = data?['announcementBody'] ?? '';
+      announcementImageController.text = data?['announcementImageUrl'] ?? '';
       if (data?['maintenanceEndTime'] != null) {
         maintenanceEndTime.value = (data?['maintenanceEndTime'] as Timestamp).toDate();
       }
@@ -199,6 +211,12 @@ class AdminDashboardController extends GetxController {
         'forceUpdate': forceUpdateEnabled.value,
         'maintenanceMode': maintenanceModeEnabled.value,
         'maintenanceEndTime': maintenanceEndTime.value != null ? Timestamp.fromDate(maintenanceEndTime.value!) : null,
+        'showAnnouncement': showAnnouncement.value,
+        'isNamazGuideActive': isNamazGuideActive.value,
+        'announcementTitle': announcementTitleController.text.trim(),
+        'announcementBody': announcementBodyController.text.trim(),
+        'announcementImageUrl': announcementImageController.text.trim(),
+        'announcementId': DateTime.now().millisecondsSinceEpoch.toString(), // Changes trigger new popup
         'lastUpdated': FieldValue.serverTimestamp(),
       });
       Get.snackbar('Success', 'App update configuration saved');
@@ -661,6 +679,9 @@ class AdminDashboardController extends GetxController {
     staticBannerTargetController.dispose();
     versionController.dispose();
     buildNumberController.dispose();
+    announcementTitleController.dispose();
+    announcementBodyController.dispose();
+    announcementImageController.dispose();
     super.onClose();
   }
 }
