@@ -124,8 +124,10 @@ class NotificationApiProvider {
       await _firestore.collection('broadcast_notifications').add({
         'title': title,
         'body': body,
-        'imageUrl': imageUrl,
+        'imageUrl': imageUrl ?? '',
         'type': 'broadcast',
+        'status': 'sent_to_queue',
+        'target': 'all',
         'sentAt': FieldValue.serverTimestamp(),
         'isRead': false,
       });

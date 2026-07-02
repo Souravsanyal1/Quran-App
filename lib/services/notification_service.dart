@@ -124,8 +124,14 @@ class NotificationService {
 
   void _listenToFirestoreBroadcasts() {
     if (kIsWeb) return; 
-    final startTime = DateTime.now();
+    // Subtract 1 hour to account for clock drift. We ignore initial historical documents using isInitial flag.
+    final startTime = DateTime.now().subtract(const Duration(hours: 1));
+    bool isInitial = true;
     FirebaseFirestore.instance.collection('broadcast_notifications').where('sentAt', isGreaterThan: startTime).snapshots().listen((snapshot) {
+      if (isInitial) {
+        isInitial = false;
+        return;
+      }
       for (var change in snapshot.docChanges) {
         if (change.type == DocumentChangeType.added) {
           final data = change.doc.data();
