@@ -31,13 +31,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosInit = DarwinInitializationSettings();
       const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
-      await localNotifications.initialize(initSettings);
+      await localNotifications.initialize(settings: initSettings);
       
       await localNotifications.show(
-        message.hashCode,
-        title,
-        body,
-        const NotificationDetails(
+        id: message.hashCode,
+        title: title,
+        body: body,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
             'Announcements',
