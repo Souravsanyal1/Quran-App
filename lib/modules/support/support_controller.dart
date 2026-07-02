@@ -12,6 +12,7 @@ import '../../core/services/cloudinary_service.dart';
 import '../../data/models/support_chat_model.dart';
 import '../../data/repositories/support_repository.dart';
 import '../auth/auth_controller.dart';
+import '../settings/settings_controller.dart';
 
 class SupportController extends GetxController {
   final SupportRepository _repository;
