@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
+import 'donation_controller.dart';
 
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _DonateTheme {
@@ -21,7 +22,7 @@ class _DonateTheme {
   static const Color lightCard    = Color(0xFFFFFFFF);
 }
 
-class DonationView extends StatelessWidget {
+class DonationView extends GetView<DonationController> {
   const DonationView({super.key});
 
   @override
@@ -57,11 +58,17 @@ class DonationView extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(color: _DonateTheme.gold),
+          );
+        }
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // Islamic Quote Card
             Container(
               padding: const EdgeInsets.all(20),
@@ -179,28 +186,33 @@ class DonationView extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Bkash/Nagad/Rocket
-            _buildDonationMethod(
-              context,
-              settings,
-              'bKash / Nagad (Personal)',
-              '+880 13074 60389',
-              Icons.phone_android_rounded,
-            ),
-            const SizedBox(height: 12),
+            if (controller.bkashNagad.value.isNotEmpty) ...[
+              _buildDonationMethod(
+                context,
+                settings,
+                'bKash / Nagad (Personal)',
+                controller.bkashNagad.value,
+                Icons.phone_android_rounded,
+              ),
+              const SizedBox(height: 12),
+            ],
 
             // Bank Account
-            _buildDonationMethod(
-              context,
-              settings,
-              'Islami Bank Bangladesh Ltd',
-              'A/C No: 2050 356 67 00160203\nName: Qurania Project',
-              Icons.account_balance_rounded,
-            ),
+            if (controller.bankDetails.value.isNotEmpty) ...[
+              _buildDonationMethod(
+                context,
+                settings,
+                controller.bankName.value.isNotEmpty ? controller.bankName.value : 'Bank Account',
+                controller.bankDetails.value,
+                Icons.account_balance_rounded,
+              ),
+            ],
           ],
         ),
-      ),
-    );
-  }
+      );
+    }),
+  );
+}
 
   Widget _buildDonationMethod(
     BuildContext context,

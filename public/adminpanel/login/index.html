@@ -1118,6 +1118,10 @@
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
             Prayer Settings
           </button>
+          <button class="nav-btn" id="nav-donation_config" onclick="switchSection('donation_config')">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Donation Settings
+          </button>
           <button class="nav-btn" id="nav-broadcast" onclick="switchSection('broadcast')">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>
             Broadcast Notifications
@@ -1184,7 +1188,7 @@
     const db = firebase.firestore();
 
     // Application state
-    let currentSection = 'banners'; // banners, static_top_banners, custom_ads, app_config, prayer_config, broadcast, support, users
+    let currentSection = 'banners'; // banners, static_top_banners, custom_ads, app_config, prayer_config, donation_config, broadcast, support, users
     let unsubscribeMainStream = null;
     let unsubscribeChatStream = null;
     let openTicketId = null;
@@ -1434,6 +1438,31 @@
           </div>
         `;
         loadPrayerConfigData();
+
+      } else if (sectionId === 'donation_config') {
+        container.className = 'content-area single-col';
+        container.innerHTML = `
+          <div class="panel-card" style="max-width: 600px; margin: 0 auto;">
+            <h3>Donation Account Settings</h3>
+            <div id="panel-alert" class="alert"></div>
+            <form onsubmit="handleSaveDonationConfig(event)">
+              <div class="form-group">
+                <label>bKash / Nagad Number</label>
+                <input type="text" id="donation-bkash-nagad" required placeholder="e.g. +880 13074 60389">
+              </div>
+              <div class="form-group">
+                <label>Bank Name</label>
+                <input type="text" id="donation-bank-name" required placeholder="e.g. Islami Bank Bangladesh Ltd">
+              </div>
+              <div class="form-group">
+                <label>Bank Account Details (A/C No, Name, Branch, etc.)</label>
+                <textarea id="donation-bank-details" required placeholder="A/C No: 2050 356 67 00160203\nName: Qurania Project" style="min-height: 80px;"></textarea>
+              </div>
+              <button type="submit" id="save-donation-btn" class="action-btn">Save Settings</button>
+            </form>
+          </div>
+        `;
+        loadDonationConfigData();
 
       } else if (sectionId === 'broadcast') {
         container.className = 'content-area';
@@ -1709,6 +1738,52 @@
       } catch (err) {
         console.error(err);
         showAlert('panel-alert', 'Failed to save prayer settings: ' + err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'Save Settings';
+      }
+    }
+
+    // Load Donation Config
+    async function loadDonationConfigData() {
+      try {
+        const doc = await db.collection('app_settings').doc('donation_config').get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('donation-bkash-nagad').value = data.bkashNagad || '';
+          document.getElementById('donation-bank-name').value = data.bankName || '';
+          document.getElementById('donation-bank-details').value = data.bankDetails || '';
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert('panel-alert', 'Failed to load donation configurations: ' + err.message, 'error');
+      }
+    }
+
+    // Save Donation Config
+    async function handleSaveDonationConfig(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('save-donation-btn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'Saving...';
+      hideAlert('panel-alert');
+
+      try {
+        const bkashNagad = document.getElementById('donation-bkash-nagad').value.trim();
+        const bankName = document.getElementById('donation-bank-name').value.trim();
+        const bankDetails = document.getElementById('donation-bank-details').value.trim();
+
+        await db.collection('app_settings').doc('donation_config').set({
+          bkashNagad: bkashNagad,
+          bankName: bankName,
+          bankDetails: bankDetails,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        showAlert('panel-alert', 'Donation settings saved successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showAlert('panel-alert', 'Failed to save donation settings: ' + err.message, 'error');
       } finally {
         saveBtn.disabled = false;
         saveBtn.innerText = 'Save Settings';

@@ -37,6 +37,7 @@ import '../modules/qibla/qibla_controller.dart';
 import '../modules/tracker/tracker_view.dart';
 import '../modules/tracker/tracker_controller.dart';
 import '../modules/donation/donation_view.dart';
+import '../modules/donation/donation_controller.dart';
 import '../modules/support/support_center_view.dart';
 import '../modules/support/support_view.dart';
 import '../modules/support/support_form_view.dart';
@@ -155,10 +156,11 @@ class AppPages {
       transition: Transition.rightToLeft,
     ),
     GetPage(
-      name: AppRoutes.donation,
-      page: () => const DonationView(),
-      transition: Transition.rightToLeft,
-    ),
+       name: AppRoutes.donation,
+       page: () => const DonationView(),
+       binding: BindingsBuilder(() => Get.lazyPut(() => DonationController())),
+       transition: Transition.rightToLeft,
+     ),
     GetPage(
       name: AppRoutes.support,
       page: () => const SupportCenterView(),

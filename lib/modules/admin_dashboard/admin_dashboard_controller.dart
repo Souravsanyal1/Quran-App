@@ -53,6 +53,10 @@ class AdminDashboardController extends GetxController {
 
   final prayerMessageController = TextEditingController();
 
+  final bkashNagadController = TextEditingController();
+  final bankNameController = TextEditingController();
+  final bankDetailsController = TextEditingController();
+
   final announcementTitleController = TextEditingController();
   final announcementBodyController = TextEditingController();
   final announcementImageController = TextEditingController();
@@ -151,6 +155,7 @@ class AdminDashboardController extends GetxController {
       _loadAds(),
       _loadStaticBanners(),
       _loadPrayerSettings(),
+      _loadDonationSettings(),
       _loadUsersStats(),
       _loadAppUpdateConfig(),
       _loadLiveSupportConfig(),
@@ -261,6 +266,18 @@ class AdminDashboardController extends GetxController {
     final doc = await _firestore.collection('app_settings').doc('prayer_config').get();
     if (doc.exists) {
       prayerMessageController.text = doc.data()?['globalMessage'] ?? '';
+    }
+  }
+
+  Future<void> _loadDonationSettings() async {
+    final doc = await _firestore.collection('app_settings').doc('donation_config').get();
+    if (doc.exists) {
+      final data = doc.data();
+      if (data != null) {
+        bkashNagadController.text = data['bkashNagad'] ?? '';
+        bankNameController.text = data['bankName'] ?? '';
+        bankDetailsController.text = data['bankDetails'] ?? '';
+      }
     }
   }
 
@@ -616,6 +633,23 @@ class AdminDashboardController extends GetxController {
     }
   }
 
+  Future<void> saveDonationSettings() async {
+    try {
+      isSettingsSaving.value = true;
+      await _firestore.collection('app_settings').doc('donation_config').set({
+        'bkashNagad': bkashNagadController.text.trim(),
+        'bankName': bankNameController.text.trim(),
+        'bankDetails': bankDetailsController.text.trim(),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      Get.snackbar('Success', 'Donation settings updated successfully');
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to save donation settings');
+    } finally {
+      isSettingsSaving.value = false;
+    }
+  }
+
   Future<void> _loadLiveSupportConfig() async {
     // Now handled via _loadAppUpdateConfig and Firestore
   }
@@ -667,6 +701,9 @@ class AdminDashboardController extends GetxController {
     announcementTitleController.dispose();
     announcementBodyController.dispose();
     announcementImageController.dispose();
+    bkashNagadController.dispose();
+    bankNameController.dispose();
+    bankDetailsController.dispose();
     super.onClose();
   }
 }

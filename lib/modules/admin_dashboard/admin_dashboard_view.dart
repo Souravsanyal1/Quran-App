@@ -190,16 +190,16 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   child: Column(
                     children: [
                       _buildSidebarItem(0, Icons.grid_view_rounded, 'Dashboard Overview'),
-                      _buildSidebarItem(7, Icons.forum_rounded, 'Support Inbox'),
-                      _buildSidebarItem(8, Icons.people_rounded, 'User Management'),
+                      _buildSidebarItem(6, Icons.forum_rounded, 'Support Inbox'),
+                      _buildSidebarItem(7, Icons.people_rounded, 'User Management'),
                       _buildSidebarItem(2, Icons.collections_rounded, 'Visual Banners'),
                       _buildSidebarItem(3, Icons.horizontal_distribute_rounded, 'Static Banners'),
-                      _buildSidebarItem(4, Icons.notifications_active_rounded, 'Push Broadcast'),
+                      _buildSidebarItem(10, Icons.notifications_active_rounded, 'Push Broadcast'),
                       _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
-                      _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
+                      _buildSidebarItem(12, Icons.favorite_rounded, 'Donation Config'),
+                      _buildSidebarItem(4, Icons.ads_click_rounded, 'Ad Campaigns'),
                       _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
-    _buildSidebarItem(10, Icons.notifications_active_rounded, 'Notifications'),
-    _buildSidebarItem(11, Icons.settings_suggest_rounded, 'n8n Webhook'),
+                      _buildSidebarItem(11, Icons.settings_suggest_rounded, 'n8n Webhook'),
                     ],
                   ),
                 ),
@@ -271,16 +271,16 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   _buildMobileTabItem(0, 'Overview'),
-                  _buildMobileTabItem(7, 'Inbox'),
-                  _buildMobileTabItem(8, 'Users'),
+                  _buildMobileTabItem(6, 'Inbox'),
+                  _buildMobileTabItem(7, 'Users'),
                   _buildMobileTabItem(2, 'Banners'),
                   _buildMobileTabItem(3, 'Static'),
-                  _buildMobileTabItem(4, 'Push'),
+                  _buildMobileTabItem(10, 'Push'),
                   _buildMobileTabItem(5, 'Prayers'),
-                  _buildMobileTabItem(6, 'Ads'),
+                  _buildMobileTabItem(12, 'Donation'),
+                  _buildMobileTabItem(4, 'Ads'),
                   _buildMobileTabItem(9, 'Maint'),
-    _buildMobileTabItem(10, 'Notif'),
-    _buildMobileTabItem(11, 'n8n'),
+                  _buildMobileTabItem(11, 'n8n'),
                 ],
               )),
         ),
@@ -372,6 +372,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       case 9: return _buildMaintenanceTab(context);
       case 10: return _buildNotificationsTab(context);
       case 11: return _buildN8nConfigTab(context);
+      case 12: return _buildDonationSettingsTab();
       default: return const SizedBox();
     }
   }
@@ -757,6 +758,25 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           _buildTextField(controller.prayerMessageController, 'Global Prayer Message', Icons.message_rounded),
           const SizedBox(height: 24),
           _buildActionButton('Save Configuration', controller.savePrayerSettings, isLoading: controller.isSettingsSaving.value),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildDonationSettingsTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Donation Config', 'Configure BKash/Nagad and Bank donation account details.'),
+        const SizedBox(height: 32),
+        _buildFormCard([
+          _buildTextField(controller.bkashNagadController, 'bKash / Nagad Number', Icons.phone_android_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.bankNameController, 'Bank Name', Icons.account_balance_rounded),
+          const SizedBox(height: 16),
+          _buildTextField(controller.bankDetailsController, 'Bank Account Details', Icons.description_rounded, maxLines: 3),
+          const SizedBox(height: 24),
+          _buildActionButton('Save Configuration', controller.saveDonationSettings, isLoading: controller.isSettingsSaving.value),
         ]),
       ],
     );
