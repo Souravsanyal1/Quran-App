@@ -131,7 +131,7 @@ class QuranApiProvider {
     return await _dio.get(url, queryParameters: {
       'words': 'true',
       'word_fields': 'text_uthmani,location,audio_url',
-      'translation_fields': '131,161',
+      'translation_fields': '131,85,161,163,162',
       'per_page': 300,
     });
   }

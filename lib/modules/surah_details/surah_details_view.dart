@@ -580,9 +580,11 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  settings.isBangla ? (word.translationBn ?? word.translationEn ?? '') : (word.translationEn ?? ''),
-                  style: const TextStyle(
-                    fontSize: 10,
+                  settings.isBangla 
+                      ? (word.translationBn ?? '') 
+                      : (word.translationEn ?? ''),
+                  style: GoogleFonts.hindSiliguri(
+                    fontSize: 12,
                     color: _SurahTheme.gold,
                     fontWeight: FontWeight.w600,
                   ),

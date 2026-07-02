@@ -27,12 +27,20 @@ class WordModel {
 
     if (translations != null) {
       for (var t in translations) {
-        if (t['resource_id'] == 131) transEn = t['text'];
-        if (t['resource_id'] == 161) transBn = t['text'];
+        final rId = t['resource_id'];
+        final text = t['text']?.toString() ?? '';
+        // 131: English (Dr. Shehnaz Shaikh), 85: English (Sahih International)
+        if (rId == 131 || rId == 85) transEn = text;
+        // 161: Bengali, 163: Bengali, 162: Bengali
+        if (rId == 161 || rId == 163 || rId == 162) transBn = text;
       }
-      // Fallback if resource IDs are different or missing
+      // Fallback: If Bangla is missing but we have translations, use the first one as English
       if (transEn == null && translations.isNotEmpty) transEn = translations[0]['text'];
     }
+    
+    // Final cleanup: Remove HTML tags if any (rare in word-by-word but possible)
+    transEn = transEn?.replaceAll(RegExp(r'<[^>]*>'), '');
+    transBn = transBn?.replaceAll(RegExp(r'<[^>]*>'), '');
     
     return WordModel(
       id: json['id'] ?? 0,
