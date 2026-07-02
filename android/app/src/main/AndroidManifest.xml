@@ -21,6 +21,14 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9486838639385521~2755209746"/>
+
+        <!-- Firebase Messaging Configuration -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
         <activity
             android:name="com.quranapp.quran_app.MainActivity"
             android:exported="true"
