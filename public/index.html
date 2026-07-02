@@ -1,89 +1,648 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Download Al-Quran App - Premium Music & Recitation</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #07190e 0%, #0d0d12 100%);
+      --card-bg: rgba(20, 20, 32, 0.65);
+      --card-border: rgba(201, 168, 76, 0.15);
+      --card-border-hover: rgba(201, 168, 76, 0.4);
+      --primary-gold: #C9A84C;
+      --secondary-emerald: #1B5E35;
+      --accent-orange: #FF8A00;
+      --text-white: #FFFFFF;
+      --text-gray: rgba(255, 255, 255, 0.7);
+      --glow-gold: rgba(201, 168, 76, 0.3);
+      --glow-emerald: rgba(27, 94, 53, 0.4);
+    }
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.15.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.15.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.15.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-white);
+      font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Subtle background glow blobs */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--glow-emerald) 0%, transparent 70%);
+      top: -150px;
+      left: -150px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--glow-gold) 0%, transparent 70%);
+      bottom: -200px;
+      right: -200px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 40px 24px;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .logo-container {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 20px;
+      background: radial-gradient(circle, rgba(27, 94, 53, 0.2) 0%, rgba(20, 20, 32, 0.8) 100%);
+      border: 2px solid var(--primary-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px var(--glow-gold);
+      position: relative;
+    }
+
+    .logo-svg {
+      width: 55px;
+      height: 55px;
+      fill: var(--primary-gold);
+      filter: drop-shadow(0 0 5px rgba(201, 168, 76, 0.6));
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--text-white) 30%, var(--primary-gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-gray);
+      font-weight: 400;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Main Download Grid */
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      width: 100%;
+      margin-bottom: 60px;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    /* Card styling */
+    .download-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 35px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .download-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--card-border-hover);
+      box-shadow: 0 15px 40px rgba(201, 168, 76, 0.15);
+    }
+
+    /* Highlighted Universal Card */
+    .download-card.universal {
+      border: 2px solid var(--primary-gold);
+      box-shadow: 0 15px 35px rgba(201, 168, 76, 0.12);
+      background: linear-gradient(180deg, rgba(20, 20, 32, 0.8) 0%, rgba(13, 28, 18, 0.9) 100%);
+    }
+
+    .download-card.universal:hover {
+      box-shadow: 0 20px 45px rgba(201, 168, 76, 0.25);
+    }
+
+    .badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: linear-gradient(135deg, var(--accent-orange), var(--primary-gold));
+      color: #000000;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 10px rgba(255, 138, 0, 0.3);
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .universal .card-icon {
+      background: rgba(201, 168, 76, 0.1);
+      border-color: rgba(201, 168, 76, 0.3);
+    }
+
+    .download-card:hover .card-icon {
+      transform: scale(1.1);
+    }
+
+    .card-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text-white);
+    }
+
+    .universal .card-icon svg {
+      fill: var(--primary-gold);
+    }
+
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: var(--text-gray);
+      line-height: 1.6;
+      margin-bottom: 30px;
+      flex-grow: 1;
+    }
+
+    .bangla-text {
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 0.92rem;
+      margin-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.1);
+      padding-top: 10px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .file-size {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary-gold);
+      background: rgba(201, 168, 76, 0.1);
+      padding: 2px 8px;
+      border-radius: 6px;
+      align-self: flex-start;
+      margin-bottom: 20px;
+    }
+
+    /* Button Styling */
+    .download-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--primary-gold) 0%, #aa8b38 100%);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(201, 168, 76, 0.2);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #e4c160 0%, var(--primary-gold) 100%);
+      box-shadow: 0 6px 20px rgba(201, 168, 76, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-white);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+    }
+
+    /* Instructions Section */
+    .instructions-section {
+      width: 100%;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: fadeInUp 0.8s ease-out 0.4s both;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .instruction-column h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--primary-gold);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .instruction-column ul {
+      list-style-type: none;
+    }
+
+    .instruction-column li {
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-gray);
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .instruction-column li::before {
+      content: '⚡';
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--accent-orange);
+      font-size: 1rem;
+    }
+
+    .instruction-column.bangla li::before {
+      content: '🕌';
+      color: var(--primary-gold);
+    }
+
+    .instruction-column.bangla h3 {
+      font-family: 'Hind Siliguri', sans-serif;
+    }
+
+    .instruction-column.bangla li {
+      font-family: 'Hind Siliguri', sans-serif;
+      font-size: 1rem;
+    }
+
+    /* WhatsApp Support Footer Card */
+    .support-card {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(27, 94, 53, 0.3) 0%, rgba(20, 20, 32, 0.7) 100%);
+      border: 1px solid rgba(27, 94, 53, 0.4);
+      border-radius: 24px;
+      padding: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      animation: fadeInUp 0.8s ease-out 0.6s both;
+      margin-bottom: 40px;
+    }
+
+    .support-info {
+      max-width: 60%;
+    }
+
+    .support-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #FFFFFF;
+    }
+
+    .support-desc {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      line-height: 1.5;
+    }
+
+    .support-btn {
+      background: #25D366;
+      color: #000;
+      padding: 14px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+    }
+
+    .support-btn:hover {
+      background: #20ba59;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+    }
+
+    .support-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: #000;
+    }
+
+    /* Footer Copyright */
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      width: 100%;
+      z-index: 1;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
       }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+      .instructions-section {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .support-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 35px 24px;
+      }
+      .support-info {
+        max-width: 100%;
+      }
+      .support-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      .subtitle {
+        font-size: 0.95rem;
+      }
+      .download-grid {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 30px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header>
+      <div class="logo-container">
+        <!-- SVG Quran/Mosque Icon -->
+        <svg class="logo-svg" viewBox="0 0 24 24">
+          <path d="M12,2A10,10,0,0,0,2,12a9.89,9.89,0,0,0,2.26,6.33l-2,2a1,1,0,0,0-.21,1.09A1,1,0,0,0,3,22H21a1,1,0,0,0,.92-.61,1,1,0,0,0-.21-1.09l-2-2A9.89,9.89,0,0,0,22,12,10,10,0,0,0,12,2Zm5.74,16.26-1.42-1.42A7.92,7.92,0,0,1,12,19a7.92,7.92,0,0,1-4.32-2.16L6.26,18.26A9.9,9.9,0,0,0,12,20,9.9,9.9,0,0,0,17.74,18.26ZM12,4a8,8,0,0,1,8,8c0,1.9-.66,3.65-1.78,5H5.78C4.66,15.65,4,13.9,4,12A8,8,0,0,1,12,4Zm0,3a5,5,0,0,0-5,5,1,1,0,0,0,2,0,3,3,0,0,1,3-3,1,1,0,0,0,0-2Z"/>
+        </svg>
+      </div>
+      <h1>Al-Quran App</h1>
+      <p class="subtitle">Experience high-quality Islamic Quran recitations, prayer times, step-by-step namaz guide, and duas in a modern and clean design.</p>
+    </header>
+
+    <!-- Download Grid -->
+    <div class="download-grid">
+      
+      <!-- Universal Card -->
+      <div class="download-card universal">
+        <span class="badge">Recommended</span>
+        <div>
+          <div class="card-icon">
+            <!-- Universal Device Icon -->
+            <svg viewBox="0 0 24 24">
+              <path d="M17,1H7A2,2,0,0,0,5,3V21a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V3A2,2,0,0,0,17,1Zm0,18H7V5H17ZM12,20a1,1,0,1,1,1-1A1,1,0,0,1,12,20Z"/>
+            </svg>
+          </div>
+          <div class="card-title">Universal APK</div>
+          <span class="file-size">~86.2 MB</span>
+          <div class="card-desc">
+            Try the Universal APK first. It contains all libraries and is compatible with almost all Android smartphones regardless of age.
+            <div class="bangla-text">এটি আপনার ফোনে প্রথমে ট্রাই করুন। এটি সব ধরণের অ্যান্ড্রয়েড স্মার্টফোনের সাথে সামঞ্জস্যপূর্ণ।</div>
+          </div>
+        </div>
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-release.apk" class="download-btn btn-gold">
+          <!-- Download Icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download Universal APK
+        </a>
+      </div>
+
+      <!-- v8a Card -->
+      <div class="download-card">
+        <div>
+          <div class="card-icon">
+            <!-- Modern Phone Icon -->
+            <svg viewBox="0 0 24 24">
+              <path d="M16 1H8C6.34 1 5 2.34 5 4v16c0 1.66 1.34 3 3 3h8c1.66 0 3-1.34 3-3V4c0-1.66-1.34-3-3-3zm-2 20h-4v-1h4v1zm3-3H7V4h10v14z"/>
+            </svg>
+          </div>
+          <div class="card-title">v8a APK</div>
+          <span class="file-size">~39.5 MB</span>
+          <div class="card-desc">
+            If you have a modern or latest phone model, use this version. It is optimized for 64-bit modern architectures to run faster and save space.
+            <div class="bangla-text">আপনার ফোনটি যদি লেটেস্ট মডেলের হয় তবে এটি ব্যবহার করুন। এটি সাইজে ছোট এবং দ্রুত চলবে।</div>
+          </div>
+        </div>
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-arm64-v8a-release.apk" class="download-btn btn-outline">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download v8a APK
+        </a>
+      </div>
+
+      <!-- v7a Card -->
+      <div class="download-card">
+        <div>
+          <div class="card-icon">
+            <!-- Older Phone Icon -->
+            <svg viewBox="0 0 24 24">
+              <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+            </svg>
+          </div>
+          <div class="card-title">v7a APK</div>
+          <span class="file-size">~37.7 MB</span>
+          <div class="card-desc">
+            Designed for older or budget phone models. If the above versions fail to install, use this build to ensure compatibility.
+            <div class="bangla-text">পুরনো বা বাজেট ফোনের জন্য। উপরের ভার্সনগুলো আপনার ফোনে কাজ না করলে এটি ট্রাই করুন।</div>
+          </div>
+        </div>
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-armeabi-v7a-release.apk" class="download-btn btn-outline">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download v7a APK
+        </a>
+      </div>
+
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+    <!-- Instructions Section -->
+    <div class="instructions-section">
+      
+      <!-- English Column -->
+      <div class="instruction-column">
+        <h3>⚡ Instructions</h3>
+        <ul>
+          <li><strong>Uninstall Previous Version:</strong> Please delete any previously installed version of the app from your phone before installing the new one.</li>
+          <li><strong>Unknown Sources:</strong> You may need to enable the "Install from Unknown Sources" or "Allow from this source" option in your browser/file manager settings to install the APK.</li>
+          <li><strong>Feedback:</strong> Once installed, please let us know which version worked on your device so we can keep improving the experience!</li>
+        </ul>
+      </div>
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-    </script>
-  </body>
+      <!-- Bangla Column -->
+      <div class="instruction-column bangla">
+        <h3>🕌 নির্দেশনা</h3>
+        <ul>
+          <li><strong>পুরনো ভার্সন ডিলিট করুন:</strong> আগের পুরনো ভার্সনটি ফোন থেকে ডিলিট (Uninstall) করে তারপর নতুনটি ইনস্টল করবেন।</li>
+          <li><strong>Unknown Sources চালু করুন:</strong> ইনস্টল করার সময় সিকিউরিটি প্রম্পট আসলে "Install from Unknown Sources" বা "Allow from this source" অপশনটি চালু করতে হতে পারে।</li>
+          <li><strong>ফিডব্যাক দিন:</strong> দয়া করে আমাদের জানাবেন কোনটি আপনার ফোনে কাজ করেছে, এতে আমাদের অ্যাপের উন্নয়ন সহজ হবে।</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Support Section -->
+    <div class="support-card">
+      <div class="support-info">
+        <div class="support-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          Need Assistance? / সাহায্য প্রয়োজন?
+        </div>
+        <div class="support-desc">If you face any issues while installing the APKs or have any feedback, contact our support team on WhatsApp directly.</div>
+      </div>
+      <a href="https://wa.me/8801307460389" target="_blank" rel="noopener" class="support-btn">
+        <!-- WhatsApp SVG Icon -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12.012 2c-5.506 0-9.988 4.482-9.988 9.988 0 1.761.459 3.479 1.332 4.992l-1.417 5.176 5.301-1.391c1.464.798 3.109 1.218 4.769 1.219h.004c5.505 0 9.988-4.483 9.988-9.988 0-2.671-1.04-5.181-2.929-7.07-1.89-1.891-4.4-2.926-7.07-2.926zm5.824 14.195c-.249.702-1.442 1.365-2.001 1.457-.501.082-1.155.155-3.322-.74-2.771-1.144-4.545-3.974-4.683-4.159-.138-.184-1.12-1.492-1.12-2.846 0-1.355.708-2.02.96-2.29.252-.271.551-.339.735-.339.184 0 .368.002.528.01.166.008.388-.063.608.47.226.547.776 1.891.844 2.03.067.137.112.299.02.482-.091.183-.138.298-.275.457-.138.16-.291.356-.414.477-.138.136-.282.285-.121.56.161.275.717 1.183 1.537 1.914.819.73 1.512.955 1.727 1.047.214.092.34-.083.466-.229.126-.146.551-.641.7-.86.149-.22.298-.183.501-.109.203.073 1.29.609 1.513.722.222.112.37.168.425.263.055.096.055.556-.194 1.258z"/>
+        </svg>
+        Chat on WhatsApp
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Al-Quran App. All rights reserved.</p>
+  </footer>
+
+</body>
 </html>
