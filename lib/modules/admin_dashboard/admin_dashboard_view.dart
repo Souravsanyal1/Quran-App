@@ -231,17 +231,24 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           child: Column(
             children: [
               const SizedBox(height: 32),
-              _buildSidebarItem(0, Icons.grid_view_rounded, 'Dashboard Overview'),
-              _buildSidebarItem(7, Icons.forum_rounded, 'Support Inbox'),
-              _buildSidebarItem(8, Icons.people_rounded, 'User Management'),
-              _buildSidebarItem(2, Icons.collections_rounded, 'Visual Banners'),
-              _buildSidebarItem(3, Icons.horizontal_distribute_rounded, 'Static Banners'),
-              _buildSidebarItem(4, Icons.notifications_active_rounded, 'Push Broadcast'),
-              _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
-              _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
-              _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
-              _buildSidebarItem(10, Icons.settings_suggest_rounded, 'n8n Webhook'),
-              const Spacer(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _buildSidebarItem(0, Icons.grid_view_rounded, 'Dashboard Overview'),
+                      _buildSidebarItem(7, Icons.forum_rounded, 'Support Inbox'),
+                      _buildSidebarItem(8, Icons.people_rounded, 'User Management'),
+                      _buildSidebarItem(2, Icons.collections_rounded, 'Visual Banners'),
+                      _buildSidebarItem(3, Icons.horizontal_distribute_rounded, 'Static Banners'),
+                      _buildSidebarItem(4, Icons.notifications_active_rounded, 'Push Broadcast'),
+                      _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
+                      _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
+                      _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
+                      _buildSidebarItem(10, Icons.settings_suggest_rounded, 'n8n Webhook'),
+                    ],
+                  ),
+                ),
+              ),
               _buildSidebarFooter(),
             ],
           ),
@@ -251,7 +258,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             color: const Color(0xFF141420),
             child: Obx(() => AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  child: Padding(
+                  child: SingleChildScrollView(
                     key: ValueKey(controller.activeTabIndex.value),
                     padding: const EdgeInsets.all(40.0),
                     child: _buildTabContent(context, controller.activeTabIndex.value),
