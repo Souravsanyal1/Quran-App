@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // ── Model ────────────────────────────────────────────────────────────────
 class PrayerTime {
@@ -29,6 +30,7 @@ class PrayerTimeController extends GetxController {
   final Rx<Duration> countdown = Duration.zero.obs;
   final RxInt nextPrayerIndex = 0.obs;
   final RxInt activePrayerIndex = 0.obs;
+  final RxString globalPrayerMessage = ''.obs;
   
   final RxDouble _latitude = 23.8103.obs;
   final RxDouble _longitude = 90.4125.obs;
@@ -40,12 +42,14 @@ class PrayerTimeController extends GetxController {
   final RxMap<String, String> prayerTimes = <String, String>{}.obs;
   
   Timer? _ticker;
+  StreamSubscription? _prayerConfigSubscription;
 
   @override
   void onInit() {
     super.onInit();
     _loadSavedLocation();
     _loadTimes();
+    _listenToPrayerConfig();
     _tick();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
@@ -53,7 +57,27 @@ class PrayerTimeController extends GetxController {
   @override
   void onClose() {
     _ticker?.cancel();
+    _prayerConfigSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToPrayerConfig() {
+    try {
+      _prayerConfigSubscription = FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc('prayer_config')
+          .snapshots()
+          .listen((snapshot) {
+        if (snapshot.exists) {
+          final data = snapshot.data();
+          if (data != null) {
+            globalPrayerMessage.value = data['globalMessage'] ?? '';
+          }
+        }
+      });
+    } catch (e) {
+      Get.log('Error listening to prayer config: $e');
+    }
   }
 
   Future<void> _loadSavedLocation() async {

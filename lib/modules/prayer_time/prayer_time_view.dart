@@ -124,6 +124,68 @@ class PrayerTimeView extends GetView<PrayerTimeController> {
             ),
             const SizedBox(height: 16),
 
+            // ── Global Prayer Announcement Message ──────────────────
+            Obx(() {
+              final msg = controller.globalPrayerMessage.value;
+              if (msg.isEmpty) return const SizedBox.shrink();
+              return Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2C1E14) : const Color(0xFFFFF8E7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF5A3E1B) : const Color(0xFFE8C97A),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.campaign_rounded,
+                      color: _PTheme.gold,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            bn ? 'ঘোষণা / নোটিশ' : 'Announcement',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.5,
+                              color: _PTheme.gold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            msg,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white70 : AppColors.textDark,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
             // ── Next prayer countdown hero card ─────────────────────
             if (nextPrayer != null)
               Container(
