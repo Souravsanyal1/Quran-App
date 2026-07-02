@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Qurania - Premium Al-Quran App | Download APK</title>
   
   <!-- Fonts -->
@@ -35,6 +35,11 @@
       padding: 0;
     }
 
+    html {
+      overflow-x: hidden;
+      max-width: 100%;
+    }
+
     body {
       background: var(--bg-gradient);
       color: var(--text-white);
@@ -59,20 +64,20 @@
     }
 
     .blob-1 {
-      width: 450px;
-      height: 450px;
+      width: 300px;
+      height: 300px;
       background: var(--glow-emerald);
-      top: -100px;
-      left: -100px;
+      top: -60px;
+      left: -80px;
       animation: pulseBlob 12s infinite alternate;
     }
 
     .blob-2 {
-      width: 500px;
-      height: 500px;
+      width: 300px;
+      height: 300px;
       background: var(--glow-gold);
       bottom: 20%;
-      right: -150px;
+      right: -80px;
       animation: pulseBlob 15s infinite alternate-reverse;
     }
 
@@ -279,7 +284,7 @@
     /* Main Download Grid */
     .download-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
       gap: 30px;
       width: 100%;
       margin-bottom: 70px;
@@ -708,18 +713,18 @@
 
     @media (max-width: 768px) {
       .brand-title {
-        font-size: 2.6rem;
-        letter-spacing: 3px;
+        font-size: 2.2rem;
+        letter-spacing: 2px;
       }
       .tagline {
-        font-size: 0.8rem;
-        letter-spacing: 4px;
+        font-size: 0.78rem;
+        letter-spacing: 3px;
       }
       .subtitle {
-        font-size: 1rem;
+        font-size: 0.95rem;
       }
       .section-title h2 {
-        font-size: 1.8rem;
+        font-size: 1.7rem;
       }
       .download-grid {
         grid-template-columns: 1fr;
@@ -738,6 +743,82 @@
       .mosque-overlay {
         height: 100px;
         margin-bottom: -40px;
+      }
+      .instructions-section {
+        padding: 28px 20px;
+      }
+      .download-card {
+        padding: 30px 20px;
+      }
+      .support-card {
+        padding: 30px 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand-title {
+        font-size: 1.9rem;
+        letter-spacing: 1px;
+      }
+      .tagline {
+        font-size: 0.72rem;
+        letter-spacing: 2px;
+      }
+      .subtitle {
+        font-size: 0.88rem;
+      }
+      .section-title h2 {
+        font-size: 1.5rem;
+      }
+      .container {
+        padding: 30px 14px;
+      }
+      .logo-outer {
+        width: 90px;
+        height: 90px;
+      }
+      .logo-img {
+        width: 58px;
+        height: 58px;
+      }
+      .features-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .feature-card {
+        padding: 20px 14px;
+      }
+      .feature-title {
+        font-size: 0.95rem;
+      }
+      .feature-desc {
+        font-size: 0.8rem;
+      }
+      .download-card {
+        padding: 26px 16px;
+      }
+      .card-title {
+        font-size: 1.2rem;
+      }
+      .instructions-section {
+        padding: 22px 16px;
+      }
+      .instruction-column h3 {
+        font-size: 1.1rem;
+      }
+      .instruction-column li {
+        font-size: 0.88rem;
+      }
+      .support-card {
+        padding: 24px 16px;
+      }
+      .support-btn {
+        padding: 14px 20px;
+        font-size: 0.9rem;
+      }
+      .download-btn {
+        padding: 16px;
+        font-size: 0.95rem;
       }
     }
   </style>
