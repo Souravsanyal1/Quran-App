@@ -1000,6 +1000,50 @@
         margin-left: 6px;
       }
     }
+
+    /* Switch styling */
+    .switch-container {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .switch-container input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255,255,255,0.1);
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #aaa;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .switch-slider {
+      background-color: var(--primary-gold);
+      border-color: var(--primary-gold);
+    }
+    input:checked + .switch-slider:before {
+      transform: translateX(24px);
+      background-color: #000;
+    }
   </style>
 </head>
 <body>
@@ -1122,6 +1166,10 @@
             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             Donation Settings
           </button>
+          <button class="nav-btn" id="nav-landing_config" onclick="switchSection('landing_config')">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+            Landing Page Config
+          </button>
           <button class="nav-btn" id="nav-broadcast" onclick="switchSection('broadcast')">
             <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></svg>
             Broadcast Notifications
@@ -1188,7 +1236,7 @@
     const db = firebase.firestore();
 
     // Application state
-    let currentSection = 'banners'; // banners, static_top_banners, custom_ads, app_config, prayer_config, donation_config, broadcast, support, users
+    let currentSection = 'banners'; // banners, static_top_banners, custom_ads, app_config, prayer_config, donation_config, landing_config, broadcast, support, users
     let unsubscribeMainStream = null;
     let unsubscribeChatStream = null;
     let openTicketId = null;
@@ -1463,6 +1511,115 @@
           </div>
         `;
         loadDonationConfigData();
+
+      } else if (sectionId === 'landing_config') {
+        container.className = 'content-area single-col';
+        container.innerHTML = `
+          <div class="panel-card" style="max-width: 650px; margin: 0 auto;">
+            <h3>Landing Page Config</h3>
+            <div id="panel-alert" class="alert"></div>
+            <form onsubmit="handleSaveLandingConfig(event)">
+              
+              <!-- Subtitle Description -->
+              <div class="form-group">
+                <label>App Description / Subtitle</label>
+                <textarea id="landing-config-subtitle" required style="min-height: 80px;" placeholder="Experience high-quality Islamic Quran recitations..."></textarea>
+              </div>
+
+              <!-- Universal APK Settings -->
+              <div style="border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 700; color: var(--primary-gold);">Universal APK Build</span>
+                  <label class="switch-container">
+                    <input type="checkbox" id="landing-show-universal">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>Universal APK Size</label>
+                  <input type="text" id="landing-universal-size" required placeholder="e.g. ~86.2 MB">
+                </div>
+                <div class="form-group">
+                  <label>Universal APK Download URL</label>
+                  <input type="url" id="landing-universal-url" required placeholder="https://github.com/...apk">
+                </div>
+              </div>
+
+              <!-- v8a APK Settings -->
+              <div style="border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 700; color: var(--primary-gold);">v8a APK Build (64-bit)</span>
+                  <label class="switch-container">
+                    <input type="checkbox" id="landing-show-v8a">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>v8a APK Size</label>
+                  <input type="text" id="landing-v8a-size" required placeholder="e.g. ~39.5 MB">
+                </div>
+                <div class="form-group">
+                  <label>v8a APK Download URL</label>
+                  <input type="url" id="landing-v8a-url" required placeholder="https://github.com/...apk">
+                </div>
+              </div>
+
+              <!-- v7a APK Settings -->
+              <div style="border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 700; color: var(--primary-gold);">v7a APK Build (32-bit)</span>
+                  <label class="switch-container">
+                    <input type="checkbox" id="landing-show-v7a">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>v7a APK Size</label>
+                  <input type="text" id="landing-v7a-size" required placeholder="e.g. ~37.7 MB">
+                </div>
+                <div class="form-group">
+                  <label>v7a APK Download URL</label>
+                  <input type="url" id="landing-v7a-url" required placeholder="https://github.com/...apk">
+                </div>
+              </div>
+
+              <!-- Support Section Settings -->
+              <div style="border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <span style="font-weight: 700; color: var(--primary-gold); display: block; margin-bottom: 12px;">Assistance / WhatsApp Support</span>
+                <div class="form-group">
+                  <label>WhatsApp Number (without + symbol)</label>
+                  <input type="text" id="landing-whatsapp" required placeholder="e.g. 8801307460389">
+                </div>
+                <div class="form-group">
+                  <label>Support Card Title</label>
+                  <input type="text" id="landing-support-title" required placeholder="Need Assistance? / সাহায্য প্রয়োজন?">
+                </div>
+                <div class="form-group">
+                  <label>Support Card Description</label>
+                  <textarea id="landing-support-desc" required style="min-height: 60px;" placeholder="If you face any issues..."></textarea>
+                </div>
+              </div>
+
+              <!-- Announcement Banner Settings -->
+              <div style="border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <span style="font-weight: 700; color: var(--primary-gold);">Announcement Banner</span>
+                  <label class="switch-container">
+                    <input type="checkbox" id="landing-banner-enabled">
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label>Banner Text Message</label>
+                  <input type="text" id="landing-banner-text" placeholder="e.g. Maintenance scheduled for 3rd July.">
+                </div>
+              </div>
+
+              <button type="submit" id="save-landing-btn" class="action-btn">Save Configurations</button>
+            </form>
+          </div>
+        `;
+        loadLandingConfigData();
 
       } else if (sectionId === 'broadcast') {
         container.className = 'content-area';
@@ -1784,6 +1941,88 @@
       } catch (err) {
         console.error(err);
         showAlert('panel-alert', 'Failed to save donation settings: ' + err.message, 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'Save Settings';
+      }
+    }
+
+    // Load Landing Config
+    async function loadLandingConfigData() {
+      try {
+        const doc = await db.collection('app_settings').doc('landing_config').get();
+        if (doc.exists) {
+          const data = doc.data();
+          document.getElementById('landing-config-subtitle').value = data.appSubtitle || '';
+          document.getElementById('landing-show-universal').checked = data.showUniversal !== false;
+          document.getElementById('landing-universal-size').value = data.universalApkSize || '';
+          document.getElementById('landing-universal-url').value = data.universalApkUrl || '';
+          document.getElementById('landing-show-v8a').checked = data.showV8a !== false;
+          document.getElementById('landing-v8a-size').value = data.v8aApkSize || '';
+          document.getElementById('landing-v8a-url').value = data.v8aApkUrl || '';
+          document.getElementById('landing-show-v7a').checked = data.showV7a !== false;
+          document.getElementById('landing-v7a-size').value = data.v7aApkSize || '';
+          document.getElementById('landing-v7a-url').value = data.v7aApkUrl || '';
+          document.getElementById('landing-whatsapp').value = data.whatsappNumber || '';
+          document.getElementById('landing-support-title').value = data.supportTitle || '';
+          document.getElementById('landing-support-desc').value = data.supportDescription || '';
+          document.getElementById('landing-banner-enabled').checked = !!data.announcementBannerEnabled;
+          document.getElementById('landing-banner-text').value = data.announcementBanner || '';
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert('panel-alert', 'Failed to load landing configurations: ' + err.message, 'error');
+      }
+    }
+
+    // Save Landing Config
+    async function handleSaveLandingConfig(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('save-landing-btn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'Saving...';
+      hideAlert('panel-alert');
+
+      try {
+        const subtitle = document.getElementById('landing-config-subtitle').value.trim();
+        const showUniversal = document.getElementById('landing-show-universal').checked;
+        const universalSize = document.getElementById('landing-universal-size').value.trim();
+        const universalUrl = document.getElementById('landing-universal-url').value.trim();
+        const showV8a = document.getElementById('landing-show-v8a').checked;
+        const v8aSize = document.getElementById('landing-v8a-size').value.trim();
+        const v8aUrl = document.getElementById('landing-v8a-url').value.trim();
+        const showV7a = document.getElementById('landing-show-v7a').checked;
+        const v7aSize = document.getElementById('landing-v7a-size').value.trim();
+        const v7aUrl = document.getElementById('landing-v7a-url').value.trim();
+        const whatsapp = document.getElementById('landing-whatsapp').value.trim();
+        const supportTitle = document.getElementById('landing-support-title').value.trim();
+        const supportDesc = document.getElementById('landing-support-desc').value.trim();
+        const bannerEnabled = document.getElementById('landing-banner-enabled').checked;
+        const bannerText = document.getElementById('landing-banner-text').value.trim();
+
+        await db.collection('app_settings').doc('landing_config').set({
+          appSubtitle: subtitle,
+          showUniversal: showUniversal,
+          universalApkSize: universalSize,
+          universalApkUrl: universalUrl,
+          showV8a: showV8a,
+          v8aApkSize: v8aSize,
+          v8aApkUrl: v8aUrl,
+          showV7a: showV7a,
+          v7aApkSize: v7aSize,
+          v7aApkUrl: v7aUrl,
+          whatsappNumber: whatsapp,
+          supportTitle: supportTitle,
+          supportDescription: supportDesc,
+          announcementBannerEnabled: bannerEnabled,
+          announcementBanner: bannerText,
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        showAlert('panel-alert', 'Landing page settings saved successfully!', 'success');
+      } catch (err) {
+        console.error(err);
+        showAlert('panel-alert', 'Failed to save landing page settings: ' + err.message, 'error');
       } finally {
         saveBtn.disabled = false;
         saveBtn.innerText = 'Save Settings';

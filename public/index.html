@@ -822,8 +822,13 @@
       }
     }
   </style>
+  <!-- Firebase SDKs (Compat version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <!-- Announcement Banner -->
+  <div id="announcement-banner" style="display: none; background: linear-gradient(90deg, var(--accent-orange), var(--primary-gold)); color: #000000; text-align: center; padding: 12px; font-weight: 700; font-size: 0.95rem; z-index: 100; position: relative; box-shadow: 0 4px 15px rgba(255, 138, 0, 0.2);"></div>
 
   <!-- Ambient Glow Background Blobs -->
   <div class="glow-blob blob-1"></div>
@@ -841,7 +846,7 @@
       </div>
       <h1 class="brand-title">QURANIA</h1>
       <p class="tagline">Al-Quran App</p>
-      <p class="subtitle">Experience high-quality Islamic Quran recitations, precise prayer times, a step-by-step namaz guide, and daily duas in a beautifully crafted modern design.</p>
+      <p class="subtitle" id="landing-subtitle">Experience high-quality Islamic Quran recitations, precise prayer times, a step-by-step namaz guide, and daily duas in a beautifully crafted modern design.</p>
     </header>
 
     <!-- App Features Section (NEW) -->
@@ -903,7 +908,7 @@
     <div class="download-grid">
       
       <!-- Universal Card -->
-      <div class="download-card universal">
+      <div class="download-card universal" id="universal-apk-card" style="display: flex;">
         <span class="badge">Recommended</span>
         <div>
           <div class="card-icon-wrapper">
@@ -914,7 +919,7 @@
           </div>
           <div class="card-title">Universal APK</div>
           <div class="file-info-bar">
-            <span class="file-size">~86.2 MB</span>
+            <span class="file-size" id="universal-apk-size">~86.2 MB</span>
             <span class="file-ext">apk</span>
           </div>
           <div class="card-desc">
@@ -922,7 +927,7 @@
             <div class="bangla-text">এটি আপনার ফোনে প্রথমে ইনস্টল করুন। এটি সব ধরণের অ্যান্ড্রয়েড স্মার্টফোনের সাথে সামঞ্জস্যপূর্ণ।</div>
           </div>
         </div>
-        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-release.apk" class="download-btn btn-gold">
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-release.apk" id="universal-apk-link" class="download-btn btn-gold">
           <!-- Download Icon -->
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -934,7 +939,7 @@
       </div>
 
       <!-- v8a Card -->
-      <div class="download-card">
+      <div class="download-card" id="v8a-apk-card" style="display: flex;">
         <div>
           <div class="card-icon-wrapper">
             <!-- Modern Phone Icon -->
@@ -944,7 +949,7 @@
           </div>
           <div class="card-title">v8a APK</div>
           <div class="file-info-bar">
-            <span class="file-size">~39.5 MB</span>
+            <span class="file-size" id="v8a-apk-size">~39.5 MB</span>
             <span class="file-ext">apk</span>
           </div>
           <div class="card-desc">
@@ -952,7 +957,15 @@
             <div class="bangla-text">আপনার ফোনটি যদি লেটেস্ট মডেলের হয় তবে এটি ব্যবহার করুন। এটি সাইজে ছোট এবং অত্যন্ত দ্রুত চলবে।</div>
           </div>
         </div>
-        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-arm64-v8a-release.apk" class="download-btn btn-outline">
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-arm64-v8a-release.apk" id="v8a-apk-link" class="download-btn btn-outline">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download Qurania App
+        </a>
+      </div>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -963,7 +976,7 @@
       </div>
 
       <!-- v7a Card -->
-      <div class="download-card">
+      <div class="download-card" id="v7a-apk-card" style="display: flex;">
         <div>
           <div class="card-icon-wrapper">
             <!-- Older Phone Icon -->
@@ -973,7 +986,7 @@
           </div>
           <div class="card-title">v7a APK</div>
           <div class="file-info-bar">
-            <span class="file-size">~37.7 MB</span>
+            <span class="file-size" id="v7a-apk-size">~37.7 MB</span>
             <span class="file-ext">apk</span>
           </div>
           <div class="card-desc">
@@ -981,7 +994,7 @@
             <div class="bangla-text">পুরনো বা বাজেট ফোনের জন্য। উপরের ভার্সনগুলো আপনার ফোনে কাজ না করলে এটি ব্যবহার করুন।</div>
           </div>
         </div>
-        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-armeabi-v7a-release.apk" class="download-btn btn-outline">
+        <a href="https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-armeabi-v7a-release.apk" id="v7a-apk-link" class="download-btn btn-outline">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -1021,17 +1034,17 @@
     <!-- Support Section -->
     <div class="support-card">
       <div class="support-info">
-        <div class="support-title">
+        <div class="support-title" id="support-card-title">
           <!-- Help bubble icon -->
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
           </svg>
           Need Assistance? / সাহায্য প্রয়োজন?
         </div>
-        <div class="support-desc">If you face any issues while installing the APKs or have any feedback, contact our support team on WhatsApp directly.</div>
+        <div class="support-desc" id="support-card-desc">If you face any issues while installing the APKs or have any feedback, contact our support team on WhatsApp directly.</div>
       </div>
       <div class="support-btn-wrapper">
-        <a href="https://wa.me/8801307460389" target="_blank" rel="noopener" class="support-btn">
+        <a href="https://wa.me/8801307460389" id="support-whatsapp-link" target="_blank" rel="noopener" class="support-btn">
           <!-- WhatsApp SVG Icon -->
           <svg viewBox="0 0 24 24">
             <path d="M12.012 2c-5.506 0-9.988 4.482-9.988 9.988 0 1.761.459 3.479 1.332 4.992l-1.417 5.176 5.301-1.391c1.464.798 3.109 1.218 4.769 1.219h.004c5.505 0 9.988-4.483 9.988-9.988 0-2.671-1.04-5.181-2.929-7.07-1.89-1.891-4.4-2.926-7.07-2.926zm5.824 14.195c-.249.702-1.442 1.365-2.001 1.457-.501.082-1.155.155-3.322-.74-2.771-1.144-4.545-3.974-4.683-4.159-.138-.184-1.12-1.492-1.12-2.846 0-1.355.708-2.02.96-2.29.252-.271.551-.339.735-.339.184 0 .368.002.528.01.166.008.388-.063.608.47.226.547.776 1.891.844 2.03.067.137.112.299.02.482-.091.183-.138.298-.275.457-.138.16-.291.356-.414.477-.138.136-.282.285-.121.56.161.275.717 1.183 1.537 1.914.819.73 1.512.955 1.727 1.047.214.092.34-.083.466-.229.126-.146.551-.641.7-.86.149-.22.298-.183.501-.109.203.073 1.29.609 1.513.722.222.112.37.168.425.263.055.096.055.556-.194 1.258z"/>
@@ -1050,6 +1063,95 @@
   <footer>
     <p>&copy; 2026 Qurania. All rights reserved.</p>
   </footer>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEYZBDOjkWZtvXOiwAcKT3RKbPcsQVDeg",
+      authDomain: "quran-205d8.firebaseapp.com",
+      projectId: "quran-205d8",
+      storageBucket: "quran-205d8.firebasestorage.app",
+      messagingSenderId: "622185595584",
+      appId: "1:622185595584:web:3cc6178c187be099307c8d",
+      measurementId: "G-R92EQLN98X"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Listen to configs realtime
+    db.collection('app_settings').doc('landing_config').onSnapshot((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        
+        // 1. Header subtitle
+        if (data.appSubtitle) {
+          document.getElementById('landing-subtitle').innerText = data.appSubtitle;
+        }
+        
+        // 2. Universal APK card
+        if (data.showUniversal !== undefined) {
+          document.getElementById('universal-apk-card').style.display = data.showUniversal ? 'flex' : 'none';
+        }
+        if (data.universalApkSize) {
+          document.getElementById('universal-apk-size').innerText = data.universalApkSize;
+        }
+        if (data.universalApkUrl) {
+          document.getElementById('universal-apk-link').href = data.universalApkUrl;
+        }
+        
+        // 3. v8a APK card
+        if (data.showV8a !== undefined) {
+          document.getElementById('v8a-apk-card').style.display = data.showV8a ? 'flex' : 'none';
+        }
+        if (data.v8aApkSize) {
+          document.getElementById('v8a-apk-size').innerText = data.v8aApkSize;
+        }
+        if (data.v8aApkUrl) {
+          document.getElementById('v8a-apk-link').href = data.v8aApkUrl;
+        }
+        
+        // 4. v7a APK card
+        if (data.showV7a !== undefined) {
+          document.getElementById('v7a-apk-card').style.display = data.showV7a ? 'flex' : 'none';
+        }
+        if (data.v7aApkSize) {
+          document.getElementById('v7a-apk-size').innerText = data.v7aApkSize;
+        }
+        if (data.v7aApkUrl) {
+          document.getElementById('v7a-apk-link').href = data.v7aApkUrl;
+        }
+        
+        // 5. Support Section
+        if (data.supportTitle) {
+          const titleEl = document.getElementById('support-card-title');
+          titleEl.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary-gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            \${data.supportTitle}
+          `;
+        }
+        if (data.supportDescription) {
+          document.getElementById('support-card-desc').innerText = data.supportDescription;
+        }
+        if (data.whatsappNumber) {
+          document.getElementById('support-whatsapp-link').href = \`https://wa.me/\${data.whatsappNumber}\`;
+        }
+        
+        // 6. Announcement Banner
+        const banner = document.getElementById('announcement-banner');
+        if (data.announcementBannerEnabled && data.announcementBanner) {
+          banner.innerText = data.announcementBanner;
+          banner.style.display = 'block';
+        } else {
+          banner.style.display = 'none';
+        }
+      }
+    }, (error) => {
+      console.error("Firestore read error: ", error);
+    });
+  </script>
 
 </body>
 </html>
