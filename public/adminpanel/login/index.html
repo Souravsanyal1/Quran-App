@@ -1968,6 +1968,23 @@
           document.getElementById('landing-support-desc').value = data.supportDescription || '';
           document.getElementById('landing-banner-enabled').checked = !!data.announcementBannerEnabled;
           document.getElementById('landing-banner-text').value = data.announcementBanner || '';
+        } else {
+          // Pre-fill with app defaults for easier first-time saving
+          document.getElementById('landing-config-subtitle').value = 'Experience high-quality Islamic Quran recitations, precise prayer times, a step-by-step namaz guide, and daily duas in a beautifully crafted modern design.';
+          document.getElementById('landing-show-universal').checked = true;
+          document.getElementById('landing-universal-size').value = '~86.2 MB';
+          document.getElementById('landing-universal-url').value = 'https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-release.apk';
+          document.getElementById('landing-show-v8a').checked = true;
+          document.getElementById('landing-v8a-size').value = '~39.5 MB';
+          document.getElementById('landing-v8a-url').value = 'https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-arm64-v8a-release.apk';
+          document.getElementById('landing-show-v7a').checked = true;
+          document.getElementById('landing-v7a-size').value = '~37.7 MB';
+          document.getElementById('landing-v7a-url').value = 'https://github.com/Souravsanyal1/Quran-App/releases/download/v1.0.0/app-armeabi-v7a-release.apk';
+          document.getElementById('landing-whatsapp').value = '8801307460389';
+          document.getElementById('landing-support-title').value = 'Need Assistance? / সাহায্য প্রয়োজন?';
+          document.getElementById('landing-support-desc').value = 'If you face any issues while installing the APKs or have any feedback, contact our support team on WhatsApp directly.';
+          document.getElementById('landing-banner-enabled').checked = false;
+          document.getElementById('landing-banner-text').value = '';
         }
       } catch (err) {
         console.error(err);
