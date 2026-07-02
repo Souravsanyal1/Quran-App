@@ -1537,6 +1537,27 @@ class _AdminChatViewState extends State<_AdminChatView> {
             const Text('Support Ticket Chat', style: TextStyle(fontSize: 10, color: Colors.white38)),
           ],
         ),
+        actions: [
+          Obx(() => Row(
+            children: [
+              Text(
+                chatController.isBotActive.value ? 'Bot On' : 'Bot Off',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: chatController.isBotActive.value ? Colors.green : Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Switch(
+                value: chatController.isBotActive.value,
+                onChanged: (_) => chatController.toggleBotStatus(),
+                activeColor: Colors.green,
+                inactiveThumbColor: Colors.redAccent,
+              ),
+            ],
+          )),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [

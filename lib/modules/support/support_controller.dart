@@ -311,6 +311,16 @@ class SupportController extends GetxController {
   }
 
   void _handleAiAutoReply(String ticketId, String userMessage) async {
+    final ticket = activeTicket.value;
+    if (ticket == null) return;
+
+    // Check if bot is disabled for this specific ticket or globally
+    final settings = Get.find<SettingsController>();
+    if (!settings.isLiveSupportBotEnabled.value || !ticket.isBotActive) {
+      _logger.i('AI Auto-reply skipped: Global Bot=${settings.isLiveSupportBotEnabled.value}, Ticket Bot=${ticket.isBotActive}');
+      return;
+    }
+
     final msg = userMessage.toLowerCase();
     String? aiResponse;
 

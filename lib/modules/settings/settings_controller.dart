@@ -43,6 +43,7 @@ class SettingsController extends GetxController {
 
   // Feature Toggles
   final RxBool isNamazGuideActive = false.obs;
+  final RxBool isLiveSupportBotEnabled = true.obs;
 
   Timer? _maintenanceTimer;
   Timer? _clockTimer;
@@ -107,6 +108,7 @@ class SettingsController extends GetxController {
     announcementImageUrl.value = data['announcementImageUrl'] ?? '';
     announcementId.value = data['announcementId'] ?? '';
     isNamazGuideActive.value = data['isNamazGuideActive'] ?? false;
+    isLiveSupportBotEnabled.value = data['isLiveSupportBotEnabled'] ?? true;
 
     if (data['maintenanceEndTime'] != null) {
       final endTime = data['maintenanceEndTime'];

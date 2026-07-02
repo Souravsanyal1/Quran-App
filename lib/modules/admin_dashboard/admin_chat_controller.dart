@@ -27,6 +27,7 @@ class AdminChatController extends GetxController {
   final Rxn<XFile> selectedImage = Rxn<XFile>();
   final Rxn<Uint8List> selectedImageBytes = Rxn<Uint8List>();
   final RxBool isUserTyping = false.obs;
+  final RxBool isBotActive = true.obs;
 
   late final String currentTicketId;
   late final String currentUserName;
@@ -59,8 +60,20 @@ class AdminChatController extends GetxController {
     _ticketSubscription = _repository.streamTicket(currentTicketId).listen((ticket) {
       if (ticket != null) {
         isUserTyping.value = ticket.isUserTyping;
+        isBotActive.value = ticket.isBotActive;
       }
     });
+  }
+
+  Future<void> toggleBotStatus() async {
+    try {
+      final newValue = !isBotActive.value;
+      await _repository.updateBotStatus(currentTicketId, newValue);
+      // isBotActive.value = newValue; // Will be updated via stream
+    } catch (e) {
+      _logger.e('Failed to toggle bot status: $e');
+      Get.snackbar('Error', 'Failed to toggle bot status');
+    }
   }
 
   void _listenToMessages() {

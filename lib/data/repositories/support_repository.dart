@@ -130,6 +130,13 @@ class SupportRepository {
     return updateFirestoreTicketStatus(ticketId, status.name);
   }
 
+  Future<void> updateBotStatus(String ticketId, bool isActive) async {
+    await _firestore.collection('support_tickets').doc(ticketId).update({
+      'isBotActive': isActive,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> updatePriority(String ticketId, TicketPriority priority) async {
     await _firestore.collection('support_tickets').doc(ticketId).update({
       'priority': priority.name,
@@ -285,6 +292,7 @@ class SupportRepository {
       lastMessage: data['lastMessage'],
       isUserTyping: data['isUserTyping'] ?? false,
       isAdminTyping: data['isAdminTyping'] ?? false,
+      isBotActive: data['isBotActive'] ?? true,
     );
   }
 
@@ -316,6 +324,7 @@ class SupportRepository {
       'lastMessage': t.lastMessage,
       'isUserTyping': t.isUserTyping,
       'isAdminTyping': t.isAdminTyping,
+      'isBotActive': t.isBotActive,
     };
   }
 }

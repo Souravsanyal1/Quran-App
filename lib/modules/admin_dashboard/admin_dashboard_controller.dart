@@ -193,6 +193,7 @@ class AdminDashboardController extends GetxController {
       maintenanceModeEnabled.value = data?['maintenanceMode'] ?? false;
       showAnnouncement.value = data?['showAnnouncement'] ?? false;
       isNamazGuideActive.value = data?['isNamazGuideActive'] ?? false;
+      liveSupportEnabled.value = data?['isLiveSupportBotEnabled'] ?? true;
       announcementTitleController.text = data?['announcementTitle'] ?? '';
       announcementBodyController.text = data?['announcementBody'] ?? '';
       announcementImageController.text = data?['announcementImageUrl'] ?? '';
@@ -213,6 +214,7 @@ class AdminDashboardController extends GetxController {
         'maintenanceEndTime': maintenanceEndTime.value != null ? Timestamp.fromDate(maintenanceEndTime.value!) : null,
         'showAnnouncement': showAnnouncement.value,
         'isNamazGuideActive': isNamazGuideActive.value,
+        'isLiveSupportBotEnabled': liveSupportEnabled.value,
         'announcementTitle': announcementTitleController.text.trim(),
         'announcementBody': announcementBodyController.text.trim(),
         'announcementImageUrl': announcementImageController.text.trim(),
@@ -615,45 +617,28 @@ class AdminDashboardController extends GetxController {
   }
 
   Future<void> _loadLiveSupportConfig() async {
-    try {
-      isLiveSupportLoading.value = true;
-      final response = await _dio.get('https://quran-205d8-default-rtdb.firebaseio.com/liveSupport.json');
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
-        if (data is Map) {
-          liveSupportEnabled.value = data['enabled'] ?? true;
-        } else if (data is bool) {
-          liveSupportEnabled.value = data;
-        }
-      }
-    } catch (e) {
-      debugPrint('Failed to load Live Support config: $e');
-    } finally {
-      isLiveSupportLoading.value = false;
-    }
+    // Now handled via _loadAppUpdateConfig and Firestore
   }
 
   Future<void> toggleLiveSupport(bool enabled) async {
+    liveSupportEnabled.value = enabled;
+    // We will save this when Save Configuration is clicked in Maintenance tab
+    // Or we can save it immediately to update_config
     try {
       isLiveSupportLoading.value = true;
-      final response = await _dio.put(
-        'https://quran-205d8-default-rtdb.firebaseio.com/liveSupport.json',
-        data: {'enabled': enabled},
+      await _firestore.collection('app_settings').doc('update_config').update({
+        'isLiveSupportBotEnabled': enabled,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+      Get.snackbar(
+        'Success', 
+        'Live Support ${enabled ? "Enabled" : "Disabled"} successfully',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFF1B5E35),
+        colorText: Colors.white,
       );
-      if (response.statusCode == 200) {
-        liveSupportEnabled.value = enabled;
-        Get.snackbar(
-          'Success', 
-          'Live Support ${enabled ? "Enabled" : "Disabled"} successfully',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: const Color(0xFF1B5E35),
-          colorText: Colors.white,
-        );
-      } else {
-        Get.snackbar('Error', 'Failed to update Live Support status');
-      }
     } catch (e) {
-      Get.snackbar('Error', 'Network Error: $e');
+      Get.snackbar('Error', 'Failed to update Live Support status: $e');
     } finally {
       isLiveSupportLoading.value = false;
     }

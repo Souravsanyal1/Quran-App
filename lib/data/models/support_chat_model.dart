@@ -17,6 +17,7 @@ class SupportTicket {
   final String? assignedAdminId;
   final bool isUserTyping;
   final bool isAdminTyping;
+  final bool isBotActive;
 
   SupportTicket({
     required this.id,
@@ -34,6 +35,7 @@ class SupportTicket {
     this.assignedAdminId,
     this.isUserTyping = false,
     this.isAdminTyping = false,
+    this.isBotActive = true,
   });
 
   factory SupportTicket.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class SupportTicket {
       assignedAdminId: json['assignedAdminId'] as String?,
       isUserTyping: json['isUserTyping'] as bool? ?? false,
       isAdminTyping: json['isAdminTyping'] as bool? ?? false,
+      isBotActive: json['isBotActive'] as bool? ?? true,
     );
   }
 
@@ -81,6 +84,7 @@ class SupportTicket {
       'assignedAdminId': assignedAdminId,
       'isUserTyping': isUserTyping,
       'isAdminTyping': isAdminTyping,
+      'isBotActive': isBotActive,
     };
   }
 }
