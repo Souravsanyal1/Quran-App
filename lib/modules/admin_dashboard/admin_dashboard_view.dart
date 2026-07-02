@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:typed_data';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -547,6 +548,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
   Color _getStatusColor(TicketStatus status) {
     switch (status) {
       case TicketStatus.open: return Colors.blue;
+      case TicketStatus.pending: return Colors.amber;
       case TicketStatus.inProgress: return Colors.orange;
       case TicketStatus.resolved: return Colors.green;
       case TicketStatus.closed: return Colors.grey;
@@ -1510,7 +1512,8 @@ class _AdminChatViewState extends State<_AdminChatView> {
   @override
   void initState() {
     super.initState();
-    chatController = Get.put(AdminChatController(widget.ticketId), tag: widget.ticketId);
+    chatController = Get.put(AdminChatController(Get.find<SupportRepository>()), tag: widget.ticketId);
+    chatController.setupChat(widget.ticketId, widget.userName);
   }
 
   @override
@@ -1562,7 +1565,7 @@ class _AdminChatViewState extends State<_AdminChatView> {
       decoration: BoxDecoration(color: const Color(0xFF1E1E2E), border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05)))),
       child: Row(
         children: [
-          IconButton(icon: const Icon(Icons.image_outlined, color: Colors.white24), onPressed: chatController.pickAndUploadImage),
+          IconButton(icon: const Icon(Icons.image_outlined, color: Colors.white24), onPressed: chatController.pickImage),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
@@ -1651,9 +1654,9 @@ class _StarPatternPainter extends CustomPainter {
   void _drawStar6(Canvas canvas, Paint paint, Offset center, double r) {
     final path = Path();
     for (int i = 0; i < 12; i++) {
-      final angle = (i * 30 - 90) * (3.14159 / 180);
+      final angle = (i * 30 - 90) * (math.pi / 180);
       final radius = i.isEven ? r : r * 0.45;
-      final point = Offset(center.dx + radius * (angle == 0 ? 1 : (angle - (angle * angle * angle) / 6)), center.dy + radius * (angle - (angle * angle * angle) / 6));
+      final point = Offset(center.dx + radius * math.cos(angle), center.dy + radius * math.sin(angle));
       i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
     }
     path.close();
