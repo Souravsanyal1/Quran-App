@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qurania - Cloud Admin Engine</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDKs (Compat version) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at top, #0c2014 0%, #060907 60%, #030403 100%);
+      --card-bg: rgba(14, 26, 19, 0.65);
+      --card-bg-hover: rgba(18, 35, 25, 0.8);
+      --card-border: rgba(201, 168, 76, 0.15);
+      --card-border-hover: rgba(201, 168, 76, 0.45);
+      --primary-gold: #D4AF37;
+      --light-gold: #F3E5AB;
+      --secondary-emerald: #1B5E35;
+      --accent-orange: #FF8A00;
+      --text-white: #FFFFFF;
+      --text-gray: rgba(255, 255, 255, 0.7);
+      --text-dark-gray: rgba(255, 255, 255, 0.45);
+      --glow-gold: rgba(212, 175, 55, 0.25);
+      --glow-emerald: rgba(27, 94, 53, 0.55);
+      --error-color: #ff4d4d;
+      --success-color: #2ecc71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-white);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Background blobs */
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(120px);
+      opacity: 0.4;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--glow-emerald);
+      top: -100px;
+      left: -100px;
+    }
+
+    .blob-2 {
+      width: 450px;
+      height: 450px;
+      background: var(--glow-gold);
+      bottom: -150px;
+      right: -150px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 40px 24px;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* Glassmorphic Box */
+    .admin-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px;
+      padding: 45px 40px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px var(--glow-emerald);
+      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Logo & Header in Card */
+    .logo-outer {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 24px;
+    }
+
+    .logo-container {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(15, 38, 25, 0.85) 0%, rgba(6, 10, 8, 0.95) 100%);
+      border: 2px solid var(--primary-gold);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      transform: rotate(45deg);
+    }
+
+    .logo-img {
+      width: 65px;
+      height: 65px;
+      transform: rotate(-45deg);
+      object-fit: contain;
+    }
+
+    .admin-card h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #FFFFFF 30%, var(--primary-gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .admin-card .tagline {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      color: var(--primary-gold);
+      text-align: center;
+      margin-bottom: 35px;
+      font-weight: 600;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 22px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary-gold);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input, .form-group select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: #FFFFFF;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--primary-gold);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+    }
+
+    /* Buttons */
+    .action-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, var(--primary-gold) 0%, #B89028 100%);
+      color: #000000;
+      box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+      margin-top: 15px;
+    }
+
+    .action-btn:hover {
+      background: linear-gradient(135deg, #FFE875 0%, var(--primary-gold) 100%);
+      box-shadow: 0 8px 22px rgba(212, 175, 55, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Alert / Error Display */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid;
+    }
+
+    .alert.error {
+      background: rgba(255, 77, 77, 0.1);
+      border-color: var(--error-color);
+      color: #ff6666;
+    }
+
+    .alert.success {
+      background: rgba(46, 204, 113, 0.1);
+      border-color: var(--success-color);
+      color: #58d68d;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0,0,0,0.1);
+      border-top-color: #000000;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Dashboard Layout */
+    #dashboard-view {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .dashboard-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .db-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .db-logo {
+      width: 45px;
+      height: 45px;
+      border: 1.5px solid var(--primary-gold);
+      border-radius: 10px;
+      transform: rotate(45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .db-logo img {
+      width: 30px;
+      height: 30px;
+      transform: rotate(-45deg);
+    }
+
+    .db-title-wrap h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      color: #FFFFFF;
+    }
+
+    .db-title-wrap h1 span {
+      color: var(--primary-gold);
+    }
+
+    .admin-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .admin-email {
+      font-size: 0.9rem;
+      color: var(--text-gray);
+      background: rgba(255,255,255,0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .logout-btn {
+      background: rgba(255, 77, 77, 0.15);
+      color: #ff6666;
+      border: 1px solid rgba(255, 77, 77, 0.3);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: var(--error-color);
+      color: #000000;
+      box-shadow: 0 4px 15px rgba(255, 77, 77, 0.35);
+    }
+
+    /* Grid layout for Dashboard panels */
+    .db-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 30px;
+      width: 100%;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+
+    .panel-card h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-gold);
+      margin-bottom: 20px;
+      border-left: 3.5px solid var(--primary-gold);
+      padding-left: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Tab switcher */
+    .tab-bar {
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px;
+      border-radius: 14px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-gray);
+      padding: 10px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--primary-gold);
+      color: #000000;
+      box-shadow: 0 4px 10px rgba(212, 175, 55, 0.25);
+    }
+
+    /* Items List Container */
+    .items-container {
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 12px;
+      gap: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .item-row:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(212, 175, 55, 0.25);
+    }
+
+    .item-img {
+      width: 55px;
+      height: 38px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .item-info {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+
+    .item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-link {
+      font-size: 0.78rem;
+      color: var(--text-dark-gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--error-color);
+      opacity: 0.75;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .delete-btn:hover {
+      background: rgba(255, 77, 77, 0.12);
+      opacity: 1;
+    }
+
+    .delete-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-dark-gray);
+      font-size: 0.95rem;
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      fill: rgba(255,255,255,0.15);
+      margin-bottom: 12px;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 175, 55, 0.2);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(212, 175, 55, 0.45);
+    }
+
+    @media (max-width: 900px) {
+      .db-grid {
+        grid-template-columns: 1fr;
+      }
+      .dashboard-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Background Blobs -->
+  <div class="glow-blob blob-1"></div>
+  <div class="glow-blob blob-2"></div>
+
+  <div class="container">
+    
+    <!-- LOGIN VIEW -->
+    <div id="login-view" class="admin-card">
+      <div class="logo-outer">
+        <div class="logo-container">
+          <img src="../../logo.png" alt="Qurania Logo" class="logo-img">
+        </div>
+      </div>
+      <h2>QURANIA</h2>
+      <p class="tagline">Cloud Admin Panel</p>
+
+      <div id="login-alert" class="alert error">
+        <span id="alert-text">Error message goes here</span>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="email">Admin Email</label>
+          <input type="email" id="email" required placeholder="admin@qurania.com">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" id="submit-btn" class="action-btn">
+          <div id="btn-spinner" class="spinner"></div>
+          <span id="btn-text">Authenticate Portal</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view">
+      <div class="dashboard-header">
+        <div class="db-title-wrap">
+          <div class="db-logo">
+            <img src="../../logo.png" alt="Qurania">
+          </div>
+          <h1>QURANIA <span>Admin Engine</span></h1>
+        </div>
+        <div class="admin-info">
+          <span id="display-email" class="admin-email">admin@email.com</span>
+          <button onclick="handleLogout()" class="logout-btn">Disconnect</button>
+        </div>
+      </div>
+
+      <div class="db-grid">
+        <!-- Add Banner Form -->
+        <div class="panel-card">
+          <h3 id="form-panel-title">Add Content Banner</h3>
+          
+          <div class="tab-bar">
+            <button class="tab-btn active" id="tab-banners" onclick="switchTab('banners')">Visual</button>
+            <button class="tab-btn" id="tab-static_top_banners" onclick="switchTab('static_top_banners')">Header</button>
+            <button class="tab-btn" id="tab-custom_ads" onclick="switchTab('custom_ads')">Campaign Ads</button>
+          </div>
+
+          <div id="form-alert" class="alert"></div>
+
+          <form id="banner-form" onsubmit="handlePublish(event)">
+            <div class="form-group">
+              <label for="banner-title">Title</label>
+              <input type="text" id="banner-title" required placeholder="e.g. Ramadan Mubarak 2026">
+            </div>
+            <div class="form-group">
+              <label for="banner-img">Image URL</label>
+              <input type="url" id="banner-img" required placeholder="https://domain.com/image.png">
+            </div>
+            <div class="form-group" id="target-wrapper">
+              <label for="banner-target" id="target-label">Target Route / URL</label>
+              <input type="text" id="banner-target" required placeholder="e.g. /prayer-time or external URL">
+            </div>
+            
+            <button type="submit" id="publish-btn" class="action-btn">
+              Publish Banner
+            </button>
+          </form>
+        </div>
+
+        <!-- Manage Banners Panel -->
+        <div class="panel-card">
+          <h3 id="list-panel-title">Active Visual Banners</h3>
+          <div class="items-container" id="items-list">
+            <!-- Dynamic elements go here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Firebase Config (loaded dynamically from workspace DefaultFirebaseOptions.web)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEYZBDOjkWZtvXOiwAcKT3RKbPcsQVDeg",
+      authDomain: "quran-205d8.firebaseapp.com",
+      projectId: "quran-205d8",
+      storageBucket: "quran-205d8.firebasestorage.app",
+      messagingSenderId: "622185595584",
+      appId: "1:622185595584:web:cf5e3867d2974a5dc52325",
+      measurementId: "G-MGQLFTTQYN"
+    };
+
+    // Initialize Firebase Compat
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // App state
+    let activeTab = 'banners'; // 'banners', 'static_top_banners', 'custom_ads'
+    let unsubscribeStream = null;
+
+    // Track Auth state change
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Authenticated. Now verify authorization
+        try {
+          const adminDoc = await db.collection('admins').doc(user.uid).get();
+          if (adminDoc.exists) {
+            // Authorized Admin!
+            showView('dashboard');
+            document.getElementById('display-email').innerText = user.email;
+            setupRealtimeStream();
+          } else {
+            // Not an admin in firestore
+            showAlert('login-alert', 'Access Denied: Your account is not authorized as an Administrator.', 'error');
+            auth.signOut();
+            showView('login');
+          }
+        } catch (err) {
+          console.error(err);
+          showAlert('login-alert', 'Authorization check failed: ' + err.message, 'error');
+          auth.signOut();
+          showView('login');
+        }
+      } else {
+        // Not authenticated
+        showView('login');
+      }
+    });
+
+    // Handle authentication
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submit-btn');
+      const spinner = document.getElementById('btn-spinner');
+      const btnText = document.getElementById('btn-text');
+
+      hideAlert('login-alert');
+      submitBtn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.innerText = 'Verifying Credentials...';
+
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        console.error(err);
+        let errorMsg = 'Authentication failed. Please check your credentials.';
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+          errorMsg = 'Incorrect Email or Password.';
+        } else if (err.code === 'auth/invalid-email') {
+          errorMsg = 'Invalid email address format.';
+        } else {
+          errorMsg = err.message;
+        }
+        showAlert('login-alert', errorMsg, 'error');
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.innerText = 'Authenticate Portal';
+      }
+    }
+
+    // Handle logout
+    function handleLogout() {
+      if (unsubscribeStream) {
+        unsubscribeStream();
+        unsubscribeStream = null;
+      }
+      auth.signOut();
+    }
+
+    // Switch between dashboard tabs
+    function switchTab(tabId) {
+      if (activeTab === tabId) return;
+
+      document.getElementById('tab-' + activeTab).classList.remove('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      activeTab = tabId;
+
+      // Update Form Titles & Placeholders
+      const formTitle = document.getElementById('form-panel-title');
+      const listTitle = document.getElementById('list-panel-title');
+      const targetLabel = document.getElementById('target-label');
+      const targetInput = document.getElementById('banner-target');
+
+      if (tabId === 'banners') {
+        formTitle.innerText = 'Add Visual Banner';
+        listTitle.innerText = 'Active Visual Banners';
+        targetLabel.innerText = 'Target Route / URL';
+        targetInput.placeholder = 'e.g. /prayer-time or external URL';
+      } else if (tabId === 'static_top_banners') {
+        formTitle.innerText = 'Add Header Banner';
+        listTitle.innerText = 'Active Header Banners';
+        targetLabel.innerText = 'Target Route / URL';
+        targetInput.placeholder = 'e.g. /support or external URL';
+      } else if (tabId === 'custom_ads') {
+        formTitle.innerText = 'Add Campaign Ad';
+        listTitle.innerText = 'Active Campaign Ads';
+        targetLabel.innerText = 'Target Campaign URL';
+        targetInput.placeholder = 'https://external-ad-link.com';
+      }
+
+      hideAlert('form-alert');
+      setupRealtimeStream();
+    }
+
+    // Real-time Firestore synchronizer
+    function setupRealtimeStream() {
+      if (unsubscribeStream) {
+        unsubscribeStream();
+      }
+
+      const listContainer = document.getElementById('items-list');
+      listContainer.innerHTML = '<div class="empty-state">Syncing Cloud Database...</div>';
+
+      // Load query collection
+      unsubscribeStream = db.collection(activeTab)
+        .orderBy('createdAt', 'desc')
+        .onSnapshot((snapshot) => {
+          listContainer.innerHTML = '';
+          if (snapshot.empty) {
+            listContainer.innerHTML = `
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0-2-.9-2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17 12H7v-2h10v2zm-4 4H7v-2h6v2z"/></svg>
+                <p>No active entries in this channel.</p>
+              </div>`;
+            return;
+          }
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const id = doc.id;
+            const title = data.title || 'Untitled';
+            const imageUrl = data.imageUrl || '';
+            const linkUrl = data.linkUrl || data.targetUrl || '';
+
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+              <img src="${imageUrl}" class="item-img" alt="banner" onerror="this.src='../../logo.png';">
+              <div class="item-info">
+                <div class="item-title">${escapeHTML(title)}</div>
+                <div class="item-link">${escapeHTML(linkUrl)}</div>
+              </div>
+              <button onclick="handleDelete('${id}')" class="delete-btn" title="Delete">
+                <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              </button>
+            `;
+            listContainer.appendChild(row);
+          });
+        }, (error) => {
+          console.error(error);
+          listContainer.innerHTML = `<div class="empty-state" style="color: var(--error-color)">Sync error: ${error.message}</div>`;
+        });
+    }
+
+    // Publish banner/ad to Firestore
+    async function handlePublish(e) {
+      e.preventDefault();
+      const title = document.getElementById('banner-title').value.trim();
+      const imageUrl = document.getElementById('banner-img').value.trim();
+      const targetVal = document.getElementById('banner-target').value.trim();
+      const publishBtn = document.getElementById('publish-btn');
+
+      publishBtn.disabled = true;
+      publishBtn.innerText = 'Publishing to Cloud...';
+      hideAlert('form-alert');
+
+      try {
+        const payload = {
+          title: title,
+          imageUrl: imageUrl,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (activeTab === 'custom_ads') {
+          payload.targetUrl = targetVal;
+          payload.status = 'active';
+          payload.type = 'banner';
+        } else {
+          payload.linkUrl = targetVal;
+          payload.isActive = true;
+        }
+
+        await db.collection(activeTab).add(payload);
+        showAlert('form-alert', 'Published successfully!', 'success');
+        
+        // Reset form
+        document.getElementById('banner-form').reset();
+      } catch (err) {
+        console.error(err);
+        showAlert('form-alert', 'Failed to publish: ' + err.message, 'error');
+      } finally {
+        publishBtn.disabled = false;
+        publishBtn.innerText = 'Publish Banner';
+      }
+    }
+
+    // Delete item from Firestore
+    async function handleDelete(id) {
+      if (!confirm('Are you sure you want to permanently delete this banner?')) return;
+      try {
+        await db.collection(activeTab).doc(id).delete();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to delete item: ' + err.message);
+      }
+    }
+
+    // UI View controller
+    function showView(viewId) {
+      const loginView = document.getElementById('login-view');
+      const dbView = document.getElementById('dashboard-view');
+      const submitBtn = document.getElementById('submit-btn');
+      const spinner = document.getElementById('btn-spinner');
+      const btnText = document.getElementById('btn-text');
+
+      if (viewId === 'dashboard') {
+        loginView.style.display = 'none';
+        dbView.style.display = 'block';
+      } else {
+        loginView.style.display = 'block';
+        dbView.style.display = 'none';
+        // Reset login button state
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.innerText = 'Authenticate Portal';
+      }
+    }
+
+    // Alert helper functions
+    function showAlert(id, text, type) {
+      const alertBox = document.getElementById(id);
+      alertBox.innerText = text;
+      alertBox.className = 'alert ' + type;
+      alertBox.style.display = 'flex';
+    }
+
+    function hideAlert(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Utilities
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+  </script>
+</body>
+</html>
