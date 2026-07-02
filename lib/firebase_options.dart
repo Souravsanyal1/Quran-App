@@ -31,8 +31,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAEYZBDOjkWZtvXOiwAcKT3RKbPcsQVDeg',
-    appId: '1:622185595584:android:72f2e519c96b7dc9c52325', // Standard generated format for Android
+    apiKey: 'AIzaSyB9v7oXVPpJgWG1CwLnO9cR3TM-HEw4UwI',
+    appId: '1:622185595584:android:13f0b967b1658a04c52325',
     messagingSenderId: '622185595584',
     projectId: 'quran-205d8',
     databaseURL: 'https://quran-205d8-default-rtdb.firebaseio.com',
@@ -40,12 +40,12 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAEYZBDOjkWZtvXOiwAcKT3RKbPcsQVDeg',
-    appId: '1:622185595584:ios:bb18a599c96b7dc9c52325', // Standard generated format for iOS
+    apiKey: 'AIzaSyAbe88IT92heAwimvA0_nMtbtnD2vkZhSU',
+    appId: '1:622185595584:ios:85cee353fbe93dfdc52325',
     messagingSenderId: '622185595584',
     projectId: 'quran-205d8',
     databaseURL: 'https://quran-205d8-default-rtdb.firebaseio.com',
     storageBucket: 'quran-205d8.firebasestorage.app',
-    iosBundleId: 'com.example.quranApp',
+    iosBundleId: 'com.quranapp.quranApp',
   );
 }
