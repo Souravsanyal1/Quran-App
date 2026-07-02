@@ -203,6 +203,16 @@ class AppDrawer extends StatelessWidget {
                       },
                       isDark: isDark,
                     ),
+                    _DrawerItem(
+                      icon: Icons.favorite_rounded,
+                      title: bn ? 'অনুদান ও সদকা' : 'Donation & Sadakah',
+                      gradientColors: const [Color(0xFFD32F2F), Color(0xFFEF5350)],
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed(AppRoutes.donation);
+                      },
+                      isDark: isDark,
+                    ),
                   ],
                 ),
               ),
