@@ -119,10 +119,11 @@ class HomeController extends GetxController {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () async {
+                         onPressed: () async {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setString('last_announcement_id', settings.announcementId.value);
                           Get.back();
+                          _triggerShowcase();
                         },
                         child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
@@ -138,20 +139,45 @@ class HomeController extends GetxController {
     );
   }
 
+  BuildContext? _showcaseContext;
 
   void startShowcase(BuildContext context) async {
+    _showcaseContext = context;
+    final settings = Get.find<SettingsController>();
+    final prefs = await SharedPreferences.getInstance();
+    final bool isShowcaseDone = prefs.getBool('showcase_done') ?? false;
+
+    if (isShowcaseDone) return;
+
+    // Check if the announcement popup is going to be shown
+    final bool willShowAnnouncement = settings.showAnnouncement.value &&
+        (prefs.getString('last_announcement_id') ?? '') != settings.announcementId.value;
+
+    if (!willShowAnnouncement) {
+      _triggerShowcase();
+    }
+  }
+
+  void _triggerShowcase() async {
+    if (_showcaseContext == null) return;
     final prefs = await SharedPreferences.getInstance();
     final bool isShowcaseDone = prefs.getBool('showcase_done') ?? false;
 
     if (!isShowcaseDone) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ShowCaseWidget.of(context).startShowCase([
-          quranKey,
-          prayerKey,
-          learnKey,
-          settingsKey,
-        ]);
-        prefs.setBool('showcase_done', true);
+        if (_showcaseContext != null) {
+          try {
+            ShowCaseWidget.of(_showcaseContext!).startShowCase([
+              quranKey,
+              prayerKey,
+              learnKey,
+              settingsKey,
+            ]);
+            prefs.setBool('showcase_done', true);
+          } catch (e) {
+            debugPrint('Failed to start showcase: $e');
+          }
+        }
       });
     }
   }
