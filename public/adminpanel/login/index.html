@@ -82,12 +82,12 @@
 
     .container {
       width: 100%;
-      max-width: 1300px;
-      padding: 30px 16px;
+      max-width: 1400px;
+      padding: 30px 24px;
       z-index: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
       min-height: 100vh;
     }
@@ -290,6 +290,7 @@
     #dashboard-view {
       display: none;
       width: 100%;
+      align-self: stretch;
       animation: fadeIn 0.6s ease-out;
     }
 
@@ -462,9 +463,10 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 24px;
-      padding: 30px;
+      padding: 36px 40px;
       box-shadow: 0 15px 35px rgba(0,0,0,0.3);
       align-self: start;
+      width: 100%;
     }
 
     .panel-card h3 {
@@ -1408,7 +1410,7 @@
       } else if (sectionId === 'app_config') {
         container.className = 'content-area single-col';
         container.innerHTML = `
-          <div class="panel-card" style="max-width: 950px; margin: 0 auto;">
+          <div class="panel-card">
             <h3>Update Configuration</h3>
             <div id="panel-alert" class="alert"></div>
             <form onsubmit="handleSaveAppConfig(event)">
@@ -1473,7 +1475,7 @@
       } else if (sectionId === 'prayer_config') {
         container.className = 'content-area single-col';
         container.innerHTML = `
-          <div class="panel-card" style="max-width: 950px; margin: 0 auto;">
+          <div class="panel-card">
             <h3>Global Prayer Settings</h3>
             <div id="panel-alert" class="alert"></div>
             <form onsubmit="handleSavePrayerConfig(event)">
@@ -1490,7 +1492,7 @@
       } else if (sectionId === 'donation_config') {
         container.className = 'content-area single-col';
         container.innerHTML = `
-          <div class="panel-card" style="max-width: 950px; margin: 0 auto;">
+          <div class="panel-card">
             <h3>Donation Account Settings</h3>
             <div id="panel-alert" class="alert"></div>
             <form onsubmit="handleSaveDonationConfig(event)">
@@ -1515,7 +1517,7 @@
       } else if (sectionId === 'landing_config') {
         container.className = 'content-area single-col';
         container.innerHTML = `
-          <div class="panel-card" style="max-width: 950px; margin: 0 auto;">
+          <div class="panel-card">
             <h3>Landing Page Config</h3>
             <div id="panel-alert" class="alert"></div>
             <form onsubmit="handleSaveLandingConfig(event)">
