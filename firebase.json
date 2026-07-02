@@ -24,10 +24,18 @@
   },
   "hosting": {
     "public": "public",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/adminpanel/login",
+        "destination": "/adminpanel/login/index.html"
+      }
     ]
   }
 }
