@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/ayah_model.dart';
 import '../../data/models/word_model.dart';
@@ -481,61 +482,64 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
 
   Widget _buildBottomAudioPlayer(SettingsController settings) {
     final isDark = settings.isDark;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? _SurahTheme.darkCard : Colors.white,
-        border: Border(top: BorderSide(color: _SurahTheme.emerald.withOpacity(0.1), width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: _SurahTheme.emerald.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.music_note_rounded, color: _SurahTheme.emerald, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '${settings.isBangla ? "তিলওয়াত হচ্ছে" : "Reciting"} - ${controller.currentSurahName}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  Text(
-                    '${settings.isBangla ? "আয়াত নং" : "Ayah No"}: ${controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value)?.numberInSurah ?? ""}',
-                    style: const TextStyle(color: AppColors.textGrey, fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(
-                controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled,
-                color: _SurahTheme.emerald,
-                size: 38,
-              ),
-              onPressed: () => controller.togglePlayback(),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close_rounded, color: AppColors.textGrey),
-              onPressed: () => controller.stopAudio(),
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.nowPlaying),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? _SurahTheme.darkCard : Colors.white,
+          border: Border(top: BorderSide(color: _SurahTheme.emerald.withOpacity(0.1), width: 1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _SurahTheme.emerald.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.music_note_rounded, color: _SurahTheme.emerald, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${settings.isBangla ? "তিলওয়াত হচ্ছে" : "Reciting"} - ${controller.currentSurahName}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    Text(
+                      '${settings.isBangla ? "আয়াত নং" : "Ayah No"}: ${controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value)?.numberInSurah ?? ""}',
+                      style: const TextStyle(color: AppColors.textGrey, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                  color: _SurahTheme.emerald,
+                  size: 38,
+                ),
+                onPressed: () => controller.togglePlayback(),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, color: AppColors.textGrey),
+                onPressed: () => controller.stopAudio(),
+              ),
+            ],
+          ),
         ),
       ),
     );

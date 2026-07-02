@@ -53,4 +53,5 @@ class AppRoutes {
   static const String adminDashboard = '/admin-dashboard';
   static const String maintenance = '/maintenance';
   static const String forceUpdate = '/force-update';
+  static const String nowPlaying = '/now-playing';
 }

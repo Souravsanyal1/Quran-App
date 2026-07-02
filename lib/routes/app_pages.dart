@@ -14,6 +14,7 @@ import '../modules/admin_dashboard/admin_dashboard_view.dart';
 import '../modules/admin_dashboard/admin_dashboard_binding.dart';
 import '../modules/quran/quran_view.dart';
 import '../modules/quran/quran_controller.dart';
+import '../modules/quran/widgets/now_playing_view.dart';
 import '../modules/surah_details/surah_details_view.dart';
 import '../modules/surah_details/surah_details_controller.dart';
 import '../modules/para_details/para_details_view.dart';
@@ -217,6 +218,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.forceUpdate,
       page: () => const ForceUpdateView(),
+    ),
+    GetPage(
+      name: AppRoutes.nowPlaying,
+      page: () => const NowPlayingView(),
+      transition: Transition.downToUp,
     ),
   ];
 }

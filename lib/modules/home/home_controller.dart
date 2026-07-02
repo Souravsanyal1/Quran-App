@@ -33,26 +33,39 @@ class HomeController extends GetxController {
     _greetingTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       currentHour.value = DateTime.now().hour;
     });
+    
+    // Reactive announcement trigger
+    final settings = Get.find<SettingsController>();
+    everAll([settings.showAnnouncement, settings.announcementId], (_) {
+      _checkAndShowAnnouncement();
+    });
+    
     _checkAndShowAnnouncement();
   }
 
   void _checkAndShowAnnouncement() async {
     final settings = Get.find<SettingsController>();
-    final prefs = await SharedPreferences.getInstance();
-
-    // Small delay to ensure UI is ready
-    await Future.delayed(const Duration(milliseconds: 1500));
+    
+    // Small delay to ensure UI is ready on first load
+    if (Get.isSnackbarOpen || Get.isDialogOpen == true) {
+      await Future.delayed(const Duration(milliseconds: 2000));
+    } else {
+      await Future.delayed(const Duration(milliseconds: 1000));
+    }
 
     if (settings.showAnnouncement.value) {
+      final prefs = await SharedPreferences.getInstance();
       final lastId = prefs.getString('last_announcement_id') ?? '';
       if (lastId != settings.announcementId.value) {
         _showAnnouncementDialog(settings);
-        prefs.setString('last_announcement_id', settings.announcementId.value);
       }
     }
   }
 
-  void _showAnnouncementDialog(SettingsController settings) {
+  void _showAnnouncementDialog(SettingsController settings) async {
+    // If a dialog is already showing, wait or close it
+    if (Get.isDialogOpen == true) return;
+
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -106,7 +119,11 @@ class HomeController extends GetxController {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         ),
-                        onPressed: () => Get.back(),
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('last_announcement_id', settings.announcementId.value);
+                          Get.back();
+                        },
                         child: const Text('Close', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
@@ -117,6 +134,7 @@ class HomeController extends GetxController {
           ),
         ),
       ),
+      barrierDismissible: false,
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
@@ -273,37 +274,40 @@ class ParaDetailsView extends GetView<ParaDetailsController> {
               ),
               Obx(() {
                 if (controller.playingAyahNumber.value == null) return const SizedBox.shrink();
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? _ParaTheme.darkCard : Colors.white, 
-                    border: Border(top: BorderSide(color: _ParaTheme.emerald.withOpacity(0.1))),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.music_note_rounded, color: _ParaTheme.emerald),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start, 
-                            mainAxisSize: MainAxisSize.min, 
-                            children: [
-                              Text('${settings.isBangla ? "তিলওয়াত হচ্ছে" : "Reciting"} - ${settings.isBangla ? "পারা" : "Juz"} ${controller.paraNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                              Text('${settings.isBangla ? "আয়াত নং" : "Ayah No"}: ${controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value)?.numberInSurah ?? ""}', style: const TextStyle(color: AppColors.textGrey, fontSize: 11)),
-                            ],
+                return GestureDetector(
+                  onTap: () => Get.toNamed(AppRoutes.nowPlaying),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isDark ? _ParaTheme.darkCard : Colors.white, 
+                      border: Border(top: BorderSide(color: _ParaTheme.emerald.withOpacity(0.1))),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.music_note_rounded, color: _ParaTheme.emerald),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start, 
+                              mainAxisSize: MainAxisSize.min, 
+                              children: [
+                                Text('${settings.isBangla ? "তিলওয়াত হচ্ছে" : "Reciting"} - ${settings.isBangla ? "পারা" : "Juz"} ${controller.paraNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                Text('${settings.isBangla ? "আয়াত নং" : "Ayah No"}: ${controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value)?.numberInSurah ?? ""}', style: const TextStyle(color: AppColors.textGrey, fontSize: 11)),
+                              ],
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled, color: _ParaTheme.emerald, size: 36), 
-                          onPressed: () => controller.togglePlayback(),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.stop_circle_rounded, color: AppColors.error, size: 36), 
-                          onPressed: () => controller.stopAudio(),
-                        ),
-                      ],
+                          IconButton(
+                            icon: Icon(controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled, color: _ParaTheme.emerald, size: 36), 
+                            onPressed: () => controller.togglePlayback(),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.stop_circle_rounded, color: AppColors.error, size: 36), 
+                            onPressed: () => controller.stopAudio(),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

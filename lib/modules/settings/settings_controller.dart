@@ -528,19 +528,23 @@ class SettingsController extends GetxController {
 
   Future<void> checkNamazGuideAccessAndNavigate(String route) async {
     final auth = Get.find<AuthController>();
+    
+    // 1. Check if feature is globally active from admin settings
+    if (isNamazGuideActive.value) {
+      Get.toNamed(route);
+      return;
+    }
+
+    // 2. If not globally active, check if user is admin
     if (auth.isAdmin.value) {
       Get.toNamed(route);
       return;
     }
 
+    // 3. Check for individual user access
     final currentUser = auth.user.value;
     if (currentUser == null) {
       _showComingSoonDialog();
-      return;
-    }
-
-    if (isNamazGuideActive.value) {
-      Get.toNamed(route);
       return;
     }
 

@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../data/models/ayah_model.dart';
 import '../modules/settings/settings_controller.dart';
 import '../core/constants/app_urls.dart';
+import '../modules/auth/auth_controller.dart';
 
 class AudioPlayerService extends GetxService {
   late AudioPlayer _player;
@@ -59,6 +61,11 @@ class AudioPlayerService extends GetxService {
         return;
       }
 
+      // 1. Reset state to avoid UI freeze if previous load failed
+      if (_player.processingState == ProcessingState.loading || _player.processingState == ProcessingState.buffering) {
+        await _player.stop();
+      }
+
       isPlayerLoading.value = true;
       playingAyahNumber.value = ayah.number;
       _currentIndex = _playlist.indexWhere((a) => a.number == ayah.number);
@@ -78,14 +85,16 @@ class AudioPlayerService extends GetxService {
         final docDir = await getApplicationDocumentsDirectory();
         final cacheFile = File('${docDir.path}/audio_cache/${qariId}_${ayah.number}.mp3');
         if (!await cacheFile.parent.exists()) await cacheFile.parent.create(recursive: true);
-        source = LockCachingAudioSource(
-          Uri.parse(ayahUrl), 
-          cacheFile: cacheFile, 
+        
+        // Use standard UriSource for faster response if LockCachingAudioSource is flaky
+        source = AudioSource.uri(
+          Uri.parse(ayahUrl),
           tag: MediaItem(
             id: '${ayah.number}', 
             album: _currentContextLabel, 
             title: 'Ayah ${ayah.numberInSurah}', 
-            artist: qari['name'] ?? qariId
+            artist: qari['name'] ?? qariId,
+            artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
           )
         );
       } else {
@@ -95,16 +104,39 @@ class AudioPlayerService extends GetxService {
             id: '${ayah.number}', 
             album: _currentContextLabel, 
             title: 'Ayah ${ayah.numberInSurah}', 
-            artist: qari['name'] ?? qariId
+            artist: qari['name'] ?? qariId,
+            artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
           )
         );
       }
       await _player.setAudioSource(source);
       await _player.play();
+      
+      // Track the play
+      _trackPlay(ayah, qari['name'] ?? qariId);
     } catch (e) {
       isPlayerLoading.value = false;
       Get.log("Audio play error: $e");
       Get.snackbar('Playback Error', 'Could not play audio. Check your internet connection.');
+    }
+  }
+
+  void _trackPlay(AyahModel ayah, String qariName) async {
+    try {
+      final auth = Get.find<AuthController>();
+      final uid = auth.user.value?.uid ?? 'anonymous';
+      
+      await FirebaseFirestore.instance.collection('play_logs').add({
+        'uid': uid,
+        'ayahNumber': ayah.number,
+        'surahNumber': ayah.surahNumber,
+        'ayahNumberInSurah': ayah.numberInSurah,
+        'qari': qariName,
+        'context': _currentContextLabel,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      Get.log("Tracking error: $e");
     }
   }
 

@@ -143,6 +143,13 @@ class HomeDashboard extends StatelessWidget {
                   gradient: const [Color(0xFF2E7D32), Color(0xFF4CAF50)],
                   route: AppRoutes.tracker,
                 ),
+                _QuickActionCard(
+                  icon: Icons.mic_external_on_rounded,
+                  label: bn ? 'ওয়াজ শুনুন' : 'Listen Waz',
+                  gradient: const [Color(0xFF8D6E63), Color(0xFF5D4037)],
+                  route: '#', // Placeholder for coming soon
+                  badgeText: bn ? 'শীঘ্রই' : 'Soon',
+                ),
                 // _QuickActionCard(
                 //   icon: Icons.menu_book_outlined,
                 //   label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
@@ -524,6 +531,7 @@ class _QuickActionCard extends StatelessWidget {
 
     Widget card = GestureDetector(
       onTap: () {
+        if (route == '#') return; // Do nothing for placeholder
         if (route == AppRoutes.salahGuide || route == AppRoutes.salahGuide2) {
           settings.checkNamazGuideAccessAndNavigate(route);
         } else {
