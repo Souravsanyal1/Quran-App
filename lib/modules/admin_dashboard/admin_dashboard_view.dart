@@ -365,11 +365,10 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       case 0: return _buildOverviewTab();
       case 2: return _buildBannersTab(context);
       case 3: return _buildStaticBannersTab(context);
-      case 4: return _buildNotificationsTab();
+      case 4: return _buildCustomAdsTab(context);
       case 5: return _buildPrayerSettingsTab();
-      case 6: return _buildCustomAdsTab(context);
-      case 7: return _buildSupportInboxTab();
-      case 8: return _buildUsersTab();
+      case 6: return _buildSupportInboxTab();
+      case 7: return _buildUsersTab();
       case 9: return _buildMaintenanceTab(context);
       case 10: return _buildNotificationsTab(context);
       case 11: return _buildN8nConfigTab(context);
@@ -725,7 +724,7 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
     );
   }
 
-  Widget _buildNotificationsTab() {
+  Widget _buildBroadcastTab() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1132,6 +1131,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
             );
           }),
           
+          const SizedBox(height: 48),
+          _buildBroadcastTab(),
           const SizedBox(height: 48),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

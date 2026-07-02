@@ -13,6 +13,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import '../data/models/notification_model.dart';
 import '../data/models/notification_config_model.dart';
 import '../data/repositories/notification_repository.dart';
 import '../modules/notifications/notifications_controller.dart';
