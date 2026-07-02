@@ -179,7 +179,20 @@ class SplashController extends GetxController {
           final int currentBuildNumber = int.tryParse(packageInfo.buildNumber) ?? 0;
           final int requiredBuildNumber = data['buildNumber'] ?? 0;
 
+          final String currentVersion = packageInfo.version;
+          final String requiredVersion = data['version'] ?? '1.0.0';
+
+          bool shouldForceUpdate = false;
+
           if (currentBuildNumber < requiredBuildNumber) {
+            shouldForceUpdate = true;
+          }
+
+          if (!shouldForceUpdate) {
+            shouldForceUpdate = _isVersionLessThan(currentVersion, requiredVersion);
+          }
+
+          if (shouldForceUpdate) {
             Get.offAllNamed(AppRoutes.forceUpdate);
             return;
           }
@@ -189,6 +202,26 @@ class SplashController extends GetxController {
       Get.log('Maintenance/Update check skipped due to error: $e');
       // We don't block the app if the check fails (e.g. no internet)
       // unless we want it to be super strict.
+    }
+  }
+
+  bool _isVersionLessThan(String currentVersion, String requiredVersion) {
+    try {
+      final currentParts = currentVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      final requiredParts = requiredVersion.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+      final maxLength = currentParts.length > requiredParts.length ? currentParts.length : requiredParts.length;
+
+      for (int i = 0; i < maxLength; i++) {
+        final currentPart = i < currentParts.length ? currentParts[i] : 0;
+        final requiredPart = i < requiredParts.length ? requiredParts[i] : 0;
+
+        if (currentPart < requiredPart) return true;
+        if (currentPart > requiredPart) return false;
+      }
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 }
