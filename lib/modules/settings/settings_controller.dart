@@ -7,6 +7,10 @@ import 'dart:async';
 import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
 import '../auth/auth_controller.dart';
+import '../notifications/notifications_controller.dart';
+import '../../data/repositories/notification_repository.dart';
+import '../../core/api/notification_api_provider.dart';
+import '../../data/models/notification_config_model.dart';
 import '../../services/audio_player_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -55,7 +59,20 @@ class SettingsController extends GetxController {
     super.onInit();
     _loadSettings();
     _listenToMaintenanceMode();
+    _listenToRemoteNotificationConfigs();
     _startClockTimer();
+  }
+
+  void _listenToRemoteNotificationConfigs() {
+    final repo = NotificationRepository(NotificationApiProvider());
+    
+    repo.streamGlobalConfigs().listen((configs) {
+      NotificationService.instance.applyGlobalConfigs(configs);
+    });
+
+    repo.streamCustomNotifications().listen((list) {
+      NotificationService.instance.applyCustomNotifications(list);
+    });
   }
 
   void _startClockTimer() {

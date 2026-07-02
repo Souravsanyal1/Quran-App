@@ -18,6 +18,11 @@ import '../settings/n8n_config_controller.dart';
 import 'admin_chat_controller.dart';
 import 'admin_dashboard_controller.dart';
 
+import 'notification_management_controller.dart';
+import '../../data/repositories/notification_repository.dart';
+import '../../data/models/notification_config_model.dart';
+import 'package:intl/intl.dart';
+
 class AdminDashboardView extends GetView<AdminDashboardController> {
   const AdminDashboardView({super.key});
 
@@ -193,7 +198,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                       _buildSidebarItem(5, Icons.tune_rounded, 'Prayer Config'),
                       _buildSidebarItem(6, Icons.ads_click_rounded, 'Ad Campaigns'),
                       _buildSidebarItem(9, Icons.build_circle_rounded, 'App Maintenance'),
-                      _buildSidebarItem(10, Icons.settings_suggest_rounded, 'n8n Webhook'),
+    _buildSidebarItem(10, Icons.notifications_active_rounded, 'Notifications'),
+    _buildSidebarItem(11, Icons.settings_suggest_rounded, 'n8n Webhook'),
                     ],
                   ),
                 ),
@@ -273,7 +279,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                   _buildMobileTabItem(5, 'Prayers'),
                   _buildMobileTabItem(6, 'Ads'),
                   _buildMobileTabItem(9, 'Maint'),
-                  _buildMobileTabItem(10, 'n8n'),
+    _buildMobileTabItem(10, 'Notif'),
+    _buildMobileTabItem(11, 'n8n'),
                 ],
               )),
         ),
@@ -364,7 +371,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
       case 7: return _buildSupportInboxTab();
       case 8: return _buildUsersTab();
       case 9: return _buildMaintenanceTab(context);
-      case 10: return _buildN8nConfigTab(context);
+      case 10: return _buildNotificationsTab(context);
+      case 11: return _buildN8nConfigTab(context);
       default: return const SizedBox();
     }
   }
@@ -1084,6 +1092,212 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
               isLoading: controller.isUpdateConfigSaving.value,
             )),
       ],
+    );
+  }
+
+  Widget _buildNotificationsTab(BuildContext context) {
+    if (!Get.isRegistered<NotificationManagementController>()) {
+      Get.lazyPut(() => NotificationManagementController(Get.find<NotificationRepository>()));
+    }
+    final notifController = Get.find<NotificationManagementController>();
+    
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Notification Management', 'Control daily reminders and schedule custom alerts.'),
+          const SizedBox(height: 32),
+          
+          Obx(() {
+            if (notifController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            return Column(
+              children: [
+                _buildCategorySection(notifController, 'daily_quran', '📖 Daily Quran Reminder'),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'prayer', '🕌 Prayer Reminder'),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'daily_dua', '🤲 Daily Du\'a Reminder', showTime: false),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'morning', '🌙 Morning Reminder'),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'evening', '🌆 Evening Reminder'),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'friday', '🌙 Friday Reminder'),
+                const SizedBox(height: 24),
+                _buildCategorySection(notifController, 'ramadan', '⭐ Ramadan Reminder'),
+              ],
+            );
+          }),
+          
+          const SizedBox(height: 48),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Custom Notifications', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              _buildActionButton('+ Add Notification', () => _showAddCustomNotifDialog(context, notifController)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildCustomNotifTable(notifController),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategorySection(NotificationManagementController controller, String key, String label, {bool showTime = true}) {
+    if (!controller.titleControllers.containsKey(key)) return const SizedBox.shrink();
+    
+    return _buildFormCard([
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+          Obx(() => Switch(
+            value: controller.enabledStates[key]!.value,
+            onChanged: (val) => controller.enabledStates[key]!.value = val,
+            activeColor: const Color(0xFF1B5E35),
+          )),
+        ],
+      ),
+      const SizedBox(height: 16),
+      _buildTextField(controller.titleControllers[key]!, 'Title', Icons.title_rounded),
+      const SizedBox(height: 12),
+      _buildTextField(controller.messageControllers[key]!, 'Message', Icons.message_rounded, maxLines: 2),
+      if (showTime) ...[
+        const SizedBox(height: 12),
+        _buildTextField(controller.timeControllers[key]!, 'Time (e.g. 08:00)', Icons.access_time_rounded),
+      ],
+      const SizedBox(height: 20),
+      _buildActionButton('Save $label', () => controller.saveGlobalConfig(key)),
+    ]);
+  }
+
+  Widget _buildCustomNotifTable(NotificationManagementController controller) {
+    return Obx(() {
+      if (controller.customNotifications.isEmpty) {
+        return _buildEmptyState(Icons.notifications_none_rounded, 'No custom notifications added.');
+      }
+      
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E2E),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columnSpacing: 24,
+            columns: const [
+              DataColumn(label: Text('Status', style: TextStyle(color: Colors.white70))),
+              DataColumn(label: Text('Type', style: TextStyle(color: Colors.white70))),
+              DataColumn(label: Text('Title', style: TextStyle(color: Colors.white70))),
+              DataColumn(label: Text('Time', style: TextStyle(color: Colors.white70))),
+              DataColumn(label: Text('Repeat', style: TextStyle(color: Colors.white70))),
+              DataColumn(label: Text('Actions', style: TextStyle(color: Colors.white70))),
+            ],
+            rows: controller.customNotifications.map((notif) => DataRow(
+              cells: [
+                DataCell(Switch(
+                  value: notif.isActive,
+                  onChanged: (_) => controller.toggleCustomStatus(notif),
+                  activeColor: Colors.green,
+                )),
+                DataCell(Text(notif.type, style: const TextStyle(color: Colors.white))),
+                DataCell(Text(notif.title, style: const TextStyle(color: Colors.white))),
+                DataCell(Text(notif.scheduleTime, style: const TextStyle(color: Colors.white))),
+                DataCell(Text(notif.repeat, style: const TextStyle(color: Colors.white))),
+                DataCell(IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  onPressed: () => controller.deleteCustomNotification(notif.id),
+                )),
+              ],
+            )).toList(),
+          ),
+        ),
+      );
+    });
+  }
+
+  void _showAddCustomNotifDialog(BuildContext context, NotificationManagementController controller) {
+    final titleC = TextEditingController();
+    final messageC = TextEditingController();
+    final timeC = TextEditingController(text: '08:00');
+    final typeC = TextEditingController(text: 'General');
+    String repeatValue = 'once';
+    String priorityValue = 'medium';
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF141420),
+        title: const Text('Add Custom Notification', style: TextStyle(color: Colors.white)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTextField(typeC, 'Type', Icons.category_rounded),
+              const SizedBox(height: 12),
+              _buildTextField(titleC, 'Title', Icons.title_rounded),
+              const SizedBox(height: 12),
+              _buildTextField(messageC, 'Message', Icons.message_rounded, maxLines: 2),
+              const SizedBox(height: 12),
+              _buildTextField(timeC, 'Time (HH:mm)', Icons.access_time_rounded),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: repeatValue,
+                dropdownColor: const Color(0xFF1E1E2E),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Repeat',
+                  labelStyle: const TextStyle(color: Colors.white60),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                items: ['once', 'daily', 'weekly', 'monthly'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                onChanged: (v) => repeatValue = v!,
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: priorityValue,
+                dropdownColor: const Color(0xFF1E1E2E),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Priority',
+                  labelStyle: const TextStyle(color: Colors.white60),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                items: ['low', 'medium', 'high'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+                onChanged: (v) => priorityValue = v!,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              controller.addCustomNotification(
+                type: typeC.text,
+                title: titleC.text,
+                message: messageC.text,
+                scheduleTime: timeC.text,
+                startDate: DateTime.now(),
+                repeat: repeatValue,
+                priority: priorityValue,
+              );
+              Get.back();
+            },
+            child: const Text('Add'),
+          ),
+        ],
+      ),
     );
   }
 

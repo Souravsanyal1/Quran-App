@@ -13,7 +13,8 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import '../data/models/notification_model.dart';
+import '../data/models/notification_config_model.dart';
+import '../data/repositories/notification_repository.dart';
 import '../modules/notifications/notifications_controller.dart';
 import '../modules/settings/settings_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -332,7 +333,88 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleDuaReminder(TimeOfDay time) async {
+  Future<void> cancelDuaReminder() async {
+    if (kIsWeb) return;
+    for (int i = 0; i < 7; i++) {
+      await _localNotifications.cancel(id: 3001 + i);
+    }
+  }
+
+  // --- Remote Config Integration ---
+
+  Future<void> applyGlobalConfigs(Map<String, NotificationCategoryConfig> configs) async {
+    if (kIsWeb) return;
+
+    // 1. Prayer Reminder
+    final prayer = configs['prayer'];
+    if (prayer != null) {
+      if (!prayer.enabled) {
+        await cancelAzanNotifications();
+      } else {
+        // Re-scheduling Azan would normally happen via PrayerTimeController
+      }
+    }
+
+    // 2. Daily Dua Reminder
+    final dua = configs['daily_dua'];
+    if (dua != null) {
+      if (!dua.enabled) {
+        await cancelDuaReminder();
+      } else {
+        final settings = Get.find<SettingsController>();
+        await scheduleDuaReminder(
+          TimeOfDay(hour: settings.duaReminderHour.value, minute: settings.duaReminderMinute.value),
+          title: dua.title.isNotEmpty ? dua.title : null,
+          body: dua.message.isNotEmpty ? dua.message : null,
+        );
+      }
+    }
+    
+    _scheduleSimpleDaily(3100, configs['daily_quran'], 'daily_quran');
+    _scheduleSimpleDaily(3200, configs['morning'], 'morning');
+    _scheduleSimpleDaily(3300, configs['evening'], 'evening');
+    _scheduleSimpleDaily(3400, configs['friday'], 'friday', weekly: true);
+    _scheduleSimpleDaily(3500, configs['ramadan'], 'ramadan');
+  }
+
+  Future<void> _scheduleSimpleDaily(int baseId, NotificationCategoryConfig? config, String key, {bool weekly = false}) async {
+    if (config == null || !config.enabled || config.time == null) {
+      for (int i = 0; i < 7; i++) await _localNotifications.cancel(id: baseId + i);
+      return;
+    }
+
+    try {
+      final timeParts = config.time!.split(':');
+      final hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      
+      final now = DateTime.now();
+      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
+
+      for (int i = 0; i < 7; i++) {
+        final targetDate = now.add(Duration(days: i));
+        if (weekly && targetDate.weekday != DateTime.friday) continue;
+
+        var sDate = DateTime(targetDate.year, targetDate.month, targetDate.day, hour, minute);
+        if (sDate.isBefore(now)) {
+          if (weekly) sDate = sDate.add(const Duration(days: 7));
+          else sDate = sDate.add(const Duration(days: 1));
+        }
+        
+        await _localNotifications.zonedSchedule(
+          id: baseId + i,
+          title: config.title,
+          body: config.message,
+          scheduledDate: tz.TZDateTime.from(sDate, tz.local),
+          notificationDetails: const NotificationDetails(android: AndroidNotificationDetails('high_importance_channel', 'Reminders')),
+          androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> scheduleDuaReminder(TimeOfDay time, {String? title, String? body}) async {
     if (kIsWeb) return;
     await cancelDuaReminder();
     final now = DateTime.now();
@@ -347,8 +429,8 @@ class NotificationService {
       }
       await _localNotifications.zonedSchedule(
         id: 3001 + i,
-        title: '📿 Daily Dua',
-        body: 'Remember Allah',
+        title: title ?? '📿 Daily Dua',
+        body: body ?? 'Remember Allah',
         scheduledDate: tz.TZDateTime.from(sDate, tz.local),
         notificationDetails: const NotificationDetails(android: AndroidNotificationDetails('dua_channel', 'Dua', importance: Importance.high, playSound: true)),
         androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
@@ -356,10 +438,65 @@ class NotificationService {
     }
   }
 
-  Future<void> cancelDuaReminder() async {
+  Future<void> applyCustomNotifications(List<CustomNotificationConfig> list) async {
     if (kIsWeb) return;
-    for (int i = 0; i < 7; i++) {
-      await _localNotifications.cancel(id: 3001 + i);
+    
+    for (int i = 0; i < 1000; i++) await _localNotifications.cancel(id: 5000 + i);
+
+    final now = DateTime.now();
+    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
+
+    int counter = 0;
+    for (var config in list) {
+      if (!config.isActive) continue;
+      if (config.endDate != null && now.isAfter(config.endDate!)) continue;
+      if (counter >= 1000) break;
+
+      try {
+        final timeParts = config.scheduleTime.split(':');
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+
+        for (int i = 0; i < 7; i++) {
+          DateTime sDate;
+          if (config.repeat == 'once') {
+            sDate = DateTime(config.startDate.year, config.startDate.month, config.startDate.day, hour, minute);
+            if (i > 0 || sDate.isBefore(now)) break;
+          } else if (config.repeat == 'daily') {
+            sDate = now.add(Duration(days: i));
+            sDate = DateTime(sDate.year, sDate.month, sDate.day, hour, minute);
+          } else if (config.repeat == 'weekly') {
+            sDate = now.add(Duration(days: i * 7));
+            int diff = config.startDate.weekday - sDate.weekday;
+            if (diff < 0) diff += 7;
+            sDate = sDate.add(Duration(days: diff));
+            sDate = DateTime(sDate.year, sDate.month, sDate.day, hour, minute);
+          } else {
+            sDate = DateTime(now.year, now.month + i, config.startDate.day, hour, minute);
+          }
+
+          if (sDate.isBefore(now)) continue;
+          if (config.endDate != null && sDate.isAfter(config.endDate!)) break;
+
+          await _localNotifications.zonedSchedule(
+            id: 5000 + counter,
+            title: config.title,
+            body: config.message,
+            scheduledDate: tz.TZDateTime.from(sDate, tz.local),
+            notificationDetails: NotificationDetails(
+              android: AndroidNotificationDetails(
+                'high_importance_channel', 
+                'Custom Alerts',
+                priority: config.priority == 'high' ? Priority.high : Priority.defaultPriority,
+              )
+            ),
+            androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+          );
+          counter++;
+          if (config.repeat == 'once' || counter >= 1000) break;
+        }
+      } catch (_) {}
     }
   }
 }
