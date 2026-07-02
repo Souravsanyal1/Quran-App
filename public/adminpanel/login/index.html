@@ -1770,9 +1770,11 @@
         await db.collection('broadcast_notifications').add({
           title: title,
           body: body,
-          imageUrl: img || null,
+          imageUrl: img || "",
           type: 'broadcast',
           isRead: false,
+          status: 'sent_to_queue',
+          target: 'all',
           sentAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
