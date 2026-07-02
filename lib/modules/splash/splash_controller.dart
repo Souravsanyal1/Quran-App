@@ -19,6 +19,7 @@ class SplashController extends GetxController {
 
   final RxDouble progress = 0.0.obs;
   final RxString statusMessage = 'Starting...'.obs;
+  bool _hasRedirected = false;
 
   @override
   void onInit() {
@@ -66,7 +67,7 @@ class SplashController extends GetxController {
       ]);
 
       // If update or maintenance views have taken over, stop execution here
-      if (Get.currentRoute == AppRoutes.maintenance || Get.currentRoute == AppRoutes.forceUpdate) {
+      if (_hasRedirected) {
         return;
       }
 
@@ -169,6 +170,7 @@ class SplashController extends GetxController {
         }
 
         if (isMaintenanceActive) {
+          _hasRedirected = true;
           Get.offAllNamed(AppRoutes.maintenance);
           return;
         }
@@ -193,6 +195,7 @@ class SplashController extends GetxController {
           }
 
           if (shouldForceUpdate) {
+            _hasRedirected = true;
             Get.offAllNamed(AppRoutes.forceUpdate);
             return;
           }
