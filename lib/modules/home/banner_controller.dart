@@ -24,6 +24,10 @@ class BannerController extends GetxController {
     _initBannerStream();
     _initStaticBannerStream();
     _initCampaignAdsStream();
+    // Safety timeout: if Firestore hasn't responded in 5s, stop showing shimmer
+    Future.delayed(const Duration(seconds: 5), () {
+      if (isLoading.value) isLoading.value = false;
+    });
   }
 
   @override

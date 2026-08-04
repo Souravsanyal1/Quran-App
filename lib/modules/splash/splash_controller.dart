@@ -96,10 +96,8 @@ class SplashController extends GetxController {
         }
       }
 
-      if (kIsWeb && auth.user.value == null) {
-        Get.offAllNamed(AppRoutes.login);
-        return;
-      }
+      // Web users without admin login also go to the normal home flow
+      // (Admin login is accessible intentionally from within the app settings/drawer)
 
       // Perform background/asynchronous setup tasks (Mobile only)
       if (!kIsWeb) {
@@ -137,7 +135,7 @@ class SplashController extends GetxController {
       statusMessage.value = 'Initialization error: $e';
       Get.log('Initialization error: $e');
       await Future.delayed(const Duration(seconds: 3));
-      Get.offAllNamed(kIsWeb ? AppRoutes.login : AppRoutes.onboarding);
+      Get.offAllNamed(kIsWeb ? AppRoutes.home : AppRoutes.onboarding);
     }
   }
 

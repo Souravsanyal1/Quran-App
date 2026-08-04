@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,7 +75,7 @@ class HomeController extends GetxController {
           decoration: BoxDecoration(
             color: settings.isDark ? const Color(0xFF141420) : Colors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFC9A84C).withOpacity(0.3), width: 1.5),
+            border: Border.all(color: const Color(0xFFC9A84C).withValues(alpha: 0.3), width: 1.5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -86,7 +87,7 @@ class HomeController extends GetxController {
                   child: CachedNetworkImage(
                     imageUrl: settings.announcementImageUrl.value,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(height: 150, color: Colors.grey.withOpacity(0.1)),
+                    placeholder: (_, __) => Container(height: 150, color: Colors.grey.withValues(alpha: 0.1)),
                   ),
                 ),
               
@@ -142,6 +143,8 @@ class HomeController extends GetxController {
   BuildContext? _showcaseContext;
 
   void startShowcase(BuildContext context) async {
+    // Showcase is a mobile-only onboarding feature; skip entirely on web
+    if (kIsWeb) return;
     _showcaseContext = context;
     final settings = Get.find<SettingsController>();
     final prefs = await SharedPreferences.getInstance();
