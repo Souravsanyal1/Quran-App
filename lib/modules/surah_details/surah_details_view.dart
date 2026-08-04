@@ -6,7 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/ayah_model.dart';
-import '../../data/models/word_model.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../../widgets/app_back_button.dart';
 import '../../widgets/percentage_loading_widget.dart';
@@ -151,8 +150,91 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             );
           }
 
+          // ── No internet + no cache ─────────────────────────────────────
+          if (controller.hasError.value) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.wifi_off_rounded,
+                        size: 72,
+                        color: _SurahTheme.emerald.withOpacity(0.5)),
+                    const SizedBox(height: 20),
+                    Text(
+                      settings.isBangla
+                          ? 'ইন্টারনেট সংযোগ নেই'
+                          : 'No Internet Connection',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: settings.isDark ? Colors.white : Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      settings.isBangla
+                          ? 'এই সূরাটি আগে ডাউনলোড করা হয়নি। অফলাইনে পড়তে ডাউনলোড পেজ থেকে সূরাটি ডাউনলোড করুন।'
+                          : 'This Surah has not been downloaded yet. Please download it from the Download screen to read offline.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: settings.isDark ? Colors.white60 : Colors.black54,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _SurahTheme.emerald,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(
+                        settings.isBangla ? 'পুনরায় চেষ্টা করুন' : 'Retry',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () => controller.retryLoad(),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           return Column(
             children: [
+              // ── Offline banner ────────────────────────────────────────
+              if (controller.isOffline.value)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                  color: Colors.orange.withOpacity(0.15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.wifi_off_rounded,
+                          color: Colors.orange, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        settings.isBangla
+                            ? 'অফলাইন মোড — ক্যাশ থেকে দেখানো হচ্ছে'
+                            : 'Offline mode — showing cached content',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: ListView.builder(
                   controller: controller.scrollController,
@@ -183,7 +265,6 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
 
   Widget _buildHeaderCard(SettingsController settings) {
     return Obx(() {
-      final isDark = settings.isDark;
       return Container(
         width: double.infinity,
         margin: const EdgeInsets.only(top: 16, bottom: 20),
@@ -218,7 +299,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${settings.isBangla ? "অর্থ" : "The Opener"} • ${controller.ayahs.length} ${settings.isBangla ? "আয়াত" : "Ayahs"}',
+                  '${controller.surahMeaning.isNotEmpty ? controller.surahMeaning : controller.surahName} • ${controller.ayahs.length} ${settings.isBangla ? "আয়াত" : "Ayahs"}',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: _SurahTheme.goldSoft,

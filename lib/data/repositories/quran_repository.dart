@@ -306,12 +306,24 @@ class QuranRepository {
 
   bool isSurahCached(int surahNumber) {
     if (!_initialized) return false;
-    return _surahDataCache.containsKey('surah_$surahNumber');
+    return _surahDataCache.containsKey('surah_v4_$surahNumber');
   }
 
   bool isParaCached(int paraNumber) {
     if (!_initialized) return false;
-    return _paraDataCache.containsKey('para_v3_$paraNumber');
+    return _paraDataCache.containsKey('para_v5_$paraNumber');
+  }
+
+  /// Returns cached ayahs without a network call. Returns empty list if not cached.
+  List<AyahModel> getSurahAyahsCached(int surahNumber) {
+    if (!_initialized) return [];
+    final cached = _surahDataCache.get('surah_v4_$surahNumber');
+    if (cached == null) return [];
+    try {
+      return _parseAyahsFromCache(jsonDecode(cached as String));
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<String> getLocalAudioPath(int globalAyahNumber, String qariId) async {

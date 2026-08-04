@@ -61,7 +61,7 @@ class AudioPlayerService extends GetxService {
         return;
       }
 
-      // 1. Reset state to avoid UI freeze if previous load failed
+      // Reset state to avoid UI freeze if previous load failed
       if (_player.processingState == ProcessingState.loading || _player.processingState == ProcessingState.buffering) {
         await _player.stop();
       }
@@ -77,49 +77,91 @@ class AudioPlayerService extends GetxService {
       );
       final bitrate = qari['bitrate'] ?? '128';
       final String ayahUrl = 'https://cdn.islamic.network/quran/audio/$bitrate/$qariId/${ayah.number}.mp3';
-      
+
       Get.log("Playing Ayah: $ayahUrl");
 
       AudioSource source;
       if (!kIsWeb) {
         final docDir = await getApplicationDocumentsDirectory();
+
+        // ── 1. Check for fully downloaded file (from Download screen) ──────
+        final downloadedFile = File('${docDir.path}/audio/$qariId/${ayah.number}.mp3');
         final cacheFile = File('${docDir.path}/audio_cache/${qariId}_${ayah.number}.mp3');
-        if (!await cacheFile.parent.exists()) await cacheFile.parent.create(recursive: true);
-        
-        // Use standard UriSource for faster response if LockCachingAudioSource is flaky
+
+        if (await downloadedFile.exists() && await downloadedFile.length() > 0) {
+          // Play from fully downloaded file (offline-safe)
+          Get.log("Playing from local file: ${downloadedFile.path}");
+          source = AudioSource.file(
+            downloadedFile.path,
+            tag: MediaItem(
+              id: '${ayah.number}',
+              album: _currentContextLabel,
+              title: 'Ayah ${ayah.numberInSurah}',
+              artist: qari['name'] ?? qariId,
+              artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
+            ),
+          );
+        } else if (await cacheFile.exists() && await cacheFile.length() > 0) {
+          // Play from audio cache file
+          Get.log("Playing from cache file: ${cacheFile.path}");
+          source = AudioSource.file(
+            cacheFile.path,
+            tag: MediaItem(
+              id: '${ayah.number}',
+              album: _currentContextLabel,
+              title: 'Ayah ${ayah.numberInSurah}',
+              artist: qari['name'] ?? qariId,
+              artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
+            ),
+          );
+        } else {
+          // Stream from network
+          if (!await cacheFile.parent.exists()) await cacheFile.parent.create(recursive: true);
+          source = AudioSource.uri(
+            Uri.parse(ayahUrl),
+            tag: MediaItem(
+              id: '${ayah.number}',
+              album: _currentContextLabel,
+              title: 'Ayah ${ayah.numberInSurah}',
+              artist: qari['name'] ?? qariId,
+              artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
+            ),
+          );
+        }
+      } else {
         source = AudioSource.uri(
           Uri.parse(ayahUrl),
           tag: MediaItem(
-            id: '${ayah.number}', 
-            album: _currentContextLabel, 
-            title: 'Ayah ${ayah.numberInSurah}', 
+            id: '${ayah.number}',
+            album: _currentContextLabel,
+            title: 'Ayah ${ayah.numberInSurah}',
             artist: qari['name'] ?? qariId,
             artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
-          )
-        );
-      } else {
-        source = AudioSource.uri(
-          Uri.parse(ayahUrl), 
-          tag: MediaItem(
-            id: '${ayah.number}', 
-            album: _currentContextLabel, 
-            title: 'Ayah ${ayah.numberInSurah}', 
-            artist: qari['name'] ?? qariId,
-            artUri: Uri.parse('asset:///assets/icons/icon_android.png'),
-          )
+          ),
         );
       }
       await _player.setAudioSource(source);
       await _player.play();
-      
+
       // Track the play
       _trackPlay(ayah, qari['name'] ?? qariId);
     } catch (e) {
       isPlayerLoading.value = false;
+      playingAyahNumber.value = null;
       Get.log("Audio play error: $e");
-      Get.snackbar('Playback Error', 'Could not play audio. Check your internet connection.');
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('socket') || errStr.contains('network') || errStr.contains('connection') || errStr.contains('failed host')) {
+        Get.snackbar(
+          'No Internet',
+          'Download this Surah for offline listening via the Download screen.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } else {
+        Get.snackbar('Playback Error', 'Could not play audio. Check your internet connection.');
+      }
     }
   }
+
 
   void _trackPlay(AyahModel ayah, String qariName) async {
     try {

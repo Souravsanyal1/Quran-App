@@ -15,18 +15,21 @@ class SurahDetailsController extends GetxController {
   final AudioPlayerService _audio = Get.find<AudioPlayerService>();
 
   final RxBool isLoading = true.obs;
+  final RxBool isOffline = false.obs;
+  final RxBool hasError = false.obs;
   final RxList<AyahModel> ayahs = <AyahModel>[].obs;
   final RxMap<int, List<WordModel>> ayahWords = <int, List<WordModel>>{}.obs;
   final RxBool isWordByWord = false.obs;
   final RxBool showTranslation = true.obs;
   final RxBool showPronunciation = true.obs;
 
-  String get currentSurahName => _settings.isBangla 
-      ? (AppUrls.surahNamesBn[surahNumber] ?? surahName) 
+  String get currentSurahName => _settings.isBangla
+      ? (AppUrls.surahNamesBn[surahNumber] ?? surahName)
       : surahName;
 
   late final int surahNumber;
   late final String surahName;
+  late final String surahMeaning;
   int? initialAyah;
 
   /// Expose audio state from the service (read-only delegates)
@@ -47,6 +50,7 @@ class SurahDetailsController extends GetxController {
     final args = Get.arguments as Map<String, dynamic>? ?? {};
     surahNumber = args['surahNumber'] ?? 1;
     surahName = args['surahName'] ?? 'Al-Fatihah';
+    surahMeaning = args['surahMeaning'] ?? '';
     initialAyah = args['initialAyah'];
 
     _loadAyahs();
@@ -78,8 +82,34 @@ class SurahDetailsController extends GetxController {
 
   Future<void> _loadAyahs() async {
     isLoading.value = true;
+    isOffline.value = false;
+    hasError.value = false;
     try {
       final list = await _repository.getSurahAyahs(surahNumber);
+
+      if (list.isEmpty) {
+        // Network failed — try serving from cache
+        final cached = _repository.getSurahAyahsCached(surahNumber);
+        if (cached.isNotEmpty) {
+          ayahs.assignAll(cached);
+          isOffline.value = true; // Show offline badge but content is available
+          _audio.setPlaylist(
+            ayahs: cached,
+            contextLabel: 'Surah $surahName',
+            autoPlayNext: autoPlayNextToggle.value,
+          );
+          saveLastRead(initialAyah ?? 1);
+          if (initialAyah != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              scrollToAyah(initialAyah!);
+            });
+          }
+        } else {
+          hasError.value = true; // No cache, no internet
+        }
+        return;
+      }
+
       ayahs.assignAll(list);
 
       // Tell the audio service about this playlist
@@ -100,6 +130,19 @@ class SurahDetailsController extends GetxController {
       }
     } catch (e) {
       Get.log('Error loading ayahs: $e');
+      // Try cache fallback on exception
+      final cached = _repository.getSurahAyahsCached(surahNumber);
+      if (cached.isNotEmpty) {
+        ayahs.assignAll(cached);
+        isOffline.value = true;
+        _audio.setPlaylist(
+          ayahs: cached,
+          contextLabel: 'Surah $surahName',
+          autoPlayNext: autoPlayNextToggle.value,
+        );
+      } else {
+        hasError.value = true;
+      }
     } finally {
       isLoading.value = false;
     }
@@ -109,6 +152,9 @@ class SurahDetailsController extends GetxController {
     autoPlayNextToggle.value = value;
     _audio.setAutoPlayNext(value);
   }
+
+  /// Retry loading after an error (e.g. user tapped Retry button)
+  Future<void> retryLoad() => _loadAyahs();
 
   void scrollToAyah(int ayahNumInSurah) {
     final index =

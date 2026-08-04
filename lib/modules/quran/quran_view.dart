@@ -299,6 +299,7 @@ class QuranView extends GetView<QuranController> {
                           arguments: {
                             'surahNumber': lr.surahNumber,
                             'surahName': lr.surahName,
+                            'surahMeaning': '',
                             'initialAyah': lr.ayahNumber,
                           },
                         ),
@@ -419,6 +420,7 @@ class QuranView extends GetView<QuranController> {
                       arguments: {
                         'surahNumber': surah.number,
                         'surahName': surah.englishName,
+                        'surahMeaning': surah.englishNameTranslation,
                       },
                     ),
                   ),
@@ -664,6 +666,7 @@ class QuranView extends GetView<QuranController> {
                     arguments: {
                       'surahNumber': bookmark.surahNumber,
                       'surahName': bookmark.surahName,
+                      'surahMeaning': '',
                       'initialAyah': bookmark.ayahNumber,
                     },
                   ),
