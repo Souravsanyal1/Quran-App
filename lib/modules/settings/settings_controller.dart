@@ -113,6 +113,20 @@ class SettingsController extends GetxController {
     });
   }
 
+  Future<void> checkMaintenanceStatus() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc('update_config')
+          .get();
+      if (doc.exists && doc.data() != null) {
+        updateMaintenanceFromData(doc.data()!);
+      }
+    } catch (e) {
+      Get.log('Error re-checking maintenance status: $e');
+    }
+  }
+
   void updateMaintenanceFromData(Map<String, dynamic> data) {
     // 1. Check Maintenance Mode
     bool isMaintenanceActive = data['maintenanceMode'] == true;
