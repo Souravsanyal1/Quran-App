@@ -14,16 +14,16 @@ import 'support_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _ChatTheme {
   _ChatTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class SupportChatView extends GetView<SupportController> {
@@ -38,10 +38,12 @@ class SupportChatView extends GetView<SupportController> {
     final userId = authController.user.value?.uid;
 
     return Scaffold(
-      backgroundColor: isDark ? _ChatTheme.darkSurface : _ChatTheme.lightSurface,
+      backgroundColor:
+          isDark ? _ChatTheme.darkSurface : _ChatTheme.lightSurface,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              size: 18, color: Colors.white),
           onPressed: () {
             controller.activeTicket.value = null;
             Get.back();
@@ -51,16 +53,23 @@ class SupportChatView extends GetView<SupportController> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_ChatTheme.emeraldDark, _ChatTheme.emerald, _ChatTheme.emeraldLight],
+              colors: [
+                _ChatTheme.emeraldDark,
+                _ChatTheme.emerald,
+                _ChatTheme.emeraldLight
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border(bottom: BorderSide(color: _ChatTheme.gold, width: 1.5)),
+            border:
+                Border(bottom: BorderSide(color: _ChatTheme.gold, width: 1.5)),
           ),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+              Opacity(
+                  opacity: 0.05,
+                  child: CustomPaint(painter: _StarPatternPainter())),
             ],
           ),
         ),
@@ -71,11 +80,17 @@ class SupportChatView extends GetView<SupportController> {
             children: [
               Text(
                 ticket?.subject ?? (isBn ? 'সাপোর্ট চ্যাট' : 'Support Chat'),
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16),
               ),
               Text(
                 isBn ? 'সরাসরি কথোপকথন' : 'Live Chat Agent',
-                style: GoogleFonts.poppins(color: _ChatTheme.goldSoft, fontSize: 11, fontWeight: FontWeight.w500),
+                style: GoogleFonts.poppins(
+                    color: _ChatTheme.goldSoft,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500),
               ),
             ],
           );
@@ -92,17 +107,28 @@ class SupportChatView extends GetView<SupportController> {
                 if (val == 'close') {
                   Get.dialog(
                     AlertDialog(
-                      backgroundColor: isDark ? _ChatTheme.darkCard : Colors.white,
-                      title: Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
-                      content: Text(isBn ? 'আপনি কি নিশ্চিত যে আপনি এই চ্যাটটি বন্ধ করতে চান?' : 'Are you sure you want to close this chat?', style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
+                      backgroundColor:
+                          isDark ? _ChatTheme.darkCard : Colors.white,
+                      title: Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat',
+                          style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black)),
+                      content: Text(
+                          isBn
+                              ? 'আপনি কি নিশ্চিত যে আপনি এই চ্যাটটি বন্ধ করতে চান?'
+                              : 'Are you sure you want to close this chat?',
+                          style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black87)),
                       actions: [
-                        TextButton(onPressed: () => Get.back(), child: Text(isBn ? 'না' : 'No')),
+                        TextButton(
+                            onPressed: () => Get.back(),
+                            child: Text(isBn ? 'না' : 'No')),
                         ElevatedButton(
                           onPressed: () {
                             controller.closeActiveTicket();
                             Get.back();
                           },
-                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error),
                           child: Text(isBn ? 'হ্যাঁ, বন্ধ করুন' : 'Yes, Close'),
                         ),
                       ],
@@ -118,9 +144,11 @@ class SupportChatView extends GetView<SupportController> {
                     value: 'close',
                     child: Row(
                       children: [
-                        const Icon(Icons.close_rounded, color: AppColors.error, size: 20),
+                        const Icon(Icons.close_rounded,
+                            color: AppColors.error, size: 20),
                         const SizedBox(width: 12),
-                        Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat', style: const TextStyle(color: AppColors.error)),
+                        Text(isBn ? 'চ্যাট বন্ধ করুন' : 'Close Chat',
+                            style: const TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
@@ -128,7 +156,8 @@ class SupportChatView extends GetView<SupportController> {
                   value: 'new',
                   child: Row(
                     children: [
-                      const Icon(Icons.add_circle_outline_rounded, color: _ChatTheme.emerald, size: 20),
+                      const Icon(Icons.add_circle_outline_rounded,
+                          color: _ChatTheme.emerald, size: 20),
                       const SizedBox(width: 12),
                       Text(isBn ? 'নতুন চ্যাট শুরু করুন' : 'Start New Chat'),
                     ],
@@ -150,8 +179,10 @@ class SupportChatView extends GetView<SupportController> {
               }
               return ListView.builder(
                 controller: controller.scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: messages.length + (controller.isAdminTyping.value ? 1 : 0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                itemCount:
+                    messages.length + (controller.isAdminTyping.value ? 1 : 0),
                 itemBuilder: (context, index) {
                   if (index == messages.length) {
                     return _buildTypingIndicator(isDark);
@@ -166,10 +197,13 @@ class SupportChatView extends GetView<SupportController> {
 
           // 2. Typing Image Preview Row
           Obx(() {
-            if (controller.selectedImage.value == null) return const SizedBox.shrink();
+            if (controller.selectedImage.value == null)
+              return const SizedBox.shrink();
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: isDark ? _ChatTheme.darkCard : _ChatTheme.goldSoft.withOpacity(0.5),
+              color: isDark
+                  ? _ChatTheme.darkCard
+                  : _ChatTheme.goldSoft.withValues(alpha: 0.5),
               child: Row(
                 children: [
                   if (controller.selectedImageBytes.value != null)
@@ -186,11 +220,15 @@ class SupportChatView extends GetView<SupportController> {
                   Expanded(
                     child: Text(
                       isBn ? 'ছবি সংযুক্ত করা হয়েছে' : 'Image attached',
-                      style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _ChatTheme.emerald),
+                      style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _ChatTheme.emerald),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.cancel_rounded, color: AppColors.error),
+                    icon: const Icon(Icons.cancel_rounded,
+                        color: AppColors.error),
                     onPressed: () {
                       controller.selectedImage.value = null;
                       controller.selectedImageBytes.value = null;
@@ -215,18 +253,24 @@ class SupportChatView extends GetView<SupportController> {
         margin: const EdgeInsets.only(top: 4, bottom: 2, right: 64),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Admin is typing", style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12)),
+            Text("Admin is typing",
+                style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 12)),
             const SizedBox(width: 8),
             const SizedBox(
               width: 12,
               height: 12,
-              child: CircularProgressIndicator(strokeWidth: 1.5, color: _ChatTheme.emerald),
+              child: CircularProgressIndicator(
+                  strokeWidth: 1.5, color: _ChatTheme.emerald),
             ),
           ],
         ),
@@ -243,25 +287,30 @@ class SupportChatView extends GetView<SupportController> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: _ChatTheme.emerald.withOpacity(0.08),
+                color: _ChatTheme.emerald.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.chat_bubble_outline_rounded, size: 48, color: _ChatTheme.emerald),
+              child: const Icon(Icons.chat_bubble_outline_rounded,
+                  size: 48, color: _ChatTheme.emerald),
             ),
             const SizedBox(height: 16),
             Text(
               isBn ? 'কথোপকথন শুরু করুন' : 'No messages yet',
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : AppColors.textDark),
+              style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white70 : AppColors.textDark),
             ),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                isBn 
-                  ? 'আপনার বার্তাটি লিখুন। আমাদের সাপোর্ট প্রতিনিধি শীঘ্রই উত্তর দেবেন।' 
-                  : 'Send your query. A support agent will respond to you shortly.',
+                isBn
+                    ? 'আপনার বার্তাটি লিখুন। আমাদের সাপোর্ট প্রতিনিধি শীঘ্রই উত্তর দেবেন।'
+                    : 'Send your query. A support agent will respond to you shortly.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textGrey, height: 1.4),
+                style: TextStyle(
+                    fontSize: 13, color: AppColors.textGrey, height: 1.4),
               ),
             ),
             const SizedBox(height: 32),
@@ -281,19 +330,20 @@ class SupportChatView extends GetView<SupportController> {
                 spacing: 8,
                 runSpacing: 8,
                 alignment: WrapAlignment.center,
-                children: (isBn 
-                  ? [
-                      'আসসালামু আলাইকুম',
-                      'নামাজের সময়',
-                      'সূরা বুকমার্ক করার নিয়ম',
-                      'অডিও ডাউনলোড কিভাবে করব?',
-                    ]
-                  : [
-                      'Assalamu Alaikum',
-                      'Prayer times today',
-                      'How to bookmark a Surah?',
-                      'How to download audio?',
-                    ]).map((text) {
+                children: (isBn
+                        ? [
+                            'আসসালামু আলাইকুম',
+                            'নামাজের সময়',
+                            'সূরা বুকমার্ক করার নিয়ম',
+                            'অডিও ডাউনলোড কিভাবে করব?',
+                          ]
+                        : [
+                            'Assalamu Alaikum',
+                            'Prayer times today',
+                            'How to bookmark a Surah?',
+                            'How to download audio?',
+                          ])
+                    .map((text) {
                   return ActionChip(
                     label: Text(
                       text,
@@ -303,7 +353,8 @@ class SupportChatView extends GetView<SupportController> {
                         color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
-                    backgroundColor: isDark ? _ChatTheme.darkCard : Colors.white,
+                    backgroundColor:
+                        isDark ? _ChatTheme.darkCard : Colors.white,
                     side: BorderSide(
                       color: isDark ? Colors.white10 : Colors.grey.shade300,
                     ),
@@ -323,7 +374,9 @@ class SupportChatView extends GetView<SupportController> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? _ChatTheme.darkCard : _ChatTheme.lightCard,
-        border: Border(top: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200)),
+        border: Border(
+            top: BorderSide(
+                color: isDark ? Colors.white10 : Colors.grey.shade200)),
       ),
       child: SafeArea(
         child: Row(
@@ -334,25 +387,31 @@ class SupportChatView extends GetView<SupportController> {
               onPressed: () => controller.pickImage(),
             ),
             const SizedBox(width: 8),
-            
+
             // Text Input Form
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: isDark ? _ChatTheme.darkSurface : _ChatTheme.lightSurface,
+                  color:
+                      isDark ? _ChatTheme.darkSurface : _ChatTheme.lightSurface,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: isDark ? _ChatTheme.emerald.withOpacity(0.15) : _ChatTheme.emerald.withOpacity(0.06),
+                    color: isDark
+                        ? _ChatTheme.emerald.withValues(alpha: 0.15)
+                        : _ChatTheme.emerald.withValues(alpha: 0.06),
                   ),
                 ),
                 child: TextField(
                   controller: controller.messageController,
                   maxLines: null,
-                  style: TextStyle(fontSize: 15, color: isDark ? Colors.white : AppColors.textDark),
+                  style: TextStyle(
+                      fontSize: 15,
+                      color: isDark ? Colors.white : AppColors.textDark),
                   decoration: InputDecoration(
                     hintText: isBn ? 'বার্তা লিখুন...' : 'Type message...',
-                    hintStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
+                    hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black38),
                     border: InputBorder.none,
                   ),
                 ),
@@ -362,19 +421,26 @@ class SupportChatView extends GetView<SupportController> {
 
             // Send Button
             Obx(() => Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_ChatTheme.emerald, _ChatTheme.emeraldLight],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: controller.isSubmitting.value
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                onPressed: controller.isSubmitting.value ? null : () => controller.sendMessage(),
-              ),
-            )),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [_ChatTheme.emerald, _ChatTheme.emeraldLight],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: controller.isSubmitting.value
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.send_rounded,
+                            color: Colors.white, size: 20),
+                    onPressed: controller.isSubmitting.value
+                        ? null
+                        : () => controller.sendMessage(),
+                  ),
+                )),
           ],
         ),
       ),
@@ -400,7 +466,8 @@ class _MessageBubble extends StatelessWidget {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Container(
             margin: const EdgeInsets.only(bottom: 4),
@@ -414,7 +481,9 @@ class _MessageBubble extends StatelessWidget {
                       end: Alignment.bottomRight,
                     )
                   : null,
-              color: isMe ? null : (isDark ? _ChatTheme.darkCard : _ChatTheme.goldSoft),
+              color: isMe
+                  ? null
+                  : (isDark ? _ChatTheme.darkCard : _ChatTheme.goldSoft),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -422,14 +491,14 @@ class _MessageBubble extends StatelessWidget {
                 bottomRight: Radius.circular(isMe ? 0 : 16),
               ),
               border: Border.all(
-                color: isMe 
-                    ? _ChatTheme.gold.withOpacity(0.3)
-                    : _ChatTheme.emerald.withOpacity(0.12),
+                color: isMe
+                    ? _ChatTheme.gold.withValues(alpha: 0.3)
+                    : _ChatTheme.emerald.withValues(alpha: 0.12),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -442,20 +511,27 @@ class _MessageBubble extends StatelessWidget {
                 if (msg.imageUrl != null) ...[
                   GestureDetector(
                     onTap: () => Get.to(() => Scaffold(
-                      backgroundColor: Colors.black,
-                      appBar: AppBar(backgroundColor: Colors.transparent, foregroundColor: Colors.white),
-                      body: PhotoView(imageProvider: CachedNetworkImageProvider(msg.imageUrl!)),
-                    )),
+                          backgroundColor: Colors.black,
+                          appBar: AppBar(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white),
+                          body: PhotoView(
+                              imageProvider:
+                                  CachedNetworkImageProvider(msg.imageUrl!)),
+                        )),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
                         imageUrl: msg.imageUrl!,
                         placeholder: (context, url) => Container(
                           height: 150,
-                          color: Colors.grey.withOpacity(0.1),
-                          child: const Center(child: CircularProgressIndicator(color: _ChatTheme.emerald)),
+                          color: Colors.grey.withValues(alpha: 0.1),
+                          child: const Center(
+                              child: CircularProgressIndicator(
+                                  color: _ChatTheme.emerald)),
                         ),
-                        errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 40),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.broken_image, size: 40),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -467,7 +543,9 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     msg.message,
                     style: GoogleFonts.poppins(
-                      color: isMe ? Colors.white : (isDark ? Colors.white70 : AppColors.textDark),
+                      color: isMe
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : AppColors.textDark),
                       fontSize: 14.5,
                       height: 1.4,
                     ),
@@ -516,7 +594,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * math.cos(angle),
         center.dy + radius * math.sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

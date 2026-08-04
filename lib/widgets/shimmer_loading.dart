@@ -7,13 +7,13 @@ class ShimmerLoading extends StatelessWidget {
   final double height;
   final ShapeBorder shapeBorder;
 
-  ShimmerLoading.rectangular({
+  const ShimmerLoading.rectangular({
     super.key,
     this.width = double.infinity,
     required this.height,
   }) : shapeBorder = const RoundedRectangleBorder();
 
-  ShimmerLoading.circular({
+  const ShimmerLoading.circular({
     super.key,
     this.width = double.infinity,
     required this.height,
@@ -55,7 +55,7 @@ class ShimmerList extends StatelessWidget {
   final EdgeInsets padding;
   final double spacing;
 
-  ShimmerList({
+  const ShimmerList({
     super.key,
     this.itemCount = 6,
     this.height = 80,

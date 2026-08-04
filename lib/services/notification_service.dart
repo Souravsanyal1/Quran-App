@@ -25,7 +25,8 @@ class NotificationService {
   static final NotificationService instance = NotificationService._();
 
   FirebaseMessaging get _fcm => FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
   final Logger _logger = Logger();
 
   bool _initialized = false;
@@ -38,7 +39,8 @@ class NotificationService {
       if (!kIsWeb) {
         try {
           tz.initializeTimeZones();
-          final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).toString();
+          final String timeZoneName =
+              (await FlutterTimezone.getLocalTimezone()).toString();
           try {
             tz.setLocalLocation(tz.getLocation(timeZoneName));
           } catch (_) {
@@ -48,9 +50,11 @@ class NotificationService {
           tz.setLocalLocation(tz.UTC);
         }
 
-        const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+        const androidInit =
+            AndroidInitializationSettings('@mipmap/ic_launcher');
         const iosInit = DarwinInitializationSettings();
-        const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
+        const initSettings =
+            InitializationSettings(android: androidInit, iOS: iosInit);
 
         await _localNotifications.initialize(
           settings: initSettings,
@@ -59,10 +63,21 @@ class NotificationService {
           },
         );
 
-        final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-        await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('high_importance_channel', 'Announcements', importance: Importance.high));
-        await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('azan_channel', 'Azan Notifications', importance: Importance.max, playSound: true));
-        await androidPlugin?.createNotificationChannel(const AndroidNotificationChannel('dua_channel', 'Daily Dua Reminder', importance: Importance.high, playSound: true));
+        final androidPlugin =
+            _localNotifications.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+        await androidPlugin?.createNotificationChannel(
+            const AndroidNotificationChannel(
+                'high_importance_channel', 'Announcements',
+                importance: Importance.high));
+        await androidPlugin?.createNotificationChannel(
+            const AndroidNotificationChannel(
+                'azan_channel', 'Azan Notifications',
+                importance: Importance.max, playSound: true));
+        await androidPlugin?.createNotificationChannel(
+            const AndroidNotificationChannel(
+                'dua_channel', 'Daily Dua Reminder',
+                importance: Importance.high, playSound: true));
 
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
           Permission.notification.status.then((status) {
@@ -86,8 +101,13 @@ class NotificationService {
             BigPictureStyleInformation? bigPicture;
             if (imageUrl != null && imageUrl.isNotEmpty) {
               try {
-                final String filePath = await _downloadAndSaveFile(imageUrl, 'notification_img');
-                bigPicture = BigPictureStyleInformation(FilePathAndroidBitmap(filePath), largeIcon: FilePathAndroidBitmap(filePath), contentTitle: notification.title, summaryText: notification.body);
+                final String filePath =
+                    await _downloadAndSaveFile(imageUrl, 'notification_img');
+                bigPicture = BigPictureStyleInformation(
+                    FilePathAndroidBitmap(filePath),
+                    largeIcon: FilePathAndroidBitmap(filePath),
+                    contentTitle: notification.title,
+                    summaryText: notification.body);
               } catch (_) {}
             }
 
@@ -96,20 +116,31 @@ class NotificationService {
               title: notification.title,
               body: notification.body,
               notificationDetails: NotificationDetails(
-                android: AndroidNotificationDetails('high_importance_channel', 'Important', icon: '@mipmap/ic_launcher', styleInformation: bigPicture),
-                iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
+                android: AndroidNotificationDetails(
+                    'high_importance_channel', 'Important',
+                    icon: '@mipmap/ic_launcher', styleInformation: bigPicture),
+                iOS: const DarwinNotificationDetails(
+                    presentAlert: true, presentSound: true),
               ),
             );
           }
-          
-          _storeNotification(title: notification.title ?? 'New Notification', body: notification.body ?? '', imageUrl: imageUrl, type: _detectType(message.data));
+
+          _storeNotification(
+              title: notification.title ?? 'New Notification',
+              body: notification.body ?? '',
+              imageUrl: imageUrl,
+              type: _detectType(message.data));
         }
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         final notification = message.notification;
         if (notification != null) {
-          _storeNotification(title: notification.title ?? 'New Notification', body: notification.body ?? '', imageUrl: message.data['imageUrl'] ?? message.data['image'], type: _detectType(message.data));
+          _storeNotification(
+              title: notification.title ?? 'New Notification',
+              body: notification.body ?? '',
+              imageUrl: message.data['imageUrl'] ?? message.data['image'],
+              type: _detectType(message.data));
           Get.toNamed('/notifications');
         }
       });
@@ -123,11 +154,15 @@ class NotificationService {
   }
 
   void _listenToFirestoreBroadcasts() {
-    if (kIsWeb) return; 
+    if (kIsWeb) return;
     // Subtract 1 hour to account for clock drift. We ignore initial historical documents using isInitial flag.
     final startTime = DateTime.now().subtract(const Duration(hours: 1));
     bool isInitial = true;
-    FirebaseFirestore.instance.collection('broadcast_notifications').where('sentAt', isGreaterThan: startTime).snapshots().listen((snapshot) {
+    FirebaseFirestore.instance
+        .collection('broadcast_notifications')
+        .where('sentAt', isGreaterThan: startTime)
+        .snapshots()
+        .listen((snapshot) {
       if (isInitial) {
         isInitial = false;
         return;
@@ -137,7 +172,11 @@ class NotificationService {
           final data = change.doc.data();
           if (data != null) {
             _showLocalNotificationFromData(data);
-            _storeNotification(title: data['title'] ?? 'Announcement', body: data['body'] ?? '', imageUrl: data['imageUrl'], type: 'fcm');
+            _storeNotification(
+                title: data['title'] ?? 'Announcement',
+                body: data['body'] ?? '',
+                imageUrl: data['imageUrl'],
+                type: 'fcm');
           }
         }
       }
@@ -153,8 +192,10 @@ class NotificationService {
     BigPictureStyleInformation? bigPicture;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       try {
-        final String filePath = await _downloadAndSaveFile(imageUrl, 'broadcast_img_${DateTime.now().millisecond}');
-        bigPicture = BigPictureStyleInformation(FilePathAndroidBitmap(filePath), largeIcon: FilePathAndroidBitmap(filePath));
+        final String filePath = await _downloadAndSaveFile(
+            imageUrl, 'broadcast_img_${DateTime.now().millisecond}');
+        bigPicture = BigPictureStyleInformation(FilePathAndroidBitmap(filePath),
+            largeIcon: FilePathAndroidBitmap(filePath));
       } catch (_) {}
     }
 
@@ -163,8 +204,14 @@ class NotificationService {
       title: title,
       body: body,
       notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails('high_importance_channel', 'Announcements', channelDescription: 'General app announcements', importance: Importance.high, priority: Priority.high, styleInformation: bigPicture),
-        iOS: const DarwinNotificationDetails(presentAlert: true, presentSound: true),
+        android: AndroidNotificationDetails(
+            'high_importance_channel', 'Announcements',
+            channelDescription: 'General app announcements',
+            importance: Importance.high,
+            priority: Priority.high,
+            styleInformation: bigPicture),
+        iOS: const DarwinNotificationDetails(
+            presentAlert: true, presentSound: true),
       ),
     );
   }
@@ -172,8 +219,11 @@ class NotificationService {
   Future<void> _requestExactAlarmPermission() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      final bool canSchedule = await androidPlugin?.canScheduleExactNotifications() ?? true;
+      final androidPlugin =
+          _localNotifications.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      final bool canSchedule =
+          await androidPlugin?.canScheduleExactNotifications() ?? true;
       if (!canSchedule) {
         await androidPlugin?.requestExactAlarmsPermission();
       }
@@ -200,7 +250,10 @@ class NotificationService {
       }
       return true;
     } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      final bool? granted = await _localNotifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(alert: true, badge: true, sound: true);
+      final bool? granted = await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
       return granted ?? false;
     }
     return true;
@@ -212,7 +265,11 @@ class NotificationService {
     return 'fcm';
   }
 
-  void _storeNotification({required String title, required String body, String? imageUrl, String type = 'fcm'}) {
+  void _storeNotification(
+      {required String title,
+      required String body,
+      String? imageUrl,
+      String type = 'fcm'}) {
     try {
       Get.find<NotificationsController>().addNotification(AppNotification(
         id: '${DateTime.now().millisecondsSinceEpoch}',
@@ -228,10 +285,14 @@ class NotificationService {
 
   NotificationCategory _mapTypeToCategory(String type) {
     switch (type) {
-      case 'prayer': return NotificationCategory.prayer;
-      case 'quran': return NotificationCategory.quran;
-      case 'support': return NotificationCategory.support;
-      default: return NotificationCategory.general;
+      case 'prayer':
+        return NotificationCategory.prayer;
+      case 'quran':
+        return NotificationCategory.quran;
+      case 'support':
+        return NotificationCategory.support;
+      default:
+        return NotificationCategory.general;
     }
   }
 
@@ -253,7 +314,8 @@ class NotificationService {
         _logger.i('FCM Token: $token');
         await _updateTokenInFirestore(token);
       }
-      await toggleFCM(Get.find<SettingsController>().notificationsEnabled.value);
+      await toggleFCM(
+          Get.find<SettingsController>().notificationsEnabled.value);
     } catch (_) {}
   }
 
@@ -262,11 +324,14 @@ class NotificationService {
     if (user == null) return;
     try {
       // Check if admin
-      final adminDoc = await FirebaseFirestore.instance.collection('admins').doc(user.uid).get();
+      final adminDoc = await FirebaseFirestore.instance
+          .collection('admins')
+          .doc(user.uid)
+          .get();
       if (adminDoc.exists) {
         await adminDoc.reference.update({'fcmToken': token});
       }
-      
+
       // Also update in users collection if applicable (depending on your DB structure)
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'fcmToken': token,
@@ -288,34 +353,51 @@ class NotificationService {
   }
 
   Future<void> scheduleAzanNotifications(Map<String, dynamic> timings) async {
-    await scheduleWeeklyAzanNotifications([{'date': DateTime.now(), 'timings': timings}]);
+    await scheduleWeeklyAzanNotifications([
+      {'date': DateTime.now(), 'timings': timings}
+    ]);
   }
 
-  Future<void> scheduleWeeklyAzanNotifications(List<Map<String, dynamic>> weeklyTimings) async {
+  Future<void> scheduleWeeklyAzanNotifications(
+      List<Map<String, dynamic>> weeklyTimings) async {
     if (kIsWeb || !_initialized) return;
     await cancelAzanNotifications();
     bool bn = Get.find<SettingsController>().language.value == 'bn';
     final now = DateTime.now();
     final prefs = await SharedPreferences.getInstance();
-    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
-    final scheduleMode = canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms =
+        await androidPlugin?.canScheduleExactNotifications() ?? true;
+    final scheduleMode = canUseExactAlarms
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
 
     const notifDetails = NotificationDetails(
-      android: AndroidNotificationDetails('azan_channel', 'Azan Notifications', importance: Importance.max, priority: Priority.high, playSound: true),
-      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+      android: AndroidNotificationDetails('azan_channel', 'Azan Notifications',
+          importance: Importance.max, priority: Priority.high, playSound: true),
+      iOS: DarwinNotificationDetails(
+          presentAlert: true, presentBadge: true, presentSound: true),
     );
 
     for (int dayOffset = 0; dayOffset < weeklyTimings.length; dayOffset++) {
       final dayData = weeklyTimings[dayOffset];
-      final Map<String, dynamic> timings = dayData['timings'] as Map<String, dynamic>;
+      final Map<String, dynamic> timings =
+          dayData['timings'] as Map<String, dynamic>;
       for (var k in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
         try {
-          if (timings[k] == null || !(prefs.getBool('azan_notification_$k') ?? true)) {
+          if (timings[k] == null ||
+              !(prefs.getBool('azan_notification_$k') ?? true)) {
             continue;
           }
           final timeParts = timings[k].toString().split(' ')[0].split(':');
-          var pTime = DateTime((dayData['date'] as DateTime).year, (dayData['date'] as DateTime).month, (dayData['date'] as DateTime).day, int.parse(timeParts[0]), int.parse(timeParts[1]));
+          var pTime = DateTime(
+              (dayData['date'] as DateTime).year,
+              (dayData['date'] as DateTime).month,
+              (dayData['date'] as DateTime).day,
+              int.parse(timeParts[0]),
+              int.parse(timeParts[1]));
           if (dayOffset == 0 && pTime.isBefore(now)) {
             continue;
           }
@@ -349,7 +431,8 @@ class NotificationService {
 
   // --- Remote Config Integration ---
 
-  Future<void> applyGlobalConfigs(Map<String, NotificationCategoryConfig> configs) async {
+  Future<void> applyGlobalConfigs(
+      Map<String, NotificationCategoryConfig> configs) async {
     if (kIsWeb) return;
 
     // 1. Prayer Reminder
@@ -370,13 +453,15 @@ class NotificationService {
       } else {
         final settings = Get.find<SettingsController>();
         await scheduleDuaReminder(
-          TimeOfDay(hour: settings.duaReminderHour.value, minute: settings.duaReminderMinute.value),
+          TimeOfDay(
+              hour: settings.duaReminderHour.value,
+              minute: settings.duaReminderMinute.value),
           title: dua.title.isNotEmpty ? dua.title : null,
           body: dua.message.isNotEmpty ? dua.message : null,
         );
       }
     }
-    
+
     _scheduleSimpleDaily(3100, configs['daily_quran'], 'daily_quran');
     _scheduleSimpleDaily(3200, configs['morning'], 'morning');
     _scheduleSimpleDaily(3300, configs['evening'], 'evening');
@@ -384,9 +469,13 @@ class NotificationService {
     _scheduleSimpleDaily(3500, configs['ramadan'], 'ramadan');
   }
 
-  Future<void> _scheduleSimpleDaily(int baseId, NotificationCategoryConfig? config, String key, {bool weekly = false}) async {
+  Future<void> _scheduleSimpleDaily(
+      int baseId, NotificationCategoryConfig? config, String key,
+      {bool weekly = false}) async {
     if (config == null || !config.enabled || config.time == null) {
-      for (int i = 0; i < 7; i++) await _localNotifications.cancel(id: baseId + i);
+      for (int i = 0; i < 7; i++) {
+        await _localNotifications.cancel(id: baseId + i);
+      }
       return;
     }
 
@@ -394,43 +483,59 @@ class NotificationService {
       final timeParts = config.time!.split(':');
       final hour = int.parse(timeParts[0]);
       final minute = int.parse(timeParts[1]);
-      
+
       final now = DateTime.now();
-      final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
+      final androidPlugin =
+          _localNotifications.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      bool canUseExactAlarms =
+          await androidPlugin?.canScheduleExactNotifications() ?? true;
 
       for (int i = 0; i < 7; i++) {
         final targetDate = now.add(Duration(days: i));
         if (weekly && targetDate.weekday != DateTime.friday) continue;
 
-        var sDate = DateTime(targetDate.year, targetDate.month, targetDate.day, hour, minute);
+        var sDate = DateTime(
+            targetDate.year, targetDate.month, targetDate.day, hour, minute);
         if (sDate.isBefore(now)) {
-          if (weekly) sDate = sDate.add(const Duration(days: 7));
-          else sDate = sDate.add(const Duration(days: 1));
+          if (weekly) {
+            sDate = sDate.add(const Duration(days: 7));
+          } else {
+            sDate = sDate.add(const Duration(days: 1));
+          }
         }
-        
+
         await _localNotifications.zonedSchedule(
           id: baseId + i,
           title: config.title,
           body: config.message,
           scheduledDate: tz.TZDateTime.from(sDate, tz.local),
-          notificationDetails: const NotificationDetails(android: AndroidNotificationDetails('high_importance_channel', 'Reminders')),
-          androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+          notificationDetails: const NotificationDetails(
+              android: AndroidNotificationDetails(
+                  'high_importance_channel', 'Reminders')),
+          androidScheduleMode: canUseExactAlarms
+              ? AndroidScheduleMode.exactAllowWhileIdle
+              : AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }
     } catch (_) {}
   }
 
-  Future<void> scheduleDuaReminder(TimeOfDay time, {String? title, String? body}) async {
+  Future<void> scheduleDuaReminder(TimeOfDay time,
+      {String? title, String? body}) async {
     if (kIsWeb) return;
     await cancelDuaReminder();
     final now = DateTime.now();
-    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms =
+        await androidPlugin?.canScheduleExactNotifications() ?? true;
 
     for (int i = 0; i < 7; i++) {
       final targetDate = now.add(Duration(days: i));
-      var sDate = DateTime(targetDate.year, targetDate.month, targetDate.day, time.hour, time.minute);
+      var sDate = DateTime(targetDate.year, targetDate.month, targetDate.day,
+          time.hour, time.minute);
       if (i == 0 && sDate.isBefore(now)) {
         sDate = sDate.add(const Duration(days: 7));
       }
@@ -439,20 +544,30 @@ class NotificationService {
         title: title ?? '📿 Daily Dua',
         body: body ?? 'Remember Allah',
         scheduledDate: tz.TZDateTime.from(sDate, tz.local),
-        notificationDetails: const NotificationDetails(android: AndroidNotificationDetails('dua_channel', 'Dua', importance: Importance.high, playSound: true)),
-        androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails('dua_channel', 'Dua',
+                importance: Importance.high, playSound: true)),
+        androidScheduleMode: canUseExactAlarms
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
       );
     }
   }
 
-  Future<void> applyCustomNotifications(List<CustomNotificationConfig> list) async {
+  Future<void> applyCustomNotifications(
+      List<CustomNotificationConfig> list) async {
     if (kIsWeb) return;
-    
-    for (int i = 0; i < 1000; i++) await _localNotifications.cancel(id: 5000 + i);
+
+    for (int i = 0; i < 1000; i++) {
+      await _localNotifications.cancel(id: 5000 + i);
+    }
 
     final now = DateTime.now();
-    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    bool canUseExactAlarms = await androidPlugin?.canScheduleExactNotifications() ?? true;
+    final androidPlugin =
+        _localNotifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+    bool canUseExactAlarms =
+        await androidPlugin?.canScheduleExactNotifications() ?? true;
 
     int counter = 0;
     for (var config in list) {
@@ -468,7 +583,8 @@ class NotificationService {
         for (int i = 0; i < 7; i++) {
           DateTime sDate;
           if (config.repeat == 'once') {
-            sDate = DateTime(config.startDate.year, config.startDate.month, config.startDate.day, hour, minute);
+            sDate = DateTime(config.startDate.year, config.startDate.month,
+                config.startDate.day, hour, minute);
             if (i > 0 || sDate.isBefore(now)) break;
           } else if (config.repeat == 'daily') {
             sDate = now.add(Duration(days: i));
@@ -480,7 +596,8 @@ class NotificationService {
             sDate = sDate.add(Duration(days: diff));
             sDate = DateTime(sDate.year, sDate.month, sDate.day, hour, minute);
           } else {
-            sDate = DateTime(now.year, now.month + i, config.startDate.day, hour, minute);
+            sDate = DateTime(
+                now.year, now.month + i, config.startDate.day, hour, minute);
           }
 
           if (sDate.isBefore(now)) continue;
@@ -492,13 +609,16 @@ class NotificationService {
             body: config.message,
             scheduledDate: tz.TZDateTime.from(sDate, tz.local),
             notificationDetails: NotificationDetails(
-              android: AndroidNotificationDetails(
-                'high_importance_channel', 
-                'Custom Alerts',
-                priority: config.priority == 'high' ? Priority.high : Priority.defaultPriority,
-              )
-            ),
-            androidScheduleMode: canUseExactAlarms ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+                android: AndroidNotificationDetails(
+              'high_importance_channel',
+              'Custom Alerts',
+              priority: config.priority == 'high'
+                  ? Priority.high
+                  : Priority.defaultPriority,
+            )),
+            androidScheduleMode: canUseExactAlarms
+                ? AndroidScheduleMode.exactAllowWhileIdle
+                : AndroidScheduleMode.inexactAllowWhileIdle,
           );
           counter++;
           if (config.repeat == 'once' || counter >= 1000) break;

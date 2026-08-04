@@ -11,16 +11,16 @@ import 'settings_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _SettingsTheme {
   _SettingsTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class SettingsView extends GetView<SettingsController> {
@@ -32,7 +32,8 @@ class SettingsView extends GetView<SettingsController> {
 
     return Obx(() {
       final isDark = settings.isDark;
-      final scaffoldBg = isDark ? _SettingsTheme.darkSurface : _SettingsTheme.lightSurface;
+      final scaffoldBg =
+          isDark ? _SettingsTheme.darkSurface : _SettingsTheme.lightSurface;
 
       if (controller.isLoading.value) {
         return Scaffold(
@@ -43,16 +44,24 @@ class SettingsView extends GetView<SettingsController> {
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [_SettingsTheme.emeraldDark, _SettingsTheme.emerald, _SettingsTheme.emeraldLight],
+                  colors: [
+                    _SettingsTheme.emeraldDark,
+                    _SettingsTheme.emerald,
+                    _SettingsTheme.emeraldLight
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                border: Border(bottom: BorderSide(color: _SettingsTheme.gold, width: 1.5)),
+                border: Border(
+                    bottom: BorderSide(color: _SettingsTheme.gold, width: 1.5)),
               ),
             ),
             title: Text(
               controller.isBangla ? 'সেটিংস' : 'Settings',
-              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16),
             ),
             centerTitle: true,
           ),
@@ -79,16 +88,23 @@ class SettingsView extends GetView<SettingsController> {
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [_SettingsTheme.emeraldDark, _SettingsTheme.emerald, _SettingsTheme.emeraldLight],
+                colors: [
+                  _SettingsTheme.emeraldDark,
+                  _SettingsTheme.emerald,
+                  _SettingsTheme.emeraldLight
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border(bottom: BorderSide(color: _SettingsTheme.gold, width: 1.5)),
+              border: Border(
+                  bottom: BorderSide(color: _SettingsTheme.gold, width: 1.5)),
             ),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+                Opacity(
+                    opacity: 0.05,
+                    child: CustomPaint(painter: _StarPatternPainter())),
               ],
             ),
           ),
@@ -115,10 +131,12 @@ class SettingsView extends GetView<SettingsController> {
                   isDark: isDark,
                   icon: Icons.language_rounded,
                   title: bn ? 'ভাষা' : 'Language',
-                  subtitle: controller.language.value == 'bn' ? 'বাংলা' : 'English',
+                  subtitle:
+                      controller.language.value == 'bn' ? 'বাংলা' : 'English',
                   trailing: _StyledSwitch(
                     value: controller.isBangla,
-                    onChanged: (val) => controller.setLanguage(val ? 'bn' : 'en'),
+                    onChanged: (val) =>
+                        controller.setLanguage(val ? 'bn' : 'en'),
                   ),
                 ),
               ],
@@ -175,7 +193,7 @@ class SettingsView extends GetView<SettingsController> {
                   icon: Icons.record_voice_over_rounded,
                   title: bn ? 'কারী নির্বাচন করুন' : 'Select Qari',
                   subtitle: AppUrls.qariList.firstWhere(
-                        (q) => q['id'] == controller.selectedQari.value,
+                    (q) => q['id'] == controller.selectedQari.value,
                     orElse: () => {'name': 'Unknown'},
                   )['name']!,
                   onTap: () => _showQariSheet(context, controller, bn),
@@ -262,8 +280,8 @@ class SettingsView extends GetView<SettingsController> {
                         builder: (ctx, child) => Theme(
                           data: Theme.of(ctx).copyWith(
                             colorScheme: Theme.of(ctx).colorScheme.copyWith(
-                              primary: _SettingsTheme.emerald,
-                            ),
+                                  primary: _SettingsTheme.emerald,
+                                ),
                           ),
                           child: child!,
                         ),
@@ -278,7 +296,8 @@ class SettingsView extends GetView<SettingsController> {
                               ? 'প্রতিদিন $formattedTime-এ দোয়ার নোটিফিকেশন আসবে'
                               : 'Daily dua reminder set for $formattedTime',
                           snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: _SettingsTheme.emerald.withOpacity(0.92),
+                          backgroundColor:
+                              _SettingsTheme.emerald.withValues(alpha: 0.92),
                           colorText: Colors.white,
                           borderRadius: 16,
                           margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -307,7 +326,8 @@ class SettingsView extends GetView<SettingsController> {
     });
   }
 
-  void _showQariSheet(BuildContext context, SettingsController controller, bool bn) {
+  void _showQariSheet(
+      BuildContext context, SettingsController controller, bool bn) {
     Get.bottomSheet(
       _QariBottomSheet(controller: controller, bn: bn),
       isScrollControlled: true,
@@ -342,9 +362,9 @@ class _FontSizeSlider extends StatelessWidget {
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
               activeTrackColor: _SettingsTheme.emerald,
               inactiveTrackColor:
-              isDark ? Colors.white10 : Colors.grey.shade200,
+                  isDark ? Colors.white10 : Colors.grey.shade200,
               thumbColor: _SettingsTheme.gold,
-              overlayColor: _SettingsTheme.emerald.withOpacity(0.12),
+              overlayColor: _SettingsTheme.emerald.withValues(alpha: 0.12),
               activeTickMarkColor: Colors.transparent,
               inactiveTickMarkColor: Colors.transparent,
             ),
@@ -364,10 +384,10 @@ class _FontSizeSlider extends StatelessWidget {
           decoration: BoxDecoration(
             color: isDark
                 ? _SettingsTheme.darkSurface
-                : _SettingsTheme.goldSoft.withOpacity(0.3),
+                : _SettingsTheme.goldSoft.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _SettingsTheme.emerald.withOpacity(0.15),
+              color: _SettingsTheme.emerald.withValues(alpha: 0.15),
               width: 1,
             ),
           ),
@@ -390,7 +410,9 @@ class _FontSizeSlider extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Uthmanic',
                   fontSize: controller.arabicFontSize.value,
-                  color: isDark ? _SettingsTheme.goldLight : _SettingsTheme.emerald,
+                  color: isDark
+                      ? _SettingsTheme.goldLight
+                      : _SettingsTheme.emerald,
                   height: 1.6,
                 ),
               ),
@@ -458,13 +480,13 @@ class _SettingsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark
-              ? _SettingsTheme.emerald.withOpacity(0.15)
-              : _SettingsTheme.emerald.withOpacity(0.06),
+              ? _SettingsTheme.emerald.withValues(alpha: 0.15)
+              : _SettingsTheme.emerald.withValues(alpha: 0.06),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: _SettingsTheme.emerald.withOpacity(0.02),
+            color: _SettingsTheme.emerald.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -506,15 +528,15 @@ class _SettingsTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        splashColor: _SettingsTheme.emerald.withOpacity(0.06),
-        highlightColor: _SettingsTheme.emerald.withOpacity(0.04),
+        splashColor: _SettingsTheme.emerald.withValues(alpha: 0.06),
+        highlightColor: _SettingsTheme.emerald.withValues(alpha: 0.04),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
                 color: isDark
-                    ? Colors.white.withOpacity(0.03)
+                    ? Colors.white.withValues(alpha: 0.03)
                     : Colors.grey.shade100,
                 width: 0.5,
               ),
@@ -526,10 +548,10 @@ class _SettingsTile extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: _SettingsTheme.emerald.withOpacity(0.1),
+                  color: _SettingsTheme.emerald.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(11),
                   border: Border.all(
-                    color: _SettingsTheme.emerald.withOpacity(0.18),
+                    color: _SettingsTheme.emerald.withValues(alpha: 0.18),
                     width: 0.5,
                   ),
                 ),
@@ -567,10 +589,10 @@ class _SettingsTile extends StatelessWidget {
               trailing ??
                   (onTap != null
                       ? const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: _SettingsTheme.emerald,
-                    size: 13,
-                  )
+                          Icons.arrow_forward_ios_rounded,
+                          color: _SettingsTheme.emerald,
+                          size: 13,
+                        )
                       : const SizedBox.shrink()),
             ],
           ),
@@ -597,7 +619,7 @@ class _StyledSwitch extends StatelessWidget {
       activeColor: Colors.white,
       activeTrackColor: _SettingsTheme.emerald,
       inactiveThumbColor: Colors.white,
-      inactiveTrackColor: Colors.grey.withOpacity(0.25),
+      inactiveTrackColor: Colors.grey.withValues(alpha: 0.25),
       trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     );
   }
@@ -622,8 +644,8 @@ class _QariBottomSheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         border: Border.all(
           color: isDark
-              ? _SettingsTheme.emerald.withOpacity(0.15)
-              : _SettingsTheme.emerald.withOpacity(0.06),
+              ? _SettingsTheme.emerald.withValues(alpha: 0.15)
+              : _SettingsTheme.emerald.withValues(alpha: 0.06),
           width: 0.5,
         ),
       ),
@@ -636,7 +658,7 @@ class _QariBottomSheet extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -675,15 +697,18 @@ class _QariBottomSheet extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? _SettingsTheme.emerald.withOpacity(0.09)
-                          : (isDark ? _SettingsTheme.darkSurface : Colors.grey.shade50),
+                          ? _SettingsTheme.emerald.withValues(alpha: 0.09)
+                          : (isDark
+                              ? _SettingsTheme.darkSurface
+                              : Colors.grey.shade50),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isSelected
                             ? _SettingsTheme.gold
                             : (isDark
-                            ? _SettingsTheme.emerald.withOpacity(0.15)
-                            : _SettingsTheme.emerald.withOpacity(0.06)),
+                                ? _SettingsTheme.emerald.withValues(alpha: 0.15)
+                                : _SettingsTheme.emerald
+                                    .withValues(alpha: 0.06)),
                         width: isSelected ? 1 : 0.5,
                       ),
                     ),
@@ -694,10 +719,10 @@ class _QariBottomSheet extends StatelessWidget {
                           height: 34,
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? _SettingsTheme.emerald.withOpacity(0.15)
+                                ? _SettingsTheme.emerald.withValues(alpha: 0.15)
                                 : (isDark
-                                ? _SettingsTheme.darkCard
-                                : Colors.white),
+                                    ? _SettingsTheme.darkCard
+                                    : Colors.white),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -716,8 +741,8 @@ class _QariBottomSheet extends StatelessWidget {
                               color: isSelected
                                   ? _SettingsTheme.emerald
                                   : (isDark
-                                  ? Colors.white
-                                  : AppColors.textDark),
+                                      ? Colors.white
+                                      : AppColors.textDark),
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.w500,
@@ -771,7 +796,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

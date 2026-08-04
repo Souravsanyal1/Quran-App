@@ -58,7 +58,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             color: _NotifTheme.emerald,
                             strokeWidth: 3,
                             backgroundColor:
-                                _NotifTheme.emerald.withOpacity(0.1),
+                                _NotifTheme.emerald.withValues(alpha: 0.1),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -154,7 +154,7 @@ class NotificationsView extends GetView<NotificationsController> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _NotifTheme.gold.withOpacity(0.2),
+                      color: _NotifTheme.gold.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -196,10 +196,10 @@ class NotificationsView extends GetView<NotificationsController> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: _NotifTheme.gold.withOpacity(0.2),
+                        color: _NotifTheme.gold.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                            color: _NotifTheme.gold.withOpacity(0.4),
+                            color: _NotifTheme.gold.withValues(alpha: 0.4),
                             width: 0.5),
                       ),
                       child: Text(
@@ -255,12 +255,12 @@ class NotificationsView extends GetView<NotificationsController> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark
-                    ? _NotifTheme.emerald.withOpacity(0.12)
-                    : _NotifTheme.emerald.withOpacity(0.06),
+                    ? _NotifTheme.emerald.withValues(alpha: 0.12)
+                    : _NotifTheme.emerald.withValues(alpha: 0.06),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.15 : 0.03),
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -337,7 +337,7 @@ class NotificationsView extends GetView<NotificationsController> {
         decoration: BoxDecoration(
           gradient: isSelected
               ? LinearGradient(
-                  colors: [chipColor, chipColor.withOpacity(0.8)],
+                  colors: [chipColor, chipColor.withValues(alpha: 0.8)],
                 )
               : null,
           color: isSelected
@@ -346,16 +346,16 @@ class NotificationsView extends GetView<NotificationsController> {
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: isSelected
-                ? _NotifTheme.gold.withOpacity(0.6)
+                ? _NotifTheme.gold.withValues(alpha: 0.6)
                 : (isDark
-                    ? _NotifTheme.emerald.withOpacity(0.12)
-                    : _NotifTheme.emerald.withOpacity(0.06)),
+                    ? _NotifTheme.emerald.withValues(alpha: 0.12)
+                    : _NotifTheme.emerald.withValues(alpha: 0.06)),
             width: isSelected ? 1.2 : 1,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: chipColor.withOpacity(0.25),
+                    color: chipColor.withValues(alpha: 0.25),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   )
@@ -370,7 +370,9 @@ class NotificationsView extends GetView<NotificationsController> {
               size: 14,
               color: isSelected
                   ? Colors.white
-                  : (isDark ? Colors.white54 : chipColor.withOpacity(0.7)),
+                  : (isDark
+                      ? Colors.white54
+                      : chipColor.withValues(alpha: 0.7)),
             ),
             const SizedBox(width: 6),
             Text(
@@ -408,14 +410,14 @@ class NotificationsView extends GetView<NotificationsController> {
             gradient: LinearGradient(
               colors: [
                 Colors.transparent,
-                Colors.redAccent.withOpacity(0.08),
-                Colors.redAccent.withOpacity(0.15)
+                Colors.redAccent.withValues(alpha: 0.08),
+                Colors.redAccent.withValues(alpha: 0.15)
               ],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.redAccent.withOpacity(0.15)),
+            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.15)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -452,10 +454,10 @@ class NotificationsView extends GetView<NotificationsController> {
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? catColor.withOpacity(isDark ? 0.06 : 0.04)
+                  ? catColor.withValues(alpha: isDark ? 0.06 : 0.04)
                   : (notification.isRead
                       ? (isDark
-                          ? _NotifTheme.darkCard.withOpacity(0.6)
+                          ? _NotifTheme.darkCard.withValues(alpha: 0.6)
                           : _NotifTheme.lightCard)
                       : (isDark
                           ? _NotifTheme.darkCard
@@ -466,16 +468,16 @@ class NotificationsView extends GetView<NotificationsController> {
                     ? _NotifTheme.gold
                     : (notification.isRead
                         ? (isDark
-                            ? Colors.white.withOpacity(0.04)
-                            : Colors.black.withOpacity(0.04))
-                        : catColor.withOpacity(0.15)),
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.04))
+                        : catColor.withValues(alpha: 0.15)),
                 width: isSelected ? 1.5 : 1,
               ),
               boxShadow: notification.isRead
                   ? null
                   : [
                       BoxShadow(
-                        color: catColor.withOpacity(isDark ? 0.05 : 0.06),
+                        color: catColor.withValues(alpha: isDark ? 0.05 : 0.06),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       )
@@ -501,7 +503,7 @@ class NotificationsView extends GetView<NotificationsController> {
                           placeholder: (context, url) => Container(
                             height: 140,
                             decoration: BoxDecoration(
-                              color: catColor.withOpacity(0.03),
+                              color: catColor.withValues(alpha: 0.03),
                             ),
                             child: Center(
                               child: SizedBox(
@@ -509,7 +511,7 @@ class NotificationsView extends GetView<NotificationsController> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: catColor.withOpacity(0.4),
+                                  color: catColor.withValues(alpha: 0.4),
                                 ),
                               ),
                             ),
@@ -531,7 +533,7 @@ class NotificationsView extends GetView<NotificationsController> {
                                   (isDark
                                           ? _NotifTheme.darkCard
                                           : _NotifTheme.lightCard)
-                                      .withOpacity(0.8),
+                                      .withValues(alpha: 0.8),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -611,7 +613,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: catColor.withOpacity(0.4),
+                                color: catColor.withValues(alpha: 0.4),
                                 blurRadius: 6,
                                 spreadRadius: 1,
                               ),
@@ -633,7 +635,7 @@ class NotificationsView extends GetView<NotificationsController> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: _NotifTheme.gold.withOpacity(0.3),
+                                color: _NotifTheme.gold.withValues(alpha: 0.3),
                                 blurRadius: 6,
                               ),
                             ],
@@ -663,9 +665,9 @@ class NotificationsView extends GetView<NotificationsController> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.12 : 0.08),
+        color: color.withValues(alpha: isDark ? 0.12 : 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.1), width: 0.5),
+        border: Border.all(color: color.withValues(alpha: 0.1), width: 0.5),
       ),
       child: Icon(icon, color: color, size: 18),
     );
@@ -699,9 +701,9 @@ class NotificationsView extends GetView<NotificationsController> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -746,15 +748,15 @@ class NotificationsView extends GetView<NotificationsController> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: (isDark ? _NotifTheme.emerald : _NotifTheme.emerald)
-                      .withOpacity(0.05),
+                      .withValues(alpha: 0.05),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.notifications_off_outlined,
                   size: 56,
                   color: isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.08),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08),
                 ),
               ),
               const SizedBox(height: 20),
@@ -800,10 +802,10 @@ class NotificationsView extends GetView<NotificationsController> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           border: Border(
               top: BorderSide(
-                  color: _NotifTheme.gold.withOpacity(0.4), width: 1.5)),
+                  color: _NotifTheme.gold.withValues(alpha: 0.4), width: 1.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),
@@ -878,14 +880,14 @@ class NotificationsView extends GetView<NotificationsController> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? _NotifTheme.emerald.withOpacity(0.06)
+              ? _NotifTheme.emerald.withValues(alpha: 0.06)
               : (isDark
-                  ? Colors.white.withOpacity(0.02)
-                  : Colors.black.withOpacity(0.02)),
+                  ? Colors.white.withValues(alpha: 0.02)
+                  : Colors.black.withValues(alpha: 0.02)),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
-                ? _NotifTheme.gold.withOpacity(0.3)
+                ? _NotifTheme.gold.withValues(alpha: 0.3)
                 : Colors.transparent,
           ),
         ),
@@ -894,7 +896,7 @@ class NotificationsView extends GetView<NotificationsController> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.08),
+                color: iconColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: iconColor, size: 18),
@@ -936,7 +938,7 @@ class NotificationsView extends GetView<NotificationsController> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.08),
+                  color: Colors.redAccent.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.delete_outline_rounded,

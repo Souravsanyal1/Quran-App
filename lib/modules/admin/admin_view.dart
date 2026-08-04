@@ -9,16 +9,16 @@ import '../settings/settings_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _AdminTheme {
   _AdminTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class AdminView extends StatelessWidget {
@@ -29,7 +29,7 @@ class AdminView extends StatelessWidget {
     final bannerController = Get.find<BannerController>();
     final settings = Get.find<SettingsController>();
     final isDark = settings.isDark;
-    
+
     // Banner controllers
     final bannerTitleController = TextEditingController();
     final imgController = TextEditingController();
@@ -46,29 +46,38 @@ class AdminView extends StatelessWidget {
     final staticLinkController = TextEditingController();
 
     return Scaffold(
-      backgroundColor: isDark ? _AdminTheme.darkSurface : _AdminTheme.lightSurface,
+      backgroundColor:
+          isDark ? _AdminTheme.darkSurface : _AdminTheme.lightSurface,
       appBar: AppBar(
         leading: const AppBackButton(color: Colors.white),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_AdminTheme.emeraldDark, _AdminTheme.emerald, _AdminTheme.emeraldLight],
+              colors: [
+                _AdminTheme.emeraldDark,
+                _AdminTheme.emerald,
+                _AdminTheme.emeraldLight
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border(bottom: BorderSide(color: _AdminTheme.gold, width: 1.5)),
+            border:
+                Border(bottom: BorderSide(color: _AdminTheme.gold, width: 1.5)),
           ),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+              Opacity(
+                  opacity: 0.05,
+                  child: CustomPaint(painter: _StarPatternPainter())),
             ],
           ),
         ),
         title: Text(
           'Admin Panel',
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.poppins(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
       ),
@@ -87,12 +96,14 @@ class AdminView extends StatelessWidget {
             _buildTextField(linkController, 'Target URL', isDark),
             const SizedBox(height: 16),
             _buildActionButton('Add Slider Banner', () {
-              if (imgController.text.isNotEmpty && linkController.text.isNotEmpty) {
+              if (imgController.text.isNotEmpty &&
+                  linkController.text.isNotEmpty) {
                 bannerController.addBanner(
-                  imgController.text, 
-                  linkController.text, 
-                  bannerTitleController.text.isNotEmpty ? bannerTitleController.text : 'New Banner'
-                );
+                    imgController.text,
+                    linkController.text,
+                    bannerTitleController.text.isNotEmpty
+                        ? bannerTitleController.text
+                        : 'New Banner');
                 bannerTitleController.clear();
                 imgController.clear();
                 linkController.clear();
@@ -112,7 +123,8 @@ class AdminView extends StatelessWidget {
             _buildTextField(adLinkController, 'Ad Target URL', isDark),
             const SizedBox(height: 16),
             _buildActionButton('Publish Custom Ad', () {
-              if (adImgController.text.isNotEmpty && adLinkController.text.isNotEmpty) {
+              if (adImgController.text.isNotEmpty &&
+                  adLinkController.text.isNotEmpty) {
                 bannerController.addCustomAd(
                   adTitleController.text,
                   adImgController.text,
@@ -154,44 +166,57 @@ class AdminView extends StatelessWidget {
             _buildSectionTitle('Manage Active Banners'),
             const SizedBox(height: 16),
             Obx(() => ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: bannerController.banners.length,
-              separatorBuilder: (context, index) => Divider(color: isDark ? Colors.white10 : Colors.grey.shade200),
-              itemBuilder: (context, index) {
-                final banner = bannerController.banners[index];
-                return Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark ? _AdminTheme.darkCard : _AdminTheme.lightCard,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDark ? _AdminTheme.emerald.withOpacity(0.15) : _AdminTheme.emerald.withOpacity(0.06)),
-                  ),
-                  child: ListTile(
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        banner.imageUrl, 
-                        width: 60, 
-                        height: 40, 
-                        fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => const Icon(Icons.broken_image, color: _AdminTheme.emerald),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: bannerController.banners.length,
+                  separatorBuilder: (context, index) => Divider(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200),
+                  itemBuilder: (context, index) {
+                    final banner = bannerController.banners[index];
+                    return Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? _AdminTheme.darkCard
+                            : _AdminTheme.lightCard,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: isDark
+                                ? _AdminTheme.emerald.withValues(alpha: 0.15)
+                                : _AdminTheme.emerald.withValues(alpha: 0.06)),
                       ),
-                    ),
-                    title: Text(
-                      banner.linkUrl, 
-                      maxLines: 1, 
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: isDark ? Colors.white : AppColors.textDark, fontWeight: FontWeight.w600, fontSize: 14),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.redAccent),
-                      onPressed: () => bannerController.deleteBanner(banner.id),
-                    ),
-                  ),
-                );
-              },
-            )),
+                      child: ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            banner.imageUrl,
+                            width: 60,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, s) => const Icon(
+                                Icons.broken_image,
+                                color: _AdminTheme.emerald),
+                          ),
+                        ),
+                        title: Text(
+                          banner.linkUrl,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: isDark ? Colors.white : AppColors.textDark,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14),
+                        ),
+                        trailing: IconButton(
+                          icon:
+                              const Icon(Icons.delete, color: Colors.redAccent),
+                          onPressed: () =>
+                              bannerController.deleteBanner(banner.id),
+                        ),
+                      ),
+                    );
+                  },
+                )),
           ],
         ),
       ),
@@ -215,7 +240,10 @@ class AdminView extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: _AdminTheme.emerald),
+              style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: _AdminTheme.emerald),
             ),
           ],
         ),
@@ -225,7 +253,8 @@ class AdminView extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, bool isDark) {
+  Widget _buildTextField(
+      TextEditingController controller, String label, bool isDark) {
     return TextField(
       controller: controller,
       style: TextStyle(color: isDark ? Colors.white : AppColors.textDark),
@@ -233,14 +262,18 @@ class AdminView extends StatelessWidget {
         labelText: label,
         labelStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black38),
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: isDark ? _AdminTheme.emerald.withOpacity(0.15) : _AdminTheme.emerald.withOpacity(0.1)),
+          borderSide: BorderSide(
+              color: isDark
+                  ? _AdminTheme.emerald.withValues(alpha: 0.15)
+                  : _AdminTheme.emerald.withValues(alpha: 0.1)),
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: _AdminTheme.emerald, width: 1.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }
@@ -260,7 +293,8 @@ class AdminView extends StatelessWidget {
           ),
           elevation: 0,
         ),
-        child: Text(label, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        child: Text(label,
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -293,7 +327,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

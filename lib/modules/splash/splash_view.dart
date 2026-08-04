@@ -5,11 +5,11 @@ import '../../core/theme/app_colors.dart';
 import 'splash_controller.dart';
 
 class _SplashTheme {
-  static const Color emerald      = Color(0xFF1B5E35);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color inkDark      = Color(0xFF141420);
+  static const Color emerald = Color(0xFF1B5E35);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color inkDark = Color(0xFF141420);
 }
 
 class SplashView extends StatelessWidget {
@@ -38,7 +38,7 @@ class SplashView extends StatelessWidget {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _SplashTheme.gold.withOpacity(0.04),
+                  color: _SplashTheme.gold.withValues(alpha: 0.04),
                 ),
               ),
             ),
@@ -50,7 +50,7 @@ class SplashView extends StatelessWidget {
                 height: 350,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _SplashTheme.emerald.withOpacity(0.05),
+                  color: _SplashTheme.emerald.withValues(alpha: 0.05),
                 ),
               ),
             ),
@@ -66,7 +66,10 @@ class SplashView extends StatelessWidget {
                     height: 110,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [_SplashTheme.emerald, _SplashTheme.emeraldDark],
+                        colors: [
+                          _SplashTheme.emerald,
+                          _SplashTheme.emeraldDark
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -74,7 +77,7 @@ class SplashView extends StatelessWidget {
                       border: Border.all(color: _SplashTheme.gold, width: 2),
                       boxShadow: [
                         BoxShadow(
-                          color: _SplashTheme.emerald.withOpacity(0.4),
+                          color: _SplashTheme.emerald.withValues(alpha: 0.4),
                           blurRadius: 40,
                           spreadRadius: 8,
                         ),
@@ -138,15 +141,14 @@ class SplashView extends StatelessWidget {
                       color: AppColors.textGrey,
                       letterSpacing: 3,
                     ),
-                  )
-                      .animate(delay: 800.ms)
-                      .fadeIn(duration: 500.ms),
+                  ).animate(delay: 800.ms).fadeIn(duration: 500.ms),
 
                   const SizedBox(height: 50),
 
                   // Progress & Status section
                   Obx(() {
-                    final percentage = (controller.progress.value * 100).toInt();
+                    final percentage =
+                        (controller.progress.value * 100).toInt();
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 48.0),
                       child: Column(
@@ -162,13 +164,15 @@ class SplashView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(10),
                               child: LinearProgressIndicator(
                                 value: controller.progress.value,
-                                backgroundColor: Colors.white.withOpacity(0.08),
-                                valueColor: const AlwaysStoppedAnimation<Color>(_SplashTheme.gold),
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.08),
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                    _SplashTheme.gold),
                               ),
                             ),
                           ),
                           const SizedBox(height: 12),
-                          
+
                           // Status & Percentage Text
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -198,7 +202,9 @@ class SplashView extends StatelessWidget {
                         ],
                       ),
                     );
-                  }).animate(delay: const Duration(milliseconds: 200)).fadeIn(duration: 400.ms),
+                  })
+                      .animate(delay: const Duration(milliseconds: 200))
+                      .fadeIn(duration: 400.ms),
                 ],
               ),
             ),

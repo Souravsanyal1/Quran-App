@@ -16,11 +16,12 @@ class NotificationsController extends GetxController {
 
   final RxList<AppNotification> allNotifications = <AppNotification>[].obs;
   final RxList<AppNotification> filteredNotifications = <AppNotification>[].obs;
-  
+
   final RxInt unreadCount = 0.obs;
   final RxBool isLoading = true.obs;
   final RxString searchQuery = ''.obs;
-  final Rx<NotificationCategory?> selectedCategory = Rx<NotificationCategory?>(null);
+  final Rx<NotificationCategory?> selectedCategory =
+      Rx<NotificationCategory?>(null);
   final RxBool showOnlyUnread = false.obs;
   final RxString sortBy = 'latest'.obs; // latest, oldest
   final RxList<String> selectedIds = <String>[].obs;
@@ -50,7 +51,8 @@ class NotificationsController extends GetxController {
         if (change.type == DocumentChangeType.added) {
           final data = change.doc.data();
           if (data != null) {
-            final sentAt = (data['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+            final sentAt =
+                (data['sentAt'] as Timestamp?)?.toDate() ?? DateTime.now();
             final isRecent = DateTime.now().difference(sentAt).inSeconds < 30;
 
             // Avoid adding duplicates if already fetched via API
@@ -72,16 +74,16 @@ class NotificationsController extends GetxController {
               // Show snackbar for new messages if the notification is recent
               if (isRecent) {
                 Get.snackbar(
-                  newNotif.title, 
+                  newNotif.title,
                   newNotif.body,
                   snackPosition: SnackPosition.TOP,
-                  backgroundColor: Get.theme.cardColor.withOpacity(0.9),
+                  backgroundColor: Get.theme.cardColor.withValues(alpha: 0.9),
                   colorText: Get.theme.textTheme.bodyLarge?.color,
                   duration: const Duration(seconds: 4),
                   icon: Icon(
-                    newNotif.category == NotificationCategory.support 
-                      ? Icons.support_agent_rounded 
-                      : Icons.notifications_active_rounded,
+                    newNotif.category == NotificationCategory.support
+                        ? Icons.support_agent_rounded
+                        : Icons.notifications_active_rounded,
                     color: Colors.amber,
                   ),
                 );
@@ -95,10 +97,14 @@ class NotificationsController extends GetxController {
 
   NotificationCategory _parseCategory(String? type) {
     switch (type) {
-      case 'support_reply': return NotificationCategory.support;
-      case 'prayer': return NotificationCategory.prayer;
-      case 'quran': return NotificationCategory.quran;
-      default: return NotificationCategory.general;
+      case 'support_reply':
+        return NotificationCategory.support;
+      case 'prayer':
+        return NotificationCategory.prayer;
+      case 'quran':
+        return NotificationCategory.quran;
+      default:
+        return NotificationCategory.general;
     }
   }
 
@@ -111,11 +117,12 @@ class NotificationsController extends GetxController {
 
     try {
       isLoading.value = true;
-      final results = await _repository.getNotifications(user.uid, user.metadata.creationTime);
+      final results = await _repository.getNotifications(
+          user.uid, user.metadata.creationTime);
       allNotifications.assignAll(results);
       _applyFilters();
       _updateUnreadCount();
-      
+
       // Precache images for faster loading in background
       _precacheNotificationImages(results);
     } catch (e) {
@@ -128,15 +135,18 @@ class NotificationsController extends GetxController {
   void _precacheNotificationImages(List<AppNotification> notifications) {
     for (var n in notifications) {
       final imageUrl = n.imageUrl;
-      if (imageUrl != null && imageUrl.isNotEmpty && imageUrl.startsWith('http')) {
-        // Use the image provider with an error listener if supported, 
+      if (imageUrl != null &&
+          imageUrl.isNotEmpty &&
+          imageUrl.startsWith('http')) {
+        // Use the image provider with an error listener if supported,
         // or wrap the precache in a safe way.
         try {
           precacheImage(
-            CachedNetworkImageProvider(imageUrl), 
+            CachedNetworkImageProvider(imageUrl),
             Get.context!,
             onError: (exception, stackTrace) {
-              Get.log('Failed to precache notification image: $imageUrl - $exception');
+              Get.log(
+                  'Failed to precache notification image: $imageUrl - $exception');
             },
           );
         } catch (e) {
@@ -167,10 +177,11 @@ class NotificationsController extends GetxController {
     // Search Query
     if (searchQuery.value.isNotEmpty) {
       final query = searchQuery.value.toLowerCase();
-      temp = temp.where((n) => 
-        n.title.toLowerCase().contains(query) || 
-        n.body.toLowerCase().contains(query)
-      ).toList();
+      temp = temp
+          .where((n) =>
+              n.title.toLowerCase().contains(query) ||
+              n.body.toLowerCase().contains(query))
+          .toList();
     }
 
     // Sorting
@@ -209,7 +220,7 @@ class NotificationsController extends GetxController {
   String timeAgo(DateTime date, bool isBangla) {
     final now = DateTime.now();
     final diff = now.difference(date);
-    
+
     if (isBangla) {
       if (diff.inMinutes < 1) return 'এইমাত্র';
       if (diff.inMinutes < 60) return '${diff.inMinutes} মিনিট আগে';
@@ -217,7 +228,7 @@ class NotificationsController extends GetxController {
       if (diff.inDays < 7) return '${diff.inDays} দিন আগে';
       return DateFormat('dd MMM, hh:mm a').format(date);
     }
-    
+
     if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
@@ -271,7 +282,7 @@ class NotificationsController extends GetxController {
     if (index == -1) return;
 
     final deletedItem = allNotifications[index];
-    
+
     // Optimistic delete
     allNotifications.removeAt(index);
     _applyFilters();
@@ -326,7 +337,7 @@ class NotificationsController extends GetxController {
     if (user == null) return;
 
     final idsToDelete = List<String>.from(selectedIds);
-    
+
     // Optimistic delete from UI
     allNotifications.removeWhere((n) => idsToDelete.contains(n.id));
     _applyFilters();

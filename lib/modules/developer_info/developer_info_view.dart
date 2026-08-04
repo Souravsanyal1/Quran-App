@@ -12,16 +12,16 @@ import 'developer_info_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _DevTheme {
   _DevTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class DeveloperInfoView extends GetView<DeveloperInfoController> {
@@ -35,11 +35,14 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
       final isDark = settings.isDark;
       final bn = settings.isBangla;
 
-      final scaffoldBg = isDark ? _DevTheme.darkSurface : _DevTheme.lightSurface;
+      final scaffoldBg =
+          isDark ? _DevTheme.darkSurface : _DevTheme.lightSurface;
       final cardColor = isDark ? _DevTheme.darkCard : _DevTheme.lightCard;
       final textColor = isDark ? Colors.white : AppColors.textDark;
       final subtitleColor = isDark ? AppColors.textGrey : Colors.black54;
-      final borderColor = isDark ? _DevTheme.emerald.withOpacity(0.15) : _DevTheme.emerald.withOpacity(0.06);
+      final borderColor = isDark
+          ? _DevTheme.emerald.withValues(alpha: 0.15)
+          : _DevTheme.emerald.withValues(alpha: 0.06);
 
       return Scaffold(
         backgroundColor: scaffoldBg,
@@ -49,34 +52,43 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [_DevTheme.emeraldDark, _DevTheme.emerald, _DevTheme.emeraldLight],
+                colors: [
+                  _DevTheme.emeraldDark,
+                  _DevTheme.emerald,
+                  _DevTheme.emeraldLight
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border(bottom: BorderSide(color: _DevTheme.gold, width: 1.5)),
+              border:
+                  Border(bottom: BorderSide(color: _DevTheme.gold, width: 1.5)),
             ),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+                Opacity(
+                    opacity: 0.05,
+                    child: CustomPaint(painter: _StarPatternPainter())),
               ],
             ),
           ),
           title: Text(
             bn ? 'ডেভেলপার তথ্য' : 'Developer Information',
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           centerTitle: true,
         ),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 16),
-                
+
                 // Avatar with premium gradient border
                 Center(
                   child: Container(
@@ -91,11 +103,13 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                     ),
                     child: CircleAvatar(
                       radius: 56,
-                      backgroundColor: isDark ? _DevTheme.darkSurface : Colors.white,
+                      backgroundColor:
+                          isDark ? _DevTheme.darkSurface : Colors.white,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(52),
                         child: CachedNetworkImage(
-                          imageUrl: 'https://i.postimg.cc/t45rDD8J/Whats-App-Image-2026-06-20-at-11-47-11-AM-(1).jpg',
+                          imageUrl:
+                              'https://i.postimg.cc/t45rDD8J/Whats-App-Image-2026-06-20-at-11-47-11-AM-(1).jpg',
                           width: 104,
                           height: 104,
                           fit: BoxFit.cover,
@@ -157,7 +171,9 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        bn ? 'যোগাযোগ ও সোশ্যাল মিডিয়া' : 'Contact & Social Links',
+                        bn
+                            ? 'যোগাযোগ ও সোশ্যাল মিডিয়া'
+                            : 'Contact & Social Links',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -183,7 +199,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                   onTap: () => controller.launchEmail(),
                 ),
                 const SizedBox(height: 12),
-                
+
                 _buildSocialTile(
                   title: bn ? 'পোর্টফোলিও' : 'Portfolio',
                   subtitle: 'souravs-portfollio.vercel.app',
@@ -194,7 +210,8 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                   textColor: textColor,
                   subtitleColor: subtitleColor,
                   borderColor: borderColor,
-                  onTap: () => controller.launchURL('https://souravs-portfollio.vercel.app/'),
+                  onTap: () => controller
+                      .launchURL('https://souravs-portfollio.vercel.app/'),
                 ),
                 const SizedBox(height: 12),
 
@@ -208,7 +225,8 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                   textColor: textColor,
                   subtitleColor: subtitleColor,
                   borderColor: borderColor,
-                  onTap: () => controller.launchURL('https://github.com/Souravsanyal1'),
+                  onTap: () =>
+                      controller.launchURL('https://github.com/Souravsanyal1'),
                 ),
                 const SizedBox(height: 12),
 
@@ -222,7 +240,8 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                   textColor: textColor,
                   subtitleColor: subtitleColor,
                   borderColor: borderColor,
-                  onTap: () => controller.launchURL('https://www.linkedin.com/in/sourav-sanyal-joy/'),
+                  onTap: () => controller.launchURL(
+                      'https://www.linkedin.com/in/sourav-sanyal-joy/'),
                 ),
                 const SizedBox(height: 12),
 
@@ -250,14 +269,17 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
                   textColor: textColor,
                   subtitleColor: subtitleColor,
                   borderColor: borderColor,
-                  onTap: () => controller.launchURL('https://www.facebook.com/sourav.sanyal.developer/'),
+                  onTap: () => controller.launchURL(
+                      'https://www.facebook.com/sourav.sanyal.developer/'),
                 ),
-                
+
                 const SizedBox(height: 36),
-                
+
                 // Footer
                 Text(
-                  bn ? 'Qurania এর সাথে থাকার জন্য ধন্যবাদ।' : 'Thank you for supporting Qurania.',
+                  bn
+                      ? 'Qurania এর সাথে থাকার জন্য ধন্যবাদ।'
+                      : 'Thank you for supporting Qurania.',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: subtitleColor,
@@ -296,7 +318,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
           border: Border.all(color: borderColor, width: 1),
           boxShadow: [
             BoxShadow(
-              color: _DevTheme.emerald.withOpacity(0.02),
+              color: _DevTheme.emerald.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -307,7 +329,7 @@ class DeveloperInfoView extends GetView<DeveloperInfoController> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: SvgPicture.string(
@@ -382,7 +404,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

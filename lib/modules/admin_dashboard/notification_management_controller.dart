@@ -8,8 +8,10 @@ class NotificationManagementController extends GetxController {
 
   NotificationManagementController(this._repository);
 
-  final RxMap<String, NotificationCategoryConfig> globalConfigs = <String, NotificationCategoryConfig>{}.obs;
-  final RxList<CustomNotificationConfig> customNotifications = <CustomNotificationConfig>[].obs;
+  final RxMap<String, NotificationCategoryConfig> globalConfigs =
+      <String, NotificationCategoryConfig>{}.obs;
+  final RxList<CustomNotificationConfig> customNotifications =
+      <CustomNotificationConfig>[].obs;
   final RxBool isLoading = true.obs;
 
   // Controllers for editing
@@ -36,7 +38,8 @@ class NotificationManagementController extends GetxController {
     });
   }
 
-  void _initializeCategoryControllers(Map<String, NotificationCategoryConfig> configs) {
+  void _initializeCategoryControllers(
+      Map<String, NotificationCategoryConfig> configs) {
     configs.forEach((key, config) {
       if (!titleControllers.containsKey(key)) {
         titleControllers[key] = TextEditingController(text: config.title);
@@ -60,7 +63,8 @@ class NotificationManagementController extends GetxController {
 
   Future<void> saveGlobalConfig(String category) async {
     try {
-      final updatedConfigs = Map<String, NotificationCategoryConfig>.from(globalConfigs);
+      final updatedConfigs =
+          Map<String, NotificationCategoryConfig>.from(globalConfigs);
       updatedConfigs[category] = NotificationCategoryConfig(
         enabled: enabledStates[category]?.value ?? true,
         title: titleControllers[category]?.text ?? '',
@@ -136,9 +140,15 @@ class NotificationManagementController extends GetxController {
 
   @override
   void onClose() {
-    titleControllers.values.forEach((c) => c.dispose());
-    messageControllers.values.forEach((c) => c.dispose());
-    timeControllers.values.forEach((c) => c.dispose());
+    for (var c in titleControllers.values) {
+      c.dispose();
+    }
+    for (var c in messageControllers.values) {
+      c.dispose();
+    }
+    for (var c in timeControllers.values) {
+      c.dispose();
+    }
     super.onClose();
   }
 }

@@ -10,16 +10,16 @@ import 'salah_guide_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _SalahTheme {
   _SalahTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class SalahGuideView extends GetView<SalahGuideController> {
@@ -34,37 +34,50 @@ class SalahGuideView extends GetView<SalahGuideController> {
       return DefaultTabController(
         length: 3,
         child: Scaffold(
-          backgroundColor: isDark ? _SalahTheme.darkSurface : _SalahTheme.lightSurface,
+          backgroundColor:
+              isDark ? _SalahTheme.darkSurface : _SalahTheme.lightSurface,
           appBar: AppBar(
             leading: const AppBackButton(color: Colors.white),
             elevation: 0,
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [_SalahTheme.emeraldDark, _SalahTheme.emerald, _SalahTheme.emeraldLight],
+                  colors: [
+                    _SalahTheme.emeraldDark,
+                    _SalahTheme.emerald,
+                    _SalahTheme.emeraldLight
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                border: Border(bottom: BorderSide(color: _SalahTheme.gold, width: 1.5)),
+                border: Border(
+                    bottom: BorderSide(color: _SalahTheme.gold, width: 1.5)),
               ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+                  Opacity(
+                      opacity: 0.05,
+                      child: CustomPaint(painter: _StarPatternPainter())),
                 ],
               ),
             ),
             title: Text(
               settings.isBangla ? 'নামাজ শিক্ষা গাইড' : 'Salah Guide',
-              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18),
             ),
             centerTitle: true,
             bottom: TabBar(
               indicatorColor: _SalahTheme.gold,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white70,
-              labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
-              unselectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.normal, fontSize: 13),
+              labelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold, fontSize: 13),
+              unselectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.normal, fontSize: 13),
               tabs: [
                 Tab(text: settings.isBangla ? 'নিয়মাবলী' : 'Salah Steps'),
                 Tab(text: settings.isBangla ? 'রাকাতসমূহ' : "Daily Rak'ahs"),
@@ -96,11 +109,13 @@ class SalahGuideView extends GetView<SalahGuideController> {
           // Linear Progress Bar
           LinearProgressIndicator(
             value: (stepIndex + 1) / totalSteps,
-            backgroundColor: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.withOpacity(0.1),
+            backgroundColor: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.grey.withValues(alpha: 0.1),
             color: _SalahTheme.emerald,
             minHeight: 6,
           ),
-          
+
           // Step count header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
@@ -117,13 +132,15 @@ class SalahGuideView extends GetView<SalahGuideController> {
                 ),
                 DropdownButton<int>(
                   value: stepIndex,
-                  dropdownColor: isDark ? _SalahTheme.darkCard : _SalahTheme.lightCard,
+                  dropdownColor:
+                      isDark ? _SalahTheme.darkCard : _SalahTheme.lightCard,
                   style: TextStyle(
                     color: isDark ? Colors.white : AppColors.textDark,
                     fontWeight: FontWeight.w600,
                   ),
                   underline: const SizedBox.shrink(),
-                  icon: const Icon(Icons.arrow_drop_down, color: _SalahTheme.emerald),
+                  icon: const Icon(Icons.arrow_drop_down,
+                      color: _SalahTheme.emerald),
                   items: List.generate(totalSteps, (index) {
                     return DropdownMenuItem(
                       value: index,
@@ -152,7 +169,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: BorderSide(
-                    color: isDark ? _SalahTheme.emerald.withOpacity(0.15) : _SalahTheme.emerald.withOpacity(0.06),
+                    color: isDark
+                        ? _SalahTheme.emerald.withValues(alpha: 0.15)
+                        : _SalahTheme.emerald.withValues(alpha: 0.06),
                     width: 1,
                   ),
                 ),
@@ -172,28 +191,32 @@ class SalahGuideView extends GetView<SalahGuideController> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Description
                       Text(
                         settings.isBangla ? step.descBn : step.descEn,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                          color: isDark
+                              ? AppColors.textGrey
+                              : AppColors.textDark.withValues(alpha: 0.8),
                           height: 1.5,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Arabic Text Box (If available)
                       if (step.arabic != null) ...[
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isDark ? _SalahTheme.darkSurface : _SalahTheme.goldSoft,
+                            color: isDark
+                                ? _SalahTheme.darkSurface
+                                : _SalahTheme.goldSoft,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: _SalahTheme.emerald.withOpacity(0.1),
+                              color: _SalahTheme.emerald.withValues(alpha: 0.1),
                             ),
                           ),
                           child: Text(
@@ -210,7 +233,8 @@ class SalahGuideView extends GetView<SalahGuideController> {
                       ],
 
                       // Transliteration Box (If available)
-                      if (step.translitBn != null || step.translitEn != null) ...[
+                      if (step.translitBn != null ||
+                          step.translitEn != null) ...[
                         Text(
                           settings.isBangla ? 'উচ্চারণ:' : 'Pronunciation:',
                           style: const TextStyle(
@@ -221,7 +245,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          settings.isBangla ? step.translitBn! : step.translitEn!,
+                          settings.isBangla
+                              ? step.translitBn!
+                              : step.translitEn!,
                           style: TextStyle(
                             fontSize: 14,
                             fontStyle: FontStyle.italic,
@@ -245,22 +271,27 @@ class SalahGuideView extends GetView<SalahGuideController> {
               children: [
                 // Previous button
                 OutlinedButton(
-                  onPressed: stepIndex > 0 ? () => controller.previousStep() : null,
+                  onPressed:
+                      stepIndex > 0 ? () => controller.previousStep() : null,
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     foregroundColor: _SalahTheme.emerald,
-                    side: BorderSide(color: _SalahTheme.emerald.withOpacity(0.5)),
+                    side: BorderSide(
+                        color: _SalahTheme.emerald.withValues(alpha: 0.5)),
                   ),
-                  child: Text(settings.isBangla ? 'পূর্ববর্তী' : 'Previous', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  child: Text(settings.isBangla ? 'পূর্ববর্তী' : 'Previous',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
                 ),
-                
+
                 // Next / Finish button
                 ElevatedButton(
                   onPressed: stepIndex < totalSteps - 1
                       ? () => controller.nextStep()
                       : () => Get.back(),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     backgroundColor: _SalahTheme.emerald,
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: _SalahTheme.gold, width: 0.5),
@@ -318,7 +349,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: isDark ? _SalahTheme.emerald.withOpacity(0.15) : _SalahTheme.emerald.withOpacity(0.06),
+              color: isDark
+                  ? _SalahTheme.emerald.withValues(alpha: 0.15)
+                  : _SalahTheme.emerald.withValues(alpha: 0.06),
               width: 1,
             ),
           ),
@@ -330,10 +363,11 @@ class SalahGuideView extends GetView<SalahGuideController> {
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: prayerColor.withOpacity(0.15),
+                  color: prayerColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.access_time_filled_rounded, color: prayerColor),
+                child:
+                    Icon(Icons.access_time_filled_rounded, color: prayerColor),
               ),
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -347,15 +381,18 @@ class SalahGuideView extends GetView<SalahGuideController> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _SalahTheme.emerald.withOpacity(0.15),
+                      color: _SalahTheme.emerald.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _SalahTheme.gold.withOpacity(0.5), width: 0.5),
+                      border: Border.all(
+                          color: _SalahTheme.gold.withValues(alpha: 0.5),
+                          width: 0.5),
                     ),
                     child: Text(
-                      settings.isBangla 
-                          ? '$totalRakahs রাকাত' 
+                      settings.isBangla
+                          ? '$totalRakahs রাকাত'
                           : "$totalRakahs Rak'ah",
                       style: const TextStyle(
                         color: _SalahTheme.emerald,
@@ -375,7 +412,8 @@ class SalahGuideView extends GetView<SalahGuideController> {
               ),
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0, top: 8.0),
+                  padding: const EdgeInsets.only(
+                      left: 16.0, right: 16.0, bottom: 16.0, top: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -385,13 +423,17 @@ class SalahGuideView extends GetView<SalahGuideController> {
                         settings.isBangla ? prayer.descBn : prayer.descEn,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.8),
+                          color: isDark
+                              ? AppColors.textGrey
+                              : AppColors.textDark.withValues(alpha: 0.8),
                           height: 1.4,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        settings.isBangla ? 'রাকাতের বিন্যাস:' : "Rak'ah Breakdown:",
+                        settings.isBangla
+                            ? 'রাকাতের বিন্যাস:'
+                            : "Rak'ah Breakdown:",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -411,7 +453,8 @@ class SalahGuideView extends GetView<SalahGuideController> {
     );
   }
 
-  Widget _buildBreakdownTable(RakahBreakdown breakdown, SettingsController settings) {
+  Widget _buildBreakdownTable(
+      RakahBreakdown breakdown, SettingsController settings) {
     final isDark = settings.isDark;
     final List<Map<String, dynamic>> items = [
       if (breakdown.sunnahMuakkadah > 0)
@@ -451,7 +494,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
         color: isDark ? _SalahTheme.darkSurface : _SalahTheme.goldSoft,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? _SalahTheme.emerald.withOpacity(0.15) : _SalahTheme.emerald.withOpacity(0.06),
+          color: isDark
+              ? _SalahTheme.emerald.withValues(alpha: 0.15)
+              : _SalahTheme.emerald.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -462,7 +507,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
         },
         border: TableBorder.symmetric(
           inside: BorderSide(
-            color: isDark ? _SalahTheme.emerald.withOpacity(0.1) : _SalahTheme.emerald.withOpacity(0.05),
+            color: isDark
+                ? _SalahTheme.emerald.withValues(alpha: 0.1)
+                : _SalahTheme.emerald.withValues(alpha: 0.05),
             width: 0.5,
           ),
         ),
@@ -470,7 +517,8 @@ class SalahGuideView extends GetView<SalahGuideController> {
           return TableRow(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
                 child: Text(
                   settings.isBangla ? item['labelBn'] : item['labelEn'],
                   style: TextStyle(
@@ -480,10 +528,11 @@ class SalahGuideView extends GetView<SalahGuideController> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
                 child: Text(
-                  settings.isBangla 
-                      ? '${item['value']} রাকাত' 
+                  settings.isBangla
+                      ? '${item['value']} রাকাত'
                       : "${item['value']} Rak'ah",
                   style: const TextStyle(
                     fontSize: 13,
@@ -515,7 +564,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: isDark ? _SalahTheme.emerald.withOpacity(0.15) : _SalahTheme.emerald.withOpacity(0.06),
+              color: isDark
+                  ? _SalahTheme.emerald.withValues(alpha: 0.15)
+                  : _SalahTheme.emerald.withValues(alpha: 0.06),
               width: 1,
             ),
           ),
@@ -529,10 +580,11 @@ class SalahGuideView extends GetView<SalahGuideController> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: _SalahTheme.emerald.withOpacity(0.15),
+                        color: _SalahTheme.emerald.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.info_outline_rounded, color: _SalahTheme.emerald),
+                      child: const Icon(Icons.info_outline_rounded,
+                          color: _SalahTheme.emerald),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -552,7 +604,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
                 const SizedBox(height: 12),
                 _buildTypeDetailRow(
                   title: settings.isBangla ? 'তাৎপর্য:' : 'Significance:',
-                  content: settings.isBangla ? type.significanceBn : type.significanceEn,
+                  content: settings.isBangla
+                      ? type.significanceBn
+                      : type.significanceEn,
                   settings: settings,
                 ),
                 const SizedBox(height: 12),
@@ -596,7 +650,9 @@ class SalahGuideView extends GetView<SalahGuideController> {
           content,
           style: TextStyle(
             fontSize: 14,
-            color: settings.isDark ? AppColors.textGrey : AppColors.textDark.withOpacity(0.85),
+            color: settings.isDark
+                ? AppColors.textGrey
+                : AppColors.textDark.withValues(alpha: 0.85),
             height: 1.4,
           ),
         ),
@@ -637,7 +693,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * math.cos(angle),
         center.dy + radius * math.sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

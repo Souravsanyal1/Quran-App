@@ -220,7 +220,8 @@ class BanglaQuranTransliterator {
         }
         if (ch == 'a') {
           // If 'a' is at the end, or followed by consonant then vowel, use 'া' (aa-kar)
-          if (next.isEmpty || (isConsonant(next) && next2.isNotEmpty && !isConsonant(next2))) {
+          if (next.isEmpty ||
+              (isConsonant(next) && next2.isNotEmpty && !isConsonant(next2))) {
             sb.write('া');
           } else {
             // Default short 'a' in Arabic is often represented by no kar in Bangla (e.g. rab -> রব)
@@ -258,30 +259,51 @@ class BanglaQuranTransliterator {
 
       // Consonants mapping
       String banglaCons = '';
-      if (ch == 'b') banglaCons = 'ব';
-      else if (ch == 'd') banglaCons = 'দ';
-      else if (ch == 'f') banglaCons = 'ফ';
-      else if (ch == 'g') banglaCons = 'গ';
-      else if (ch == 'h') banglaCons = 'হ';
-      else if (ch == 'j') banglaCons = 'জ';
-      else if (ch == 'k') banglaCons = 'ক';
-      else if (ch == 'l') banglaCons = 'ল';
-      else if (ch == 'm') banglaCons = 'ম';
-      else if (ch == 'n') banglaCons = 'ন';
-      else if (ch == 'p') banglaCons = 'প';
-      else if (ch == 'q') banglaCons = 'ক';
-      else if (ch == 'r') banglaCons = 'র';
-      else if (ch == 's') banglaCons = 'স';
-      else if (ch == 't') banglaCons = 'ত';
-      else if (ch == 'v') banglaCons = 'ভ';
-      else if (ch == 'w') banglaCons = 'ও';
-      else if (ch == 'y') banglaCons = 'ই';
+      if (ch == 'b') {
+        banglaCons = 'ব';
+      } else if (ch == 'd')
+        banglaCons = 'দ';
+      else if (ch == 'f')
+        banglaCons = 'ফ';
+      else if (ch == 'g')
+        banglaCons = 'গ';
+      else if (ch == 'h')
+        banglaCons = 'হ';
+      else if (ch == 'j')
+        banglaCons = 'জ';
+      else if (ch == 'k')
+        banglaCons = 'ক';
+      else if (ch == 'l')
+        banglaCons = 'ল';
+      else if (ch == 'm')
+        banglaCons = 'ম';
+      else if (ch == 'n')
+        banglaCons = 'ন';
+      else if (ch == 'p')
+        banglaCons = 'প';
+      else if (ch == 'q')
+        banglaCons = 'ক';
+      else if (ch == 'r')
+        banglaCons = 'র';
+      else if (ch == 's')
+        banglaCons = 'স';
+      else if (ch == 't')
+        banglaCons = 'ত';
+      else if (ch == 'v')
+        banglaCons = 'ভ';
+      else if (ch == 'w')
+        banglaCons = 'ও';
+      else if (ch == 'y')
+        banglaCons = 'ই';
       else if (ch == 'z') banglaCons = 'জ';
 
       if (banglaCons.isNotEmpty) {
         sb.write(banglaCons);
         // If consecutive consonants, insert Hasanta to form conjunct
-        if (next.isNotEmpty && isConsonant(next) && next != "'" && next != '`') {
+        if (next.isNotEmpty &&
+            isConsonant(next) &&
+            next != "'" &&
+            next != '`') {
           sb.write('্');
         }
       }

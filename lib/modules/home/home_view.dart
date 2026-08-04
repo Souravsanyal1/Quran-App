@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../../core/constants/app_routes.dart';
-import '../../core/theme/app_colors.dart';
 import '../../modules/settings/settings_controller.dart';
 import '../notifications/notifications_controller.dart';
 import 'home_controller.dart';
@@ -20,28 +19,29 @@ import '../../widgets/banner_ad_widget.dart';
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 class _QTheme {
   // Palette
-  static const Color emerald      = Color(0xFF1B5E35); // deep Islamic green
-  static const Color emeraldLight = Color(0xFF2E7D52); // lighter green for gradients
-  static const Color gold         = Color(0xFFC9A84C); // warm gold accent
-  static const Color goldLight    = Color(0xFFE8C97A); // soft gold highlight
-  static const Color cream        = Color(0xFFF8F4EF); // warm off-white surface
-  static const Color inkDark      = Color(0xFF1A1A2E); // near-black for dark mode
-  static const Color inkMid       = Color(0xFF2D3561); // secondary dark
-  static const Color shadow       = Color(0x26000000); // 15% black
+  static const Color emerald = Color(0xFF1B5E35); // deep Islamic green
+  static const Color emeraldLight =
+      Color(0xFF2E7D52); // lighter green for gradients
+  static const Color gold = Color(0xFFC9A84C); // warm gold accent
+  static const Color goldLight = Color(0xFFE8C97A); // soft gold highlight
+  static const Color cream = Color(0xFFF8F4EF); // warm off-white surface
+  static const Color inkDark = Color(0xFF1A1A2E); // near-black for dark mode
+  static const Color inkMid = Color(0xFF2D3561); // secondary dark
+  static const Color shadow = Color(0x26000000); // 15% black
 
   // Typography helpers
   static TextStyle appBarTitle(bool isBangla) => GoogleFonts.poppins(
-    fontSize: 20,
-    fontWeight: FontWeight.w700,
-    color: Colors.white,
-    letterSpacing: 0.8,
-  );
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: Colors.white,
+        letterSpacing: 0.8,
+      );
 
   static TextStyle badgeText() => const TextStyle(
-    color: Colors.white,
-    fontSize: 10,
-    fontWeight: FontWeight.bold,
-  );
+        color: Colors.white,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+      );
 }
 
 // ─── HomeView ─────────────────────────────────────────────────────────────────
@@ -206,8 +206,8 @@ class _IslamicAppBar extends StatelessWidget implements PreferredSizeWidget {
               tooltip: isBangla ? 'বিজ্ঞপ্তি' : 'Notifications',
             )
                 .animate(
-              onPlay: (c) => count > 0 ? c.repeat() : null,
-            )
+                  onPlay: (c) => count > 0 ? c.repeat() : null,
+                )
                 .shake(duration: 1500.ms, hz: 4),
           );
         }),
@@ -259,7 +259,7 @@ class _BannerSlider extends StatelessWidget {
                   PageView.builder(
                     itemCount: controller.banners.length,
                     onPageChanged: (i) =>
-                    controller.currentBannerIndex.value = i,
+                        controller.currentBannerIndex.value = i,
                     itemBuilder: (context, index) {
                       final banner = controller.banners[index];
                       return GestureDetector(
@@ -320,7 +320,9 @@ class _BannerSlider extends StatelessWidget {
                     width: isActive ? 20 : 7,
                     height: 7,
                     decoration: BoxDecoration(
-                      color: isActive ? _QTheme.gold : _QTheme.emerald.withValues(alpha: 0.25),
+                      color: isActive
+                          ? _QTheme.gold
+                          : _QTheme.emerald.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );
@@ -354,7 +356,8 @@ class _StaticTopBannerArea extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             // Elegant gold border
-            border: Border.all(color: _QTheme.gold.withValues(alpha: 0.5), width: 1.5),
+            border: Border.all(
+                color: _QTheme.gold.withValues(alpha: 0.5), width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: _QTheme.emerald.withValues(alpha: 0.15),
@@ -370,12 +373,16 @@ class _StaticTopBannerArea extends StatelessWidget {
               child: CachedNetworkImage(
                 imageUrl: banner.imageUrl,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => ShimmerLoading.rectangular(height: 75),
+                placeholder: (context, url) =>
+                    ShimmerLoading.rectangular(height: 75),
                 errorWidget: (_, __, ___) => const SizedBox.shrink(),
               ),
             ),
           ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, curve: Curves.easeOut),
+        )
+            .animate()
+            .fadeIn(duration: 400.ms)
+            .slideY(begin: -0.1, curve: Curves.easeOut),
       );
     });
   }
@@ -408,7 +415,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

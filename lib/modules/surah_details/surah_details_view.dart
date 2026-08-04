@@ -14,16 +14,16 @@ import 'surah_details_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _SurahTheme {
   _SurahTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class SurahDetailsView extends GetView<SurahDetailsController> {
@@ -36,7 +36,8 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
     return Obx(() {
       final isDark = settings.isDark;
       return Scaffold(
-        backgroundColor: isDark ? _SurahTheme.darkSurface : _SurahTheme.lightSurface,
+        backgroundColor:
+            isDark ? _SurahTheme.darkSurface : _SurahTheme.lightSurface,
         appBar: AppBar(
           leading: const AppBackButton(color: Colors.white),
           elevation: 0,
@@ -44,98 +45,124 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [_SurahTheme.emeraldDark, _SurahTheme.emerald, _SurahTheme.emeraldLight],
+                colors: [
+                  _SurahTheme.emeraldDark,
+                  _SurahTheme.emerald,
+                  _SurahTheme.emeraldLight
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              border: Border(bottom: BorderSide(color: _SurahTheme.gold, width: 1.5)),
+              border: Border(
+                  bottom: BorderSide(color: _SurahTheme.gold, width: 1.5)),
             ),
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+                Opacity(
+                    opacity: 0.05,
+                    child: CustomPaint(painter: _StarPatternPainter())),
               ],
             ),
           ),
           title: Obx(() => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                controller.currentSurahName,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              if (settings.isBangla)
-                const Text(
-                  'উচ্চারণ ও শব্দার্থসহ',
-                  style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.normal),
-                ),
-            ],
-          )),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    controller.currentSurahName,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  if (settings.isBangla)
+                    const Text(
+                      'উচ্চারণ ও শব্দার্থসহ',
+                      style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontWeight: FontWeight.normal),
+                    ),
+                ],
+              )),
           actions: [
             PopupMenuButton<String>(
               icon: const Icon(Icons.settings_outlined, color: Colors.white),
               onSelected: (value) {
                 if (value == 'translation') controller.showTranslation.toggle();
-                if (value == 'pronunciation') controller.showPronunciation.toggle();
+                if (value == 'pronunciation')
+                  controller.showPronunciation.toggle();
                 if (value == 'wordbyword') controller.toggleWordByWord();
-                if (value == 'autoplay') controller.setAutoPlay(!controller.autoPlayNextToggle.value);
+                if (value == 'autoplay')
+                  controller.setAutoPlay(!controller.autoPlayNextToggle.value);
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'autoplay',
                   child: Obx(() => Row(
-                    children: [
-                      Icon(
-                        controller.autoPlayNextToggle.value ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: _SurahTheme.emerald,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(settings.isBangla ? 'অটো-প্লে' : 'Auto Play'),
-                    ],
-                  )),
+                        children: [
+                          Icon(
+                            controller.autoPlayNextToggle.value
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                            color: _SurahTheme.emerald,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(settings.isBangla ? 'অটো-প্লে' : 'Auto Play'),
+                        ],
+                      )),
                 ),
                 PopupMenuItem(
                   value: 'translation',
                   child: Obx(() => Row(
-                    children: [
-                      Icon(
-                        controller.showTranslation.value ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: _SurahTheme.emerald,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(settings.isBangla ? 'অর্থ দেখান' : 'Show Translation'),
-                    ],
-                  )),
+                        children: [
+                          Icon(
+                            controller.showTranslation.value
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                            color: _SurahTheme.emerald,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(settings.isBangla
+                              ? 'অর্থ দেখান'
+                              : 'Show Translation'),
+                        ],
+                      )),
                 ),
                 PopupMenuItem(
                   value: 'pronunciation',
                   child: Obx(() => Row(
-                    children: [
-                      Icon(
-                        controller.showPronunciation.value ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: _SurahTheme.emerald,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(settings.isBangla ? 'উচ্চারণ দেখান' : 'Show Pronunciation'),
-                    ],
-                  )),
+                        children: [
+                          Icon(
+                            controller.showPronunciation.value
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                            color: _SurahTheme.emerald,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(settings.isBangla
+                              ? 'উচ্চারণ দেখান'
+                              : 'Show Pronunciation'),
+                        ],
+                      )),
                 ),
                 PopupMenuItem(
                   value: 'wordbyword',
                   child: Obx(() => Row(
-                    children: [
-                      Icon(
-                        controller.isWordByWord.value ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: _SurahTheme.emerald,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(settings.isBangla ? 'শব্দে শব্দে অর্থ' : 'Word-by-Word'),
-                    ],
-                  )),
+                        children: [
+                          Icon(
+                            controller.isWordByWord.value
+                                ? Icons.check_box
+                                : Icons.check_box_outline_blank,
+                            color: _SurahTheme.emerald,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(settings.isBangla
+                              ? 'শব্দে শব্দে অর্থ'
+                              : 'Word-by-Word'),
+                        ],
+                      )),
                 ),
               ],
             ),
@@ -145,7 +172,9 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
           if (controller.isLoading.value) {
             return Center(
               child: PercentageLoadingWidget(
-                message: settings.isBangla ? 'সূরা লোড হচ্ছে...' : 'Loading Surah...',
+                message: settings.isBangla
+                    ? 'সূরা লোড হচ্ছে...'
+                    : 'Loading Surah...',
               ),
             );
           }
@@ -160,7 +189,7 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   children: [
                     Icon(Icons.wifi_off_rounded,
                         size: 72,
-                        color: _SurahTheme.emerald.withOpacity(0.5)),
+                        color: _SurahTheme.emerald.withValues(alpha: 0.5)),
                     const SizedBox(height: 20),
                     Text(
                       settings.isBangla
@@ -180,7 +209,8 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                           : 'This Surah has not been downloaded yet. Please download it from the Download screen to read offline.',
                       style: GoogleFonts.poppins(
                         fontSize: 13,
-                        color: settings.isDark ? Colors.white60 : Colors.black54,
+                        color:
+                            settings.isDark ? Colors.white60 : Colors.black54,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -190,7 +220,8 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _SurahTheme.emerald,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -214,8 +245,9 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
               if (controller.isOffline.value)
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-                  color: Colors.orange.withOpacity(0.15),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+                  color: Colors.orange.withValues(alpha: 0.15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -250,10 +282,11 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   },
                 ),
               ),
-              
+
               // Bottom Audio Controller
               Obx(() {
-                if (controller.playingAyahNumber.value == null) return const SizedBox.shrink();
+                if (controller.playingAyahNumber.value == null)
+                  return const SizedBox.shrink();
                 return _buildBottomAudioPlayer(settings);
               }),
             ],
@@ -276,10 +309,11 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: _SurahTheme.gold.withOpacity(0.5), width: 1.5),
+          border: Border.all(
+              color: _SurahTheme.gold.withValues(alpha: 0.5), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _SurahTheme.emerald.withOpacity(0.2),
+              color: _SurahTheme.emerald.withValues(alpha: 0.2),
               blurRadius: 12,
               offset: const Offset(0, 4),
             )
@@ -345,23 +379,27 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isPlaying 
-              ? _SurahTheme.emerald.withOpacity(isDark ? 0.08 : 0.05) 
+          color: isPlaying
+              ? _SurahTheme.emerald.withValues(alpha: isDark ? 0.08 : 0.05)
               : (isDark ? _SurahTheme.darkCard : _SurahTheme.lightCard),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isPlaying 
-                ? _SurahTheme.emerald.withOpacity(0.5)
-                : (isDark ? _SurahTheme.emerald.withOpacity(0.12) : _SurahTheme.emerald.withOpacity(0.06)),
+            color: isPlaying
+                ? _SurahTheme.emerald.withValues(alpha: 0.5)
+                : (isDark
+                    ? _SurahTheme.emerald.withValues(alpha: 0.12)
+                    : _SurahTheme.emerald.withValues(alpha: 0.06)),
             width: isPlaying ? 1.5 : 1,
           ),
-          boxShadow: isPlaying ? [
-            BoxShadow(
-              color: _SurahTheme.emerald.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
+          boxShadow: isPlaying
+              ? [
+                  BoxShadow(
+                    color: _SurahTheme.emerald.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -371,13 +409,18 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isPlaying 
-                        ? _SurahTheme.emerald 
-                        : (isDark ? _SurahTheme.darkSurface : _SurahTheme.goldSoft),
+                    color: isPlaying
+                        ? _SurahTheme.emerald
+                        : (isDark
+                            ? _SurahTheme.darkSurface
+                            : _SurahTheme.goldSoft),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _SurahTheme.gold.withOpacity(0.5), width: 1),
+                    border: Border.all(
+                        color: _SurahTheme.gold.withValues(alpha: 0.5),
+                        width: 1),
                   ),
                   child: Text(
                     '${controller.surahNumber}:${ayah.numberInSurah}',
@@ -389,9 +432,13 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   ),
                 ),
                 if (isPlaying)
-                  const Icon(Icons.volume_up_rounded, color: _SurahTheme.gold, size: 20)
+                  const Icon(Icons.volume_up_rounded,
+                          color: _SurahTheme.gold, size: 20)
                       .animate(onPlay: (controller) => controller.repeat())
-                      .scale(duration: 600.ms, begin: const Offset(0.8, 0.8), end: const Offset(1.1, 1.1))
+                      .scale(
+                          duration: 600.ms,
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1.1, 1.1))
                       .then()
                       .scale(duration: 600.ms)
                 else
@@ -423,28 +470,39 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                       ),
                       const SizedBox(height: 12),
                       // Bengali Transliteration (Pronunciation)
-                      if (ayah.textBanglaTranslit != null && controller.showPronunciation.value)
+                      if (ayah.textBanglaTranslit != null &&
+                          controller.showPronunciation.value)
                         Container(
                           margin: const EdgeInsets.only(top: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
                           decoration: BoxDecoration(
-                            color: _SurahTheme.emerald.withOpacity(0.06),
+                            color: _SurahTheme.emerald.withValues(alpha: 0.06),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: _SurahTheme.emerald.withOpacity(0.1)),
+                            border: Border.all(
+                                color:
+                                    _SurahTheme.emerald.withValues(alpha: 0.1)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                settings.isBangla ? 'উচ্চারণ:' : 'Pronunciation:',
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _SurahTheme.emerald),
+                                settings.isBangla
+                                    ? 'উচ্চারণ:'
+                                    : 'Pronunciation:',
+                                style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _SurahTheme.emerald),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 ayah.textBanglaTranslit!,
                                 style: TextStyle(
-                                  fontSize: settings.translationFontSize.value - 1,
-                                  color: isDark ? Colors.white70 : Colors.black87,
+                                  fontSize:
+                                      settings.translationFontSize.value - 1,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black87,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -457,12 +515,14 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             if (controller.showTranslation.value) ...[
               const SizedBox(height: 12),
               Text(
-                settings.isBangla ? (ayah.textBangla ?? '') : (ayah.textEnglish ?? ''),
+                settings.isBangla
+                    ? (ayah.textBangla ?? '')
+                    : (ayah.textEnglish ?? ''),
                 style: TextStyle(
                   fontSize: settings.translationFontSize.value,
                   height: 1.5,
-                  color: isPlaying 
-                      ? (isDark ? Colors.white : AppColors.textDark) 
+                  color: isPlaying
+                      ? (isDark ? Colors.white : AppColors.textDark)
                       : (isDark ? AppColors.textGrey : AppColors.textDark),
                   fontWeight: isPlaying ? FontWeight.w500 : FontWeight.normal,
                 ),
@@ -474,7 +534,8 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             // Action Buttons Row
             Row(
               children: [
-                _buildPlayButton(ayah, isPlaying, controller.isPlaying.value, isDark),
+                _buildPlayButton(
+                    ayah, isPlaying, controller.isPlaying.value, isDark),
                 const SizedBox(width: 12),
                 _buildActionButton(
                   icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
@@ -501,9 +562,10 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
     });
   }
 
-  Widget _buildPlayButton(AyahModel ayah, bool isCurrentPlaying, bool isActuallyPlaying, bool isDark) {
+  Widget _buildPlayButton(AyahModel ayah, bool isCurrentPlaying,
+      bool isActuallyPlaying, bool isDark) {
     final showPause = isCurrentPlaying && isActuallyPlaying;
-    
+
     return InkWell(
       onTap: () => controller.playAyah(ayah),
       borderRadius: BorderRadius.circular(30),
@@ -513,10 +575,12 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
         decoration: BoxDecoration(
           color: showPause ? Colors.black : _SurahTheme.emerald,
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: _SurahTheme.gold.withOpacity(0.5), width: 1),
+          border: Border.all(
+              color: _SurahTheme.gold.withValues(alpha: 0.5), width: 1),
           boxShadow: [
             BoxShadow(
-              color: (showPause ? Colors.black : _SurahTheme.emerald).withOpacity(0.3),
+              color: (showPause ? Colors.black : _SurahTheme.emerald)
+                  .withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             )
@@ -546,7 +610,11 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
     );
   }
 
-  Widget _buildActionButton({required IconData icon, required VoidCallback onTap, required bool isDark, Color? color}) {
+  Widget _buildActionButton(
+      {required IconData icon,
+      required VoidCallback onTap,
+      required bool isDark,
+      Color? color}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -569,10 +637,12 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isDark ? _SurahTheme.darkCard : Colors.white,
-          border: Border(top: BorderSide(color: _SurahTheme.emerald.withOpacity(0.1), width: 1)),
+          border: Border(
+              top: BorderSide(
+                  color: _SurahTheme.emerald.withValues(alpha: 0.1), width: 1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -585,10 +655,11 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _SurahTheme.emerald.withOpacity(0.1),
+                  color: _SurahTheme.emerald.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.music_note_rounded, color: _SurahTheme.emerald, size: 20),
+                child: const Icon(Icons.music_note_rounded,
+                    color: _SurahTheme.emerald, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -598,25 +669,30 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                   children: [
                     Text(
                       '${settings.isBangla ? "তিলওয়াত হচ্ছে" : "Reciting"} - ${controller.currentSurahName}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     Text(
                       '${settings.isBangla ? "আয়াত নং" : "Ayah No"}: ${controller.ayahs.firstWhereOrNull((element) => element.number == controller.playingAyahNumber.value)?.numberInSurah ?? ""}',
-                      style: const TextStyle(color: AppColors.textGrey, fontSize: 11),
+                      style: const TextStyle(
+                          color: AppColors.textGrey, fontSize: 11),
                     ),
                   ],
                 ),
               ),
               IconButton(
                 icon: Icon(
-                  controller.isPlaying.value ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                  controller.isPlaying.value
+                      ? Icons.pause_circle_filled
+                      : Icons.play_circle_filled,
                   color: _SurahTheme.emerald,
                   size: 38,
                 ),
                 onPressed: () => controller.togglePlayback(),
               ),
               IconButton(
-                icon: const Icon(Icons.close_rounded, color: AppColors.textGrey),
+                icon:
+                    const Icon(Icons.close_rounded, color: AppColors.textGrey),
                 onPressed: () => controller.stopAudio(),
               ),
             ],
@@ -631,7 +707,9 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
     if (words.isEmpty) {
       return const SizedBox(
         height: 100,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: _SurahTheme.emerald)),
+        child: Center(
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: _SurahTheme.emerald)),
       );
     }
 
@@ -648,8 +726,9 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: _SurahTheme.emerald.withOpacity(0.04),
-              border: Border.all(color: _SurahTheme.emerald.withOpacity(0.08)),
+              color: _SurahTheme.emerald.withValues(alpha: 0.04),
+              border: Border.all(
+                  color: _SurahTheme.emerald.withValues(alpha: 0.08)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -665,8 +744,8 @@ class SurahDetailsView extends GetView<SurahDetailsController> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  settings.isBangla 
-                      ? (word.translationBn ?? '') 
+                  settings.isBangla
+                      ? (word.translationBn ?? '')
                       : (word.translationEn ?? ''),
                   style: GoogleFonts.hindSiliguri(
                     fontSize: 12,
@@ -711,7 +790,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

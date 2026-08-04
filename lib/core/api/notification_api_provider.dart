@@ -10,38 +10,46 @@ class NotificationApiProvider {
   NotificationApiProvider();
 
   /// Fetches notifications for a specific user.
-  Future<List<app_notification_model.AppNotification>> getNotifications(String userId, {DateTime? creationTime}) async {
+  Future<List<app_notification_model.AppNotification>> getNotifications(
+      String userId,
+      {DateTime? creationTime}) async {
     try {
       // 1. Get personal notifications
-      final personalQuery = await _firestore.collection('users')
+      final personalQuery = await _firestore
+          .collection('users')
           .doc(userId)
           .collection('notifications')
           .orderBy('sentAt', descending: true)
           .limit(50)
           .get();
-      
-      final personal = personalQuery.docs.map((doc) => 
-        app_notification_model.AppNotification.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id})).toList();
+
+      final personal = personalQuery.docs
+          .map((doc) => app_notification_model.AppNotification.fromJson(
+              {...doc.data(), 'id': doc.id}))
+          .toList();
 
       // 2. Get broadcast notifications (Filter by creation time so new users don't see old ones)
       Query broadcastBase = _firestore.collection('broadcast_notifications');
-      
+
       if (creationTime != null) {
-        broadcastBase = broadcastBase.where('sentAt', isGreaterThan: Timestamp.fromDate(creationTime));
+        broadcastBase = broadcastBase.where('sentAt',
+            isGreaterThan: Timestamp.fromDate(creationTime));
       }
 
       final broadcastQuery = await broadcastBase
           .orderBy('sentAt', descending: true)
           .limit(50)
           .get();
-      
-      final broadcast = broadcastQuery.docs.map((doc) => 
-        app_notification_model.AppNotification.fromJson({...(doc.data() as Map<String, dynamic>), 'id': doc.id})).toList();
+
+      final broadcast = broadcastQuery.docs
+          .map((doc) => app_notification_model.AppNotification.fromJson(
+              {...(doc.data() as Map<String, dynamic>), 'id': doc.id}))
+          .toList();
 
       // Combine and sort
       final all = [...personal, ...broadcast];
       all.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
+
       return all;
     } catch (e) {
       _logger.e('Error fetching notifications from Firestore: $e');
@@ -50,11 +58,16 @@ class NotificationApiProvider {
   }
 
   /// Marks a specific notification as read.
-  Future<void> markNotificationAsRead(String userId, String notificationId) async {
+  Future<void> markNotificationAsRead(
+      String userId, String notificationId) async {
     try {
-      final docRef = _firestore.collection('users').doc(userId).collection('notifications').doc(notificationId);
+      final docRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId);
       final doc = await docRef.get();
-      
+
       if (doc.exists) {
         await docRef.update({'isRead': true});
       }
@@ -67,14 +80,17 @@ class NotificationApiProvider {
   Future<void> markAllNotificationsAsRead(String userId) async {
     try {
       final batch = _firestore.batch();
-      final notifications = await _firestore.collection('users').doc(userId).collection('notifications')
+      final notifications = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
           .where('isRead', isEqualTo: false)
           .get();
-      
+
       for (var doc in notifications.docs) {
         batch.update(doc.reference, {'isRead': true});
       }
-      
+
       await batch.commit();
     } catch (e) {
       _logger.e('Error marking all notifications as read: $e');
@@ -84,18 +100,28 @@ class NotificationApiProvider {
   /// Deletes a specific notification.
   Future<void> deleteNotification(String userId, String notificationId) async {
     try {
-      await _firestore.collection('users').doc(userId).collection('notifications').doc(notificationId).delete();
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId)
+          .delete();
     } catch (e) {
       _logger.e('Error deleting notification: $e');
     }
   }
 
   /// Deletes multiple notifications.
-  Future<void> deleteNotificationsBulk(String userId, List<String> notificationIds) async {
+  Future<void> deleteNotificationsBulk(
+      String userId, List<String> notificationIds) async {
     try {
       final batch = _firestore.batch();
       for (var id in notificationIds) {
-        final ref = _firestore.collection('users').doc(userId).collection('notifications').doc(id);
+        final ref = _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('notifications')
+            .doc(id);
         batch.delete(ref);
       }
       await batch.commit();
@@ -107,7 +133,11 @@ class NotificationApiProvider {
   /// Deletes all personal notifications for a user.
   Future<void> deleteAllPersonalNotifications(String userId) async {
     try {
-      final personal = await _firestore.collection('users').doc(userId).collection('notifications').get();
+      final personal = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .get();
       final batch = _firestore.batch();
       for (var doc in personal.docs) {
         batch.delete(doc.reference);
@@ -119,7 +149,8 @@ class NotificationApiProvider {
   }
 
   /// Sends a broadcast notification (Admin specific).
-  Future<void> sendBroadcastNotification(String title, String body, {String? imageUrl}) async {
+  Future<void> sendBroadcastNotification(String title, String body,
+      {String? imageUrl}) async {
     try {
       await _firestore.collection('broadcast_notifications').add({
         'title': title,

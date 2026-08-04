@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 class AuthController extends GetxController {
   FirebaseAuth get _auth => FirebaseAuth.instance;
-  
+
   final RxBool isLoading = false.obs;
   final Rxn<User> user = Rxn<User>();
   final RxBool isAdmin = false.obs;
@@ -57,7 +57,7 @@ class AuthController extends GetxController {
         email: email,
         password: password,
       );
-      
+
       // Perform Admin Role Check
       var doc = await FirebaseFirestore.instance
           .collection('admins')
@@ -77,14 +77,14 @@ class AuthController extends GetxController {
             .collection('admins')
             .doc(credential.user!.uid)
             .set(adminData);
-        
+
         // Re-fetch the document
         doc = await FirebaseFirestore.instance
             .collection('admins')
             .doc(credential.user!.uid)
             .get();
       }
-      
+
       if (doc.exists && doc.data()?['role'] == 'admin') {
         isAdmin.value = true;
         Get.offAllNamed(kIsWeb ? AppRoutes.adminDashboard : AppRoutes.home);
@@ -120,7 +120,7 @@ class AuthController extends GetxController {
         'Login Failed',
         message,
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } catch (e) {
@@ -128,7 +128,7 @@ class AuthController extends GetxController {
         'Error',
         e.toString(),
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.8),
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
         colorText: Colors.white,
       );
     } finally {

@@ -34,7 +34,8 @@ class LocationMapView extends StatefulWidget {
   State<LocationMapView> createState() => _LocationMapViewState();
 }
 
-class _LocationMapViewState extends State<LocationMapView> with TickerProviderStateMixin {
+class _LocationMapViewState extends State<LocationMapView>
+    with TickerProviderStateMixin {
   final PrayerTimeController _controller = Get.find<PrayerTimeController>();
   final SettingsController _settings = Get.find<SettingsController>();
   final MapController _mapController = MapController();
@@ -54,15 +55,18 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     final latTween = Tween<double>(
-        begin: _mapController.camera.center.latitude, end: destLocation.latitude);
+        begin: _mapController.camera.center.latitude,
+        end: destLocation.latitude);
     final lngTween = Tween<double>(
-        begin: _mapController.camera.center.longitude, end: destLocation.longitude);
-    final zoomTween = Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
+        begin: _mapController.camera.center.longitude,
+        end: destLocation.longitude);
+    final zoomTween =
+        Tween<double>(begin: _mapController.camera.zoom, end: destZoom);
 
     final controller = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
-    final Animation<double> animation = CurvedAnimation(
-        parent: controller, curve: Curves.fastOutSlowIn);
+    final Animation<double> animation =
+        CurvedAnimation(parent: controller, curve: Curves.fastOutSlowIn);
 
     controller.addListener(() {
       _mapController.move(
@@ -72,7 +76,8 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
     });
 
     animation.addStatusListener((status) {
-      if (status == AnimationStatus.completed || status == AnimationStatus.dismissed) {
+      if (status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed) {
         controller.dispose();
       }
     });
@@ -100,7 +105,7 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
         // Reverse geocode to get city name
         try {
           List<geo.Placemark> placemarks =
-          await geo.placemarkFromCoordinates(loc.latitude, loc.longitude);
+              await geo.placemarkFromCoordinates(loc.latitude, loc.longitude);
           if (placemarks.isNotEmpty) {
             final pm = placemarks.first;
             final city = pm.locality ??
@@ -151,7 +156,8 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
             onPressed: () => Geolocator.openLocationSettings(),
             child: Text(
               _settings.isBangla ? 'সেটিংস' : 'Settings',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         );
@@ -166,7 +172,9 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
 
       if (permission == LocationPermission.deniedForever) {
         Get.snackbar(
-          _settings.isBangla ? 'অনুমতি স্থায়ীভাবে বন্ধ' : 'Permission Permanently Denied',
+          _settings.isBangla
+              ? 'অনুমতি স্থায়ীভাবে বন্ধ'
+              : 'Permission Permanently Denied',
           _settings.isBangla
               ? 'অ্যাপ সেটিংস থেকে লোকেশন পারমিশন চালু করুন।'
               : 'Location permission is permanently denied. Please enable it from app settings.',
@@ -177,7 +185,8 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
             onPressed: () => Geolocator.openAppSettings(),
             child: Text(
               _settings.isBangla ? 'সেটিংস' : 'Settings',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         );
@@ -216,7 +225,7 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
       });
 
       geocodedAddress.value =
-      _settings.isBangla ? 'ঠিকানা লোড হচ্ছে...' : 'Loading address...';
+          _settings.isBangla ? 'ঠিকানা লোড হচ্ছে...' : 'Loading address...';
       try {
         List<geo.Placemark> placemarks = await geo.placemarkFromCoordinates(
             position.latitude, position.longitude);
@@ -231,12 +240,12 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
             geocodedAddress.value = '$city, $country';
           } else {
             geocodedAddress.value =
-            _settings.isBangla ? 'চিহ্নিত স্থান' : 'Current Location';
+                _settings.isBangla ? 'চিহ্নিত স্থান' : 'Current Location';
           }
         }
       } catch (_) {
         geocodedAddress.value =
-        'Lat: ${position.latitude.toStringAsFixed(4)}, Lng: ${position.longitude.toStringAsFixed(4)}';
+            'Lat: ${position.latitude.toStringAsFixed(4)}, Lng: ${position.longitude.toStringAsFixed(4)}';
       }
     } on LocationServiceDisabledException {
       Get.snackbar(
@@ -274,11 +283,11 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
   Future<void> _onMapTap(LatLng point) async {
     selectedPoint.value = point;
     geocodedAddress.value =
-    _settings.isBangla ? 'ঠিকানা লোড হচ্ছে...' : 'Loading address...';
+        _settings.isBangla ? 'ঠিকানা লোড হচ্ছে...' : 'Loading address...';
 
     try {
       List<geo.Placemark> placemarks =
-      await geo.placemarkFromCoordinates(point.latitude, point.longitude);
+          await geo.placemarkFromCoordinates(point.latitude, point.longitude);
       if (placemarks.isNotEmpty) {
         final pm = placemarks.first;
         final city = pm.locality ??
@@ -292,12 +301,12 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
           geocodedAddress.value = '${pm.name}, $country';
         } else {
           geocodedAddress.value =
-          _settings.isBangla ? 'চিহ্নিত স্থান' : 'Custom Location';
+              _settings.isBangla ? 'চিহ্নিত স্থান' : 'Custom Location';
         }
       }
     } catch (_) {
       geocodedAddress.value =
-      'Lat: ${point.latitude.toStringAsFixed(4)}, Lng: ${point.longitude.toStringAsFixed(4)}';
+          'Lat: ${point.latitude.toStringAsFixed(4)}, Lng: ${point.longitude.toStringAsFixed(4)}';
     }
   }
 
@@ -323,7 +332,7 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
               end: Alignment.bottomRight,
             ),
             border:
-            Border(bottom: BorderSide(color: _MapTheme.gold, width: 1.5)),
+                Border(bottom: BorderSide(color: _MapTheme.gold, width: 1.5)),
           ),
           child: Stack(
             fit: StackFit.expand,
@@ -353,38 +362,37 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.quranapp.quran_app',
                 tileBuilder: isDark
                     ? (context, tileWidget, tile) {
-                  return ColorFiltered(
-                    colorFilter: const ColorFilter.matrix([
-                      -1.0, 0.0, 0.0, 0.0, 255.0, // R
-                      0.0, -1.0, 0.0, 0.0, 255.0, // G
-                      0.0, 0.0, -1.0, 0.0, 255.0, // B
-                      0.0, 0.0, 0.0, 1.0, 0.0, // A
-                    ]),
-                    child: tileWidget,
-                  );
-                }
+                        return ColorFiltered(
+                          colorFilter: const ColorFilter.matrix([
+                            -1.0, 0.0, 0.0, 0.0, 255.0, // R
+                            0.0, -1.0, 0.0, 0.0, 255.0, // G
+                            0.0, 0.0, -1.0, 0.0, 255.0, // B
+                            0.0, 0.0, 0.0, 1.0, 0.0, // A
+                          ]),
+                          child: tileWidget,
+                        );
+                      }
                     : null,
               ),
               Obx(() => MarkerLayer(
-                markers: [
-                  Marker(
-                    point: selectedPoint.value,
-                    width: 50,
-                    height: 50,
-                    alignment: Alignment.topCenter,
-                    child: const Icon(
-                      Icons.location_on_rounded,
-                      color: _MapTheme.gold,
-                      size: 45,
-                    ),
-                  ),
-                ],
-              )),
+                    markers: [
+                      Marker(
+                        point: selectedPoint.value,
+                        width: 50,
+                        height: 50,
+                        alignment: Alignment.topCenter,
+                        child: const Icon(
+                          Icons.location_on_rounded,
+                          color: _MapTheme.gold,
+                          size: 45,
+                        ),
+                      ),
+                    ],
+                  )),
             ],
           ),
 
@@ -400,17 +408,17 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                 child: Container(
                   decoration: BoxDecoration(
                     color: (isDark ? _MapTheme.darkCard : _MapTheme.lightCard)
-                        .withOpacity(0.85),
+                        .withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isDark
-                          ? _MapTheme.emerald.withOpacity(0.15)
-                          : _MapTheme.emerald.withOpacity(0.06),
+                          ? _MapTheme.emerald.withValues(alpha: 0.15)
+                          : _MapTheme.emerald.withValues(alpha: 0.06),
                       width: 1,
                     ),
                   ),
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   child: Row(
                     children: [
                       Expanded(
@@ -436,26 +444,26 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                       ),
                       Obx(() => isSearching.value
                           ? const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: SizedBox(
-                          width: 24,
-                          height: 4,
-                          child: ClipRRect(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(2)),
-                            child: LinearProgressIndicator(
-                              color: _MapTheme.emerald,
-                              backgroundColor: Colors.transparent,
-                            ),
-                          ),
-                        ),
-                      )
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: SizedBox(
+                                width: 24,
+                                height: 4,
+                                child: ClipRRect(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(2)),
+                                  child: LinearProgressIndicator(
+                                    color: _MapTheme.emerald,
+                                    backgroundColor: Colors.transparent,
+                                  ),
+                                ),
+                              ),
+                            )
                           : IconButton(
-                        icon: const Icon(Icons.search_rounded,
-                            color: _MapTheme.emerald),
-                        onPressed: () =>
-                            _performSearch(_searchController.text),
-                      )),
+                              icon: const Icon(Icons.search_rounded,
+                                  color: _MapTheme.emerald),
+                              onPressed: () =>
+                                  _performSearch(_searchController.text),
+                            )),
                     ],
                   ),
                 ),
@@ -468,33 +476,33 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
             bottom: 232, // Positioned right above the confirmation panel
             right: 16,
             child: Obx(() => FloatingActionButton(
-              heroTag: 'gps_fab',
-              mini: true,
-              backgroundColor:
-              isDark ? _MapTheme.darkCard : _MapTheme.lightCard,
-              foregroundColor: _MapTheme.emerald,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(
-                  color: isDark
-                      ? _MapTheme.emerald.withOpacity(0.15)
-                      : _MapTheme.emerald.withOpacity(0.06),
-                  width: 1,
-                ),
-              ),
-              onPressed: isLocating.value ? null : _locateCurrentPosition,
-              child: isLocating.value
-                  ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: _MapTheme.emerald,
-                ),
-              )
-                  : const Icon(Icons.gps_fixed_rounded, size: 20),
-            )),
+                  heroTag: 'gps_fab',
+                  mini: true,
+                  backgroundColor:
+                      isDark ? _MapTheme.darkCard : _MapTheme.lightCard,
+                  foregroundColor: _MapTheme.emerald,
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: isDark
+                          ? _MapTheme.emerald.withValues(alpha: 0.15)
+                          : _MapTheme.emerald.withValues(alpha: 0.06),
+                      width: 1,
+                    ),
+                  ),
+                  onPressed: isLocating.value ? null : _locateCurrentPosition,
+                  child: isLocating.value
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _MapTheme.emerald,
+                          ),
+                        )
+                      : const Icon(Icons.gps_fixed_rounded, size: 20),
+                )),
           ),
 
           // ── Bottom Location Confirmation Card ──────────────────────────────
@@ -509,12 +517,12 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                 child: Container(
                   decoration: BoxDecoration(
                     color: (isDark ? _MapTheme.darkCard : _MapTheme.lightCard)
-                        .withOpacity(0.85),
+                        .withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
                       color: isDark
-                          ? _MapTheme.emerald.withOpacity(0.2)
-                          : _MapTheme.emerald.withOpacity(0.08),
+                          ? _MapTheme.emerald.withValues(alpha: 0.2)
+                          : _MapTheme.emerald.withValues(alpha: 0.08),
                       width: 1.2,
                     ),
                   ),
@@ -528,10 +536,10 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: _MapTheme.emerald.withOpacity(0.1),
+                              color: _MapTheme.emerald.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: _MapTheme.gold.withOpacity(0.5),
+                                  color: _MapTheme.gold.withValues(alpha: 0.5),
                                   width: 1),
                             ),
                             child: const Icon(
@@ -558,17 +566,17 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                                 ),
                                 const SizedBox(height: 4),
                                 Obx(() => Text(
-                                  geocodedAddress.value,
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppColors.textDark,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                )),
+                                      geocodedAddress.value,
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppColors.textDark,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    )),
                               ],
                             ),
                           ),
@@ -581,7 +589,7 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           elevation: 2,
-                          shadowColor: _MapTheme.emerald.withOpacity(0.3),
+                          shadowColor: _MapTheme.emerald.withValues(alpha: 0.3),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                             side: const BorderSide(
@@ -596,12 +604,15 @@ class _LocationMapViewState extends State<LocationMapView> with TickerProviderSt
                           );
                           Get.back();
                           Get.snackbar(
-                            bn ? 'অবস্থান আপডেট করা হয়েছে' : 'Location Updated',
+                            bn
+                                ? 'অবস্থান আপডেট করা হয়েছে'
+                                : 'Location Updated',
                             bn
                                 ? 'আপনার নতুন অবস্থানটি সফলভাবে সেট করা হয়েছে।'
                                 : 'Your new location has been set successfully.',
                             snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: _MapTheme.emerald.withOpacity(0.9),
+                            backgroundColor:
+                                _MapTheme.emerald.withValues(alpha: 0.9),
                             colorText: Colors.white,
                           );
                         },

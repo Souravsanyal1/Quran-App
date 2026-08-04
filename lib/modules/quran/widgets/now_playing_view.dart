@@ -20,12 +20,14 @@ class NowPlayingView extends StatelessWidget {
       final isBuffering = audioService.isPlayerLoading.value;
 
       return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF141420) : const Color(0xFFF8F4EF),
+        backgroundColor:
+            isDark ? const Color(0xFF141420) : const Color(0xFFF8F4EF),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? Colors.white : Colors.black87, size: 32),
+            icon: Icon(Icons.keyboard_arrow_down_rounded,
+                color: isDark ? Colors.white : Colors.black87, size: 32),
             onPressed: () => Get.back(),
           ),
           title: Text(
@@ -52,7 +54,7 @@ class NowPlayingView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF1B5E35).withOpacity(0.2),
+                      color: const Color(0xFF1B5E35).withValues(alpha: 0.2),
                       blurRadius: 30,
                       offset: const Offset(0, 15),
                     ),
@@ -67,7 +69,9 @@ class NowPlayingView extends StatelessWidget {
 
               // Info
               Text(
-                settings.isBangla ? 'পবিত্র কুরআন তেলাওয়াত' : 'Holy Quran Recitation',
+                settings.isBangla
+                    ? 'পবিত্র কুরআন তেলাওয়াত'
+                    : 'Holy Quran Recitation',
                 style: GoogleFonts.poppins(
                   color: isDark ? Colors.white : Colors.black87,
                   fontSize: 22,
@@ -91,25 +95,36 @@ class NowPlayingView extends StatelessWidget {
                 stream: audioService.player.positionStream,
                 builder: (context, snapshot) {
                   final position = snapshot.data ?? Duration.zero;
-                  final duration = audioService.player.duration ?? Duration.zero;
+                  final duration =
+                      audioService.player.duration ?? Duration.zero;
                   return Column(
                     children: [
                       Slider(
-                        value: position.inMilliseconds.toDouble().clamp(0, duration.inMilliseconds.toDouble()),
-                        max: duration.inMilliseconds.toDouble() > 0 ? duration.inMilliseconds.toDouble() : 1.0,
+                        value: position.inMilliseconds
+                            .toDouble()
+                            .clamp(0, duration.inMilliseconds.toDouble()),
+                        max: duration.inMilliseconds.toDouble() > 0
+                            ? duration.inMilliseconds.toDouble()
+                            : 1.0,
                         onChanged: (value) {
-                          audioService.player.seek(Duration(milliseconds: value.toInt()));
+                          audioService.player
+                              .seek(Duration(milliseconds: value.toInt()));
                         },
                         activeColor: const Color(0xFF1B5E35),
-                        inactiveColor: const Color(0xFF1B5E35).withOpacity(0.2),
+                        inactiveColor:
+                            const Color(0xFF1B5E35).withValues(alpha: 0.2),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(_formatDuration(position), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                            Text(_formatDuration(duration), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            Text(_formatDuration(position),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey)),
+                            Text(_formatDuration(duration),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -125,7 +140,8 @@ class NowPlayingView extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.skip_previous_rounded, size: 48, color: Color(0xFF1B5E35)),
+                    icon: const Icon(Icons.skip_previous_rounded,
+                        size: 48, color: Color(0xFF1B5E35)),
                     onPressed: () => audioService.player.seekToPrevious(),
                   ),
                   const SizedBox(width: 24),
@@ -143,14 +159,21 @@ class NowPlayingView extends StatelessWidget {
                       child: isBuffering
                           ? const Padding(
                               padding: EdgeInsets.all(24.0),
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                              child: CircularProgressIndicator(
+                                  color: Colors.white, strokeWidth: 3),
                             )
-                          : Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 50, color: Colors.white),
+                          : Icon(
+                              isPlaying
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              size: 50,
+                              color: Colors.white),
                     ),
                   ),
                   const SizedBox(width: 24),
                   IconButton(
-                    icon: const Icon(Icons.skip_next_rounded, size: 48, color: Color(0xFF1B5E35)),
+                    icon: const Icon(Icons.skip_next_rounded,
+                        size: 48, color: Color(0xFF1B5E35)),
                     onPressed: () => audioService.player.seekToNext(),
                   ),
                 ],

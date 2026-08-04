@@ -10,16 +10,16 @@ import 'donation_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _DonateTheme {
   _DonateTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF141420);
-  static const Color darkCard     = Color(0xFF1E1E2E);
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface = Color(0xFF141420);
+  static const Color darkCard = Color(0xFF1E1E2E);
   static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightCard    = Color(0xFFFFFFFF);
+  static const Color lightCard = Color(0xFFFFFFFF);
 }
 
 class DonationView extends GetView<DonationController> {
@@ -32,29 +32,38 @@ class DonationView extends GetView<DonationController> {
     final isBn = settings.isBangla;
 
     return Scaffold(
-      backgroundColor: isDark ? _DonateTheme.darkSurface : _DonateTheme.lightSurface,
+      backgroundColor:
+          isDark ? _DonateTheme.darkSurface : _DonateTheme.lightSurface,
       appBar: AppBar(
         leading: const AppBackButton(color: Colors.white),
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [_DonateTheme.emeraldDark, _DonateTheme.emerald, _DonateTheme.emeraldLight],
+              colors: [
+                _DonateTheme.emeraldDark,
+                _DonateTheme.emerald,
+                _DonateTheme.emeraldLight
+              ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border(bottom: BorderSide(color: _DonateTheme.gold, width: 1.5)),
+            border: Border(
+                bottom: BorderSide(color: _DonateTheme.gold, width: 1.5)),
           ),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Opacity(opacity: 0.05, child: CustomPaint(painter: _StarPatternPainter())),
+              Opacity(
+                  opacity: 0.05,
+                  child: CustomPaint(painter: _StarPatternPainter())),
             ],
           ),
         ),
         title: Text(
           isBn ? 'অনুদান ও সদকা' : 'Donation & Sadakah',
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.poppins(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
         ),
         centerTitle: true,
       ),
@@ -69,150 +78,156 @@ class DonationView extends GetView<DonationController> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            // Islamic Quote Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [_DonateTheme.emeraldDark, _DonateTheme.emerald],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              // Islamic Quote Card
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [_DonateTheme.emeraldDark, _DonateTheme.emerald],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: _DonateTheme.gold, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _DonateTheme.emerald.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: _DonateTheme.gold, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: _DonateTheme.emerald.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'مَّن ذَا الَّذِي يُقْرِضُ اللَّهَ قَرْضًا حَسَنًا فَيُضَاعِفَهُ لَهُ أَضْعَافًا كَثِيرَةً',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.amiri(
-                      fontSize: 20,
-                      color: _DonateTheme.goldSoft,
-                      height: 1.6,
-                      fontWeight: FontWeight.bold,
+                child: Column(
+                  children: [
+                    Text(
+                      'مَّن ذَا الَّذِي يُقْرِضُ اللَّهَ قَرْضًا حَسَنًا فَيُضَاعِفَهُ لَهُ أَضْعَافًا كَثِيرَةً',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.amiri(
+                        fontSize: 20,
+                        color: _DonateTheme.goldSoft,
+                        height: 1.6,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isBn
-                        ? '“কে সেই যে আল্লাহকে করজে হাসানা (উত্তম ঋণ) দেবে? ফলে তিনি তার জন্য তা বহু গুণ বাড়িয়ে দেবেন।” (সূরা আল-বাকারাহ: ২৪৫)'
-                        : '“Who is it that would loan Allah a goodly loan so He may multiply it for him many times over?” (Surah Al-Baqarah: 245)',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white.withOpacity(0.85),
-                      fontSize: 13,
-                      height: 1.45,
+                    const SizedBox(height: 16),
+                    Text(
+                      isBn
+                          ? '“কে সেই যে আল্লাহকে করজে হাসানা (উত্তম ঋণ) দেবে? ফলে তিনি তার জন্য তা বহু গুণ বাড়িয়ে দেবেন।” (সূরা আল-বাকারাহ: ২৪৫)'
+                          : '“Who is it that would loan Allah a goodly loan so He may multiply it for him many times over?” (Surah Al-Baqarah: 245)',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontSize: 13,
+                        height: 1.45,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Sadakah Jariyah Card
-            Container(
-              padding: const EdgeInsets.all(20.0),
-              decoration: BoxDecoration(
-                color: isDark ? _DonateTheme.darkCard : _DonateTheme.lightCard,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? _DonateTheme.emerald.withOpacity(0.15) : _DonateTheme.emerald.withOpacity(0.06),
+              // Sadakah Jariyah Card
+              Container(
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color:
+                      isDark ? _DonateTheme.darkCard : _DonateTheme.lightCard,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? _DonateTheme.emerald.withValues(alpha: 0.15)
+                        : _DonateTheme.emerald.withValues(alpha: 0.06),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _DonateTheme.emerald.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: _DonateTheme.emerald.withOpacity(0.02),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isBn
-                        ? 'সদকায়ে জারিয়া হিসেবে অংশ নিন'
-                        : 'Sadakah Jariyah (Ongoing Charity)',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: isDark ? Colors.white : AppColors.textDark,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isBn
+                          ? 'সদকায়ে জারিয়া হিসেবে অংশ নিন'
+                          : 'Sadakah Jariyah (Ongoing Charity)',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: isDark ? Colors.white : AppColors.textDark,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    isBn
-                        ? 'এই অ্যাপটি সম্পূর্ণ বিজ্ঞাপনমুক্ত এবং বিনামূল্যে কুরআন শিক্ষার উদ্দেশ্যে তৈরি। অ্যাপটির উন্নয়ন ও সার্ভার মেইনটেন্যান্স সচল রাখতে আপনার সদকা দিয়ে সাহায্য করতে পারেন।'
-                        : 'This application is entirely ad-free and free for teaching Al-Quran. To keep updates, feature developments and server maintenance running, you can contribute your Sadakah.',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.textGrey,
-                      fontSize: 13,
-                      height: 1.5,
+                    const SizedBox(height: 10),
+                    Text(
+                      isBn
+                          ? 'এই অ্যাপটি সম্পূর্ণ বিজ্ঞাপনমুক্ত এবং বিনামূল্যে কুরআন শিক্ষার উদ্দেশ্যে তৈরি। অ্যাপটির উন্নয়ন ও সার্ভার মেইনটেন্যান্স সচল রাখতে আপনার সদকা দিয়ে সাহায্য করতে পারেন।'
+                          : 'This application is entirely ad-free and free for teaching Al-Quran. To keep updates, feature developments and server maintenance running, you can contribute your Sadakah.',
+                      style: GoogleFonts.poppins(
+                        color: AppColors.textGrey,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // Payment Methods Title
-            Row(
-              children: [
-                Container(
-                  width: 3,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: _DonateTheme.gold,
-                    borderRadius: BorderRadius.circular(2),
+              // Payment Methods Title
+              Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: _DonateTheme.gold,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isBn ? 'মোবাইল ও ব্যাংক অ্যাকাউন্ট' : 'Payment Accounts',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _DonateTheme.emerald),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Bkash/Nagad/Rocket
+              if (controller.bkashNagad.value.isNotEmpty) ...[
+                _buildDonationMethod(
+                  context,
+                  settings,
+                  'bKash / Nagad (Personal)',
+                  controller.bkashNagad.value,
+                  Icons.phone_android_rounded,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  isBn
-                      ? 'মোবাইল ও ব্যাংক অ্যাকাউন্ট'
-                      : 'Payment Accounts',
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: _DonateTheme.emerald),
+                const SizedBox(height: 12),
+              ],
+
+              // Bank Account
+              if (controller.bankDetails.value.isNotEmpty) ...[
+                _buildDonationMethod(
+                  context,
+                  settings,
+                  controller.bankName.value.isNotEmpty
+                      ? controller.bankName.value
+                      : 'Bank Account',
+                  controller.bankDetails.value,
+                  Icons.account_balance_rounded,
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-
-            // Bkash/Nagad/Rocket
-            if (controller.bkashNagad.value.isNotEmpty) ...[
-              _buildDonationMethod(
-                context,
-                settings,
-                'bKash / Nagad (Personal)',
-                controller.bkashNagad.value,
-                Icons.phone_android_rounded,
-              ),
-              const SizedBox(height: 12),
             ],
-
-            // Bank Account
-            if (controller.bankDetails.value.isNotEmpty) ...[
-              _buildDonationMethod(
-                context,
-                settings,
-                controller.bankName.value.isNotEmpty ? controller.bankName.value : 'Bank Account',
-                controller.bankDetails.value,
-                Icons.account_balance_rounded,
-              ),
-            ],
-          ],
-        ),
-      );
-    }),
-  );
-}
+          ),
+        );
+      }),
+    );
+  }
 
   Widget _buildDonationMethod(
     BuildContext context,
@@ -227,7 +242,9 @@ class DonationView extends GetView<DonationController> {
         color: isDark ? _DonateTheme.darkCard : _DonateTheme.lightCard,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? _DonateTheme.emerald.withOpacity(0.15) : _DonateTheme.emerald.withOpacity(0.06),
+          color: isDark
+              ? _DonateTheme.emerald.withValues(alpha: 0.15)
+              : _DonateTheme.emerald.withValues(alpha: 0.06),
         ),
       ),
       child: ListTile(
@@ -235,7 +252,7 @@ class DonationView extends GetView<DonationController> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: _DonateTheme.emerald.withOpacity(0.1),
+            color: _DonateTheme.emerald.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: _DonateTheme.emerald, size: 24),
@@ -272,7 +289,7 @@ class DonationView extends GetView<DonationController> {
                   ? 'অ্যাকাউন্ট নম্বরটি কপি করা হয়েছে!'
                   : 'Account details copied to clipboard!',
               snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: _DonateTheme.emerald.withOpacity(0.92),
+              backgroundColor: _DonateTheme.emerald.withValues(alpha: 0.92),
               colorText: Colors.white,
             );
           },
@@ -309,7 +326,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);

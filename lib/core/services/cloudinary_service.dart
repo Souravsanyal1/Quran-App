@@ -1,13 +1,10 @@
 import 'dart:io';
-import 'dart:typed_data';
-import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import '../constants/app_keys.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
-
 
 class CloudinaryService {
   final Dio _dio = Dio();
@@ -39,11 +36,11 @@ class CloudinaryService {
       final File? compressedFile = await _compressImage(ioFile);
       if (compressedFile == null) return null;
 
-
       // 2. Prepare Data
       String fileName = path.basename(compressedFile.path);
       FormData formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(compressedFile.path, filename: fileName),
+        'file': await MultipartFile.fromFile(compressedFile.path,
+            filename: fileName),
         'upload_preset': AppKeys.cloudinaryUploadPreset,
       });
 
@@ -69,7 +66,8 @@ class CloudinaryService {
 
   Future<File?> _compressImage(File file) async {
     final tempDir = await getTemporaryDirectory();
-    final targetPath = path.join(tempDir.path, "${DateTime.now().millisecondsSinceEpoch}.jpg");
+    final targetPath =
+        path.join(tempDir.path, "${DateTime.now().millisecondsSinceEpoch}.jpg");
 
     final result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,

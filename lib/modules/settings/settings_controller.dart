@@ -7,10 +7,8 @@ import 'dart:async';
 import '../../core/constants/app_routes.dart';
 import '../../services/notification_service.dart';
 import '../auth/auth_controller.dart';
-import '../notifications/notifications_controller.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../core/api/notification_api_provider.dart';
-import '../../data/models/notification_config_model.dart';
 import '../../services/audio_player_service.dart';
 import '../../modules/prayer_time/prayer_time_controller.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -65,7 +63,7 @@ class SettingsController extends GetxController {
 
   void _listenToRemoteNotificationConfigs() {
     final repo = NotificationRepository(NotificationApiProvider());
-    
+
     repo.streamGlobalConfigs().listen((configs) {
       NotificationService.instance.applyGlobalConfigs(configs);
     });
@@ -99,13 +97,14 @@ class SettingsController extends GetxController {
         final data = snapshot.data();
         if (data != null) {
           updateMaintenanceFromData(data);
-          
+
           // 2. Check Force Update (Optional: can also be instant if we want to be strict)
           if (data['forceUpdate'] == true) {
             final packageInfo = await PackageInfo.fromPlatform();
             final int currentBuild = int.tryParse(packageInfo.buildNumber) ?? 0;
             final int requiredBuild = data['buildNumber'] ?? 0;
-            if (currentBuild < requiredBuild && Get.currentRoute != AppRoutes.forceUpdate) {
+            if (currentBuild < requiredBuild &&
+                Get.currentRoute != AppRoutes.forceUpdate) {
               Get.offAllNamed(AppRoutes.forceUpdate);
             }
           }
@@ -117,7 +116,7 @@ class SettingsController extends GetxController {
   void updateMaintenanceFromData(Map<String, dynamic> data) {
     // 1. Check Maintenance Mode
     bool isMaintenanceActive = data['maintenanceMode'] == true;
-    
+
     // 2. Load Announcement & Feature Toggles
     showAnnouncement.value = data['showAnnouncement'] ?? false;
     announcementTitle.value = data['announcementTitle'] ?? '';
@@ -175,7 +174,8 @@ class SettingsController extends GetxController {
     if (maintenanceEndTime.value == null) return;
 
     _maintenanceTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (maintenanceEndTime.value != null && DateTime.now().isAfter(maintenanceEndTime.value!)) {
+      if (maintenanceEndTime.value != null &&
+          DateTime.now().isAfter(maintenanceEndTime.value!)) {
         timer.cancel();
         _handleMaintenanceNavigation(false);
       }
@@ -248,7 +248,9 @@ class SettingsController extends GetxController {
         azanEnabled.value = false;
         await _prefs?.setBool(_keyAzan, false);
         showPermissionExplanationDialog(
-          title: isBangla ? 'আযানের নোটিফিকেশন অনুমতি' : 'Azan Notification Permission',
+          title: isBangla
+              ? 'আযানের নোটিফিকেশন অনুমতি'
+              : 'Azan Notification Permission',
           explanation: isBangla
               ? 'সঠিক সময়ে আযানের নোটিফিকেশন শোনার জন্য বিজ্ঞপ্তির অনুমতি দেওয়া আবশ্যক।'
               : 'Azan notification permission is required to sound alerts at the correct prayer times.',
@@ -267,7 +269,9 @@ class SettingsController extends GetxController {
             } else {
               Get.snackbar(
                 isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
-                isBangla ? 'বিজ্ঞপ্তির অনুমতি ছাড়া আযান অ্যালার্ট চালু করা সম্ভব নয়।' : 'Cannot enable Azan alerts without permission.',
+                isBangla
+                    ? 'বিজ্ঞপ্তির অনুমতি ছাড়া আযান অ্যালার্ট চালু করা সম্ভব নয়।'
+                    : 'Cannot enable Azan alerts without permission.',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.red.withValues(alpha: 0.8),
                 colorText: Colors.white,
@@ -300,7 +304,9 @@ class SettingsController extends GetxController {
         notificationsEnabled.value = false;
         await _prefs?.setBool(_keyNotifications, false);
         showPermissionExplanationDialog(
-          title: isBangla ? 'বিজ্ঞপ্তির অনুমতি প্রয়োজন' : 'Notification Permission Required',
+          title: isBangla
+              ? 'বিজ্ঞপ্তির অনুমতি প্রয়োজন'
+              : 'Notification Permission Required',
           explanation: isBangla
               ? 'আপনাকে অ্যাপের গুরুত্বপূর্ণ আপডেট ও নোটিফিকেশন পাঠাতে বিজ্ঞপ্তির অনুমতি প্রয়োজন।'
               : 'Notification permission is required to send you important updates and notifications.',
@@ -314,7 +320,9 @@ class SettingsController extends GetxController {
             } else {
               Get.snackbar(
                 isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
-                isBangla ? 'বিজ্ঞপ্তির অনুমতি ছাড়া নোটিফিকেশন চালু করা সম্ভব নয়।' : 'Cannot enable notifications without permission.',
+                isBangla
+                    ? 'বিজ্ঞপ্তির অনুমতি ছাড়া নোটিফিকেশন চালু করা সম্ভব নয়।'
+                    : 'Cannot enable notifications without permission.',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.red.withValues(alpha: 0.8),
                 colorText: Colors.white,
@@ -334,10 +342,11 @@ class SettingsController extends GetxController {
   Future<void> setQari(String qariId) async {
     selectedQari.value = qariId;
     await _prefs?.setString(_keyQari, qariId);
-    
+
     try {
       final audioService = Get.find<AudioPlayerService>();
-      if (audioService.isPlaying.value || audioService.player.processingState != ProcessingState.idle) {
+      if (audioService.isPlaying.value ||
+          audioService.player.processingState != ProcessingState.idle) {
         // Preference saved.
       }
     } catch (_) {}
@@ -350,20 +359,25 @@ class SettingsController extends GetxController {
         backgroundPlayEnabled.value = false;
         await _prefs?.setBool(_keyBackgroundPlay, false);
         showPermissionExplanationDialog(
-          title: isBangla ? 'ব্যাকগ্রাউন্ড প্লে অনুমতি' : 'Background Play Permission',
+          title: isBangla
+              ? 'ব্যাকগ্রাউন্ড প্লে অনুমতি'
+              : 'Background Play Permission',
           explanation: isBangla
               ? 'স্ক্রিন অফ থাকা অবস্থায় বা অন্য অ্যাপ ব্যবহারের সময় প্লেয়ার সচল রাখতে ব্যাটারি অপ্টিমাইজেশন নিষ্ক্রিয় করার অনুমতি দিন।'
               : 'Allow disabling battery optimization to keep the audio player active when the screen is off or when using other apps.',
           icon: Icons.battery_saver_outlined,
           onGrant: () async {
-            final result = await Permission.ignoreBatteryOptimizations.request();
+            final result =
+                await Permission.ignoreBatteryOptimizations.request();
             if (result.isGranted) {
               backgroundPlayEnabled.value = true;
               await _prefs?.setBool(_keyBackgroundPlay, true);
             } else {
               Get.snackbar(
                 isBangla ? 'অনুমতি অস্বীকৃত' : 'Permission Denied',
-                isBangla ? 'ব্যাটারি অপ্টিমাইজেশন নিষ্ক্রিয় না করলে ব্যাকগ্রাউন্ড প্লে কাজ করবে না।' : 'Background play will not work without battery optimization exemption.',
+                isBangla
+                    ? 'ব্যাটারি অপ্টিমাইজেশন নিষ্ক্রিয় না করলে ব্যাকগ্রাউন্ড প্লে কাজ করবে না।'
+                    : 'Background play will not work without battery optimization exemption.',
                 snackPosition: SnackPosition.BOTTOM,
                 backgroundColor: Colors.red.withValues(alpha: 0.8),
                 colorText: Colors.white,
@@ -394,7 +408,9 @@ class SettingsController extends GetxController {
           decoration: BoxDecoration(
             color: const Color(0xFF141420),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFC9A84C).withValues(alpha: 0.3), width: 1.5),
+            border: Border.all(
+                color: const Color(0xFFC9A84C).withValues(alpha: 0.3),
+                width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF1B5E35).withValues(alpha: 0.3),
@@ -506,7 +522,8 @@ class SettingsController extends GetxController {
 
   Future<void> setDuaReminderEnabled(bool enabled) async {
     if (enabled) {
-      final granted = await NotificationService.instance.requestNotificationPermission();
+      final granted =
+          await NotificationService.instance.requestNotificationPermission();
       if (!granted) {
         duaReminderEnabled.value = false;
         final prefs = _prefs ?? await SharedPreferences.getInstance();
@@ -551,7 +568,7 @@ class SettingsController extends GetxController {
 
   Future<void> checkNamazGuideAccessAndNavigate(String route) async {
     final auth = Get.find<AuthController>();
-    
+
     // 1. Check if feature is globally active from admin settings
     if (isNamazGuideActive.value) {
       Get.toNamed(route);
@@ -573,7 +590,10 @@ class SettingsController extends GetxController {
 
     isLoading.value = true;
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
       if (userDoc.exists && userDoc.data()?['hasNamazGuideAccess'] == true) {
         isLoading.value = false;
         Get.toNamed(route);
@@ -598,7 +618,9 @@ class SettingsController extends GetxController {
           decoration: BoxDecoration(
             color: const Color(0xFF141420),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFC9A84C).withValues(alpha: 0.3), width: 1.5),
+            border: Border.all(
+                color: const Color(0xFFC9A84C).withValues(alpha: 0.3),
+                width: 1.5),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF1B5E35).withValues(alpha: 0.3),
@@ -624,7 +646,9 @@ class SettingsController extends GetxController {
               ),
               const SizedBox(height: 20),
               Text(
-                isBangla ? 'নামাজ শিক্ষা (Coming Soon)' : 'Namaz Guide (Coming Soon)',
+                isBangla
+                    ? 'নামাজ শিক্ষা (Coming Soon)'
+                    : 'Namaz Guide (Coming Soon)',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
@@ -649,7 +673,8 @@ class SettingsController extends GetxController {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1B5E35),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

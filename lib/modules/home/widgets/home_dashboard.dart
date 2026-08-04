@@ -157,14 +157,14 @@ class HomeDashboard extends StatelessWidget {
                 //   route: AppRoutes.salahGuide,
                 // ),
                 Obx(() => _QuickActionCard(
-                  icon: Icons.menu_book_rounded,
-                  label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
-                  gradient: const [Color(0xFF00796B), Color(0xFF009688)],
-                  route: AppRoutes.salahGuide2,
-                  badgeText: settings.isNamazGuideActive.value 
-                      ? (bn ? 'নতুন' : 'New') 
-                      : (bn ? 'শীঘ্রই' : 'Soon'),
-                )),
+                      icon: Icons.menu_book_rounded,
+                      label: bn ? 'নামাজ শিক্ষা' : 'Namaz Guide',
+                      gradient: const [Color(0xFF00796B), Color(0xFF009688)],
+                      route: AppRoutes.salahGuide2,
+                      badgeText: settings.isNamazGuideActive.value
+                          ? (bn ? 'নতুন' : 'New')
+                          : (bn ? 'শীঘ্রই' : 'Soon'),
+                    )),
                 _QuickActionCard(
                   showcaseKey: homeController.settingsKey,
                   showcaseTitle: bn ? 'প্রোফাইল' : 'Profile',
@@ -258,8 +258,9 @@ class _GreetingCard extends StatelessWidget {
   });
 
   String _getGreeting() {
-    if (currentHour < 5)
+    if (currentHour < 5) {
       return isBangla ? 'আস-সালামু আলাইকুম' : 'Assalamu Alaikum';
+    }
     if (currentHour < 12) return isBangla ? 'সুপ্রভাত' : 'Good Morning';
     if (currentHour < 17) return isBangla ? 'শুভ অপরাহ্ন' : 'Good Afternoon';
     if (currentHour < 20) return isBangla ? 'শুভ সন্ধ্যা' : 'Good Evening';
@@ -285,7 +286,7 @@ class _GreetingCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: (isDark ? const Color(0xFF1B3A4B) : _DashTheme.emerald)
-                .withOpacity(0.35),
+                .withValues(alpha: 0.35),
             blurRadius: 24,
             spreadRadius: 0,
             offset: const Offset(0, 8),
@@ -313,7 +314,7 @@ class _GreetingCard extends StatelessWidget {
                 height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                 ),
               ),
             ),
@@ -325,7 +326,7 @@ class _GreetingCard extends StatelessWidget {
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                 ),
               ),
             ),
@@ -344,7 +345,7 @@ class _GreetingCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: Colors.white.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
@@ -358,7 +359,7 @@ class _GreetingCard extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                 ),
                               ),
                             ],
@@ -383,7 +384,7 @@ class _GreetingCard extends StatelessWidget {
                               : 'Start your recitation today',
                           style: GoogleFonts.poppins(
                             fontSize: 13,
-                            color: Colors.white.withOpacity(0.75),
+                            color: Colors.white.withValues(alpha: 0.75),
                             height: 1.4,
                           ),
                         ),
@@ -403,10 +404,10 @@ class _GreetingCard extends StatelessWidget {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _DashTheme.goldLight.withOpacity(0.3),
+                        color: _DashTheme.goldLight.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -430,9 +431,9 @@ class _GreetingCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      _DashTheme.gold.withOpacity(0),
-                      _DashTheme.goldLight.withOpacity(0.6),
-                      _DashTheme.gold.withOpacity(0),
+                      _DashTheme.gold.withValues(alpha: 0),
+                      _DashTheme.goldLight.withValues(alpha: 0.6),
+                      _DashTheme.gold.withValues(alpha: 0),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(1),
@@ -474,7 +475,7 @@ class _GlowButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: _DashTheme.gold.withOpacity(0.35),
+              color: _DashTheme.gold.withValues(alpha: 0.35),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -550,12 +551,12 @@ class _QuickActionCard extends StatelessWidget {
               border: Border.all(
                 color: isDark
                     ? _DashTheme.darkBorder
-                    : gradient.first.withOpacity(0.12),
+                    : gradient.first.withValues(alpha: 0.12),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: gradient.first.withOpacity(isDark ? 0.08 : 0.1),
+                  color: gradient.first.withValues(alpha: isDark ? 0.08 : 0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -571,15 +572,16 @@ class _QuickActionCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        gradient.first.withOpacity(isDark ? 0.25 : 0.15),
-                        gradient.last.withOpacity(isDark ? 0.15 : 0.08),
+                        gradient.first.withValues(alpha: isDark ? 0.25 : 0.15),
+                        gradient.last.withValues(alpha: isDark ? 0.15 : 0.08),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: gradient.first.withOpacity(isDark ? 0.15 : 0.1),
+                      color:
+                          gradient.first.withValues(alpha: isDark ? 0.15 : 0.1),
                       width: 1,
                     ),
                   ),
@@ -594,7 +596,7 @@ class _QuickActionCard extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: isDark
-                          ? Colors.white.withOpacity(0.85)
+                          ? Colors.white.withValues(alpha: 0.85)
                           : AppColors.textDark,
                       letterSpacing: 0.1,
                     ),
@@ -750,14 +752,14 @@ class _DailyVerseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: isDark
-              ? _DashTheme.gold.withOpacity(0.15)
-              : _DashTheme.gold.withOpacity(0.2),
+              ? _DashTheme.gold.withValues(alpha: 0.15)
+              : _DashTheme.gold.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color:
-                (isDark ? Colors.black : _DashTheme.emerald).withOpacity(0.08),
+            color: (isDark ? Colors.black : _DashTheme.emerald)
+                .withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -772,7 +774,10 @@ class _DailyVerseCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [_DashTheme.gold.withOpacity(0.08), Colors.transparent]
+                    ? [
+                        _DashTheme.gold.withValues(alpha: 0.08),
+                        Colors.transparent
+                      ]
                     : [_DashTheme.goldSoft, Colors.white],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -824,7 +829,7 @@ class _DailyVerseCard extends StatelessWidget {
                       height: 36,
                       decoration: BoxDecoration(
                         color: (isDark ? Colors.white : _DashTheme.emerald)
-                            .withOpacity(0.08),
+                            .withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -853,11 +858,12 @@ class _DailyVerseCard extends StatelessWidget {
                       const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? _DashTheme.gold.withOpacity(0.05)
-                        : _DashTheme.goldSoft.withOpacity(0.6),
+                        ? _DashTheme.gold.withValues(alpha: 0.05)
+                        : _DashTheme.goldSoft.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: _DashTheme.gold.withOpacity(isDark ? 0.1 : 0.15),
+                      color: _DashTheme.gold
+                          .withValues(alpha: isDark ? 0.1 : 0.15),
                     ),
                   ),
                   child: Text(
@@ -886,8 +892,8 @@ class _DailyVerseCard extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: isDark
-                        ? Colors.white.withOpacity(0.8)
-                        : AppColors.textDark.withOpacity(0.85),
+                        ? Colors.white.withValues(alpha: 0.8)
+                        : AppColors.textDark.withValues(alpha: 0.85),
                     height: 1.7,
                     fontWeight: FontWeight.w400,
                   ),
@@ -900,7 +906,7 @@ class _DailyVerseCard extends StatelessWidget {
                       width: 16,
                       height: 1.5,
                       decoration: BoxDecoration(
-                        color: _DashTheme.gold.withOpacity(0.5),
+                        color: _DashTheme.gold.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -910,7 +916,7 @@ class _DailyVerseCard extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: isDark
-                            ? _DashTheme.goldLight.withOpacity(0.7)
+                            ? _DashTheme.goldLight.withValues(alpha: 0.7)
                             : AppColors.textMuted,
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w500,
@@ -934,7 +940,7 @@ class _OrnamentalDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _DashTheme.gold.withOpacity(isDark ? 0.25 : 0.35);
+    final color = _DashTheme.gold.withValues(alpha: isDark ? 0.25 : 0.35);
     return Row(
       children: [
         Expanded(
@@ -952,7 +958,7 @@ class _OrnamentalDivider extends StatelessWidget {
           child: Icon(
             Icons.star_rounded,
             size: 10,
-            color: _DashTheme.gold.withOpacity(isDark ? 0.4 : 0.5),
+            color: _DashTheme.gold.withValues(alpha: isDark ? 0.4 : 0.5),
           ),
         ),
         Expanded(
@@ -985,7 +991,8 @@ class _CustomAdBanner extends StatelessWidget {
       if (bannerController.campaignAds.isEmpty) return const SizedBox.shrink();
 
       final int totalAds = bannerController.campaignAds.length;
-      final int activeIndex = bannerController.currentAdIndex.value.clamp(0, totalAds - 1);
+      final int activeIndex =
+          bannerController.currentAdIndex.value.clamp(0, totalAds - 1);
       final ad = bannerController.campaignAds[activeIndex];
       final String title = ad['title'] ?? '';
       final String imageUrl = ad['imageUrl'] ?? '';
@@ -999,7 +1006,7 @@ class _CustomAdBanner extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -1024,8 +1031,8 @@ class _CustomAdBanner extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withOpacity(0.8),
-                          Colors.black.withOpacity(0.15),
+                          Colors.black.withValues(alpha: 0.8),
+                          Colors.black.withValues(alpha: 0.15),
                         ],
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
@@ -1087,10 +1094,10 @@ class _CustomAdBanner extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                             ),
                           ),
                           child: Text(

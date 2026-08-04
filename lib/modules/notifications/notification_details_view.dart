@@ -17,16 +17,19 @@ import '../settings/settings_controller.dart';
 // ── Design Tokens ────────────────────────────────────────────────────────────
 class _DetailTheme {
   _DetailTheme._();
-  static const Color emerald      = Color(0xFF1B5E35);
+  static const Color emerald = Color(0xFF1B5E35);
   static const Color emeraldLight = Color(0xFF2E7D52);
-  static const Color emeraldDark  = Color(0xFF0D3B1E);
-  static const Color gold         = Color(0xFFC9A84C);
-  static const Color goldLight    = Color(0xFFE8C97A);
-  static const Color goldSoft     = Color(0xFFFFF8E7);
-  static const Color darkSurface  = Color(0xFF0A0A0F); // Matching AppColors.bgDark
-  static const Color darkCard     = Color(0xFF121218); // Matching AppColors.bgDark2
-  static const Color lightSurface = Color(0xFFFFF9E6); // Matching AppColors.bgLight
-  static const Color lightCard    = Color(0xFFFFFBF0); // Matching AppColors.surfaceLight
+  static const Color emeraldDark = Color(0xFF0D3B1E);
+  static const Color gold = Color(0xFFC9A84C);
+  static const Color goldLight = Color(0xFFE8C97A);
+  static const Color goldSoft = Color(0xFFFFF8E7);
+  static const Color darkSurface =
+      Color(0xFF0A0A0F); // Matching AppColors.bgDark
+  static const Color darkCard = Color(0xFF121218); // Matching AppColors.bgDark2
+  static const Color lightSurface =
+      Color(0xFFFFF9E6); // Matching AppColors.bgLight
+  static const Color lightCard =
+      Color(0xFFFFFBF0); // Matching AppColors.surfaceLight
 }
 
 class NotificationDetailsView extends StatefulWidget {
@@ -35,7 +38,8 @@ class NotificationDetailsView extends StatefulWidget {
   const NotificationDetailsView({super.key, required this.notification});
 
   @override
-  State<NotificationDetailsView> createState() => _NotificationDetailsViewState();
+  State<NotificationDetailsView> createState() =>
+      _NotificationDetailsViewState();
 }
 
 class _NotificationDetailsViewState extends State<NotificationDetailsView> {
@@ -47,11 +51,14 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
     final isDark = settings.isDark;
     final isBn = settings.isBangla;
 
-    final scaffoldBg = isDark ? _DetailTheme.darkSurface : _DetailTheme.lightSurface;
+    final scaffoldBg =
+        isDark ? _DetailTheme.darkSurface : _DetailTheme.lightSurface;
     final cardColor = isDark ? _DetailTheme.darkCard : _DetailTheme.lightCard;
     final textColor = isDark ? Colors.white : AppColors.textDark;
     final subtitleColor = isDark ? Colors.white54 : Colors.black54;
-    final borderColor = isDark ? _DetailTheme.emerald.withOpacity(0.15) : _DetailTheme.emerald.withOpacity(0.06);
+    final borderColor = isDark
+        ? _DetailTheme.emerald.withValues(alpha: 0.15)
+        : _DetailTheme.emerald.withValues(alpha: 0.06);
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -70,7 +77,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                   border: Border.all(color: borderColor, width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                      color:
+                          Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     )
@@ -90,31 +98,39 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                               runSpacing: 8,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                _buildCategoryBadge(widget.notification.category, isBn),
-                                _buildPriorityBadge(widget.notification.priority, isBn),
+                                _buildCategoryBadge(
+                                    widget.notification.category, isBn),
+                                _buildPriorityBadge(
+                                    widget.notification.priority, isBn),
                               ],
                             ),
                           ),
                           _buildFontSizeControls(isDark),
                         ],
-                      ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
-                      
+                      ).animate().fadeIn(delay: 100.ms).slideX(
+                          begin: -0.05, end: 0, curve: Curves.easeOutQuad),
+
                       const SizedBox(height: 16),
-                      
+
                       // Creation Date Time Row
                       Row(
                         children: [
-                          Icon(Icons.calendar_today_rounded, size: 14, color: subtitleColor),
+                          Icon(Icons.calendar_today_rounded,
+                              size: 14, color: subtitleColor),
                           const SizedBox(width: 6),
                           Text(
-                            DateFormat('MMMM dd, yyyy • hh:mm a').format(widget.notification.createdAt),
-                            style: GoogleFonts.poppins(color: subtitleColor, fontSize: 12, fontWeight: FontWeight.w500),
+                            DateFormat('MMMM dd, yyyy • hh:mm a')
+                                .format(widget.notification.createdAt),
+                            style: GoogleFonts.poppins(
+                                color: subtitleColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500),
                           ),
                         ],
                       ).animate().fadeIn(delay: 150.ms),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Notification Title
                       Text(
                         widget.notification.title,
@@ -125,10 +141,11 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                           height: 1.3,
                           color: textColor,
                         ),
-                      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-                      
+                      ).animate().fadeIn(delay: 200.ms).slideY(
+                          begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+
                       const SizedBox(height: 16),
-                      
+
                       // Decorative Divider
                       Row(
                         children: [
@@ -139,7 +156,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
                             child: Icon(
                               Icons.brightness_3_rounded, // Crescent moon
                               size: 14,
@@ -154,48 +172,57 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                           ),
                         ],
                       ).animate().fadeIn(delay: 250.ms),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Selectable Notification Body
                       SelectableText(
                         widget.notification.body,
                         style: GoogleFonts.poppins(
                           fontSize: _fontSize,
-                          color: isDark ? Colors.white70 : AppColors.textDark.withOpacity(0.85),
+                          color: isDark
+                              ? Colors.white70
+                              : AppColors.textDark.withValues(alpha: 0.85),
                           height: 1.6,
                         ),
                       ).animate().fadeIn(delay: 300.ms),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Subtle dot decorative separator
                       Center(
                         child: Opacity(
                           opacity: 0.25,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: List.generate(3, (index) => const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4.0),
-                              child: Icon(Icons.circle, size: 6, color: _DetailTheme.gold),
-                            )),
+                            children: List.generate(
+                                3,
+                                (index) => const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 4.0),
+                                      child: Icon(Icons.circle,
+                                          size: 6, color: _DetailTheme.gold),
+                                    )),
                           ),
                         ),
                       ).animate().fadeIn(delay: 350.ms),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // Call To Action (if deep link exists)
-                      if (widget.notification.deepLink != null && widget.notification.deepLink!.isNotEmpty) ...[
+                      if (widget.notification.deepLink != null &&
+                          widget.notification.deepLink!.isNotEmpty) ...[
                         _buildCallToAction(isBn),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Copy & Share buttons
-                      _buildActions(context, isDark, cardColor, textColor, subtitleColor, borderColor, isBn)
+                      _buildActions(context, isDark, cardColor, textColor,
+                              subtitleColor, borderColor, isBn)
                           .animate()
                           .fadeIn(delay: 400.ms)
-                          .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+                          .slideY(
+                              begin: 0.1, end: 0, curve: Curves.easeOutQuad),
                     ],
                   ),
                 ),
@@ -208,7 +235,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
   }
 
   Widget _buildSliverAppBar(BuildContext context, bool isDark) {
-    final scaffoldBg = isDark ? _DetailTheme.darkSurface : _DetailTheme.lightSurface;
+    final scaffoldBg =
+        isDark ? _DetailTheme.darkSurface : _DetailTheme.lightSurface;
     return SliverAppBar(
       expandedHeight: widget.notification.imageUrl != null ? 300 : 200,
       pinned: true,
@@ -216,7 +244,7 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
       leading: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.35),
+          color: Colors.black.withValues(alpha: 0.35),
           shape: BoxShape.circle,
         ),
         child: AppBackButton(
@@ -230,7 +258,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                 fit: StackFit.expand,
                 children: [
                   GestureDetector(
-                    onTap: () => _openFullscreenImage(context, widget.notification.imageUrl!),
+                    onTap: () => _openFullscreenImage(
+                        context, widget.notification.imageUrl!),
                     child: Hero(
                       tag: 'notif_img_${widget.notification.id}',
                       child: CachedNetworkImage(
@@ -244,7 +273,7 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.black.withOpacity(0.4),
+                            Colors.black.withValues(alpha: 0.4),
                             Colors.transparent,
                             scaffoldBg,
                           ],
@@ -262,11 +291,16 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [_DetailTheme.emeraldDark, _DetailTheme.emerald, _DetailTheme.emeraldLight],
+                    colors: [
+                      _DetailTheme.emeraldDark,
+                      _DetailTheme.emerald,
+                      _DetailTheme.emeraldLight
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  border: Border(bottom: BorderSide(color: _DetailTheme.gold, width: 1.5)),
+                  border: Border(
+                      bottom: BorderSide(color: _DetailTheme.gold, width: 1.5)),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -281,15 +315,21 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: _getCategoryColor(widget.notification.category).withOpacity(0.15),
+                            color:
+                                _getCategoryColor(widget.notification.category)
+                                    .withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: _getCategoryColor(widget.notification.category).withOpacity(0.3),
+                              color: _getCategoryColor(
+                                      widget.notification.category)
+                                  .withValues(alpha: 0.3),
                               width: 2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: _getCategoryColor(widget.notification.category).withOpacity(0.2),
+                                color: _getCategoryColor(
+                                        widget.notification.category)
+                                    .withValues(alpha: 0.2),
                                 blurRadius: 16,
                                 spreadRadius: 2,
                               ),
@@ -313,7 +353,9 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
   Widget _buildFontSizeControls(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -328,7 +370,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
             },
             child: Padding(
               padding: const EdgeInsets.all(4.0),
-              child: Icon(Icons.remove, size: 16, color: isDark ? Colors.white70 : Colors.black54),
+              child: Icon(Icons.remove,
+                  size: 16, color: isDark ? Colors.white70 : Colors.black54),
             ),
           ),
           const SizedBox(width: 4),
@@ -349,7 +392,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
             },
             child: Padding(
               padding: const EdgeInsets.all(4.0),
-              child: Icon(Icons.add, size: 16, color: isDark ? Colors.white70 : Colors.black54),
+              child: Icon(Icons.add,
+                  size: 16, color: isDark ? Colors.white70 : Colors.black54),
             ),
           ),
         ],
@@ -362,9 +406,9 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: catColor.withOpacity(0.08),
+        color: catColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: catColor.withOpacity(0.2), width: 0.8),
+        border: Border.all(color: catColor.withValues(alpha: 0.2), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -386,19 +430,20 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
   }
 
   Widget _buildPriorityBadge(NotificationPriority priority, bool isBn) {
-    if (priority == NotificationPriority.low || priority == NotificationPriority.medium) {
+    if (priority == NotificationPriority.low ||
+        priority == NotificationPriority.medium) {
       return const SizedBox.shrink();
     }
-    
+
     final color = _getPriorityColor(priority);
     final label = _getPriorityLabel(priority, isBn);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.25), width: 0.8),
+        border: Border.all(color: color.withValues(alpha: 0.25), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -410,8 +455,9 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
               color: color,
               shape: BoxShape.circle,
             ),
-          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-           .scaleXY(begin: 0.8, end: 1.3, duration: 800.ms),
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scaleXY(begin: 0.8, end: 1.3, duration: 800.ms),
           const SizedBox(width: 6),
           Text(
             label.toUpperCase(),
@@ -436,14 +482,14 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
         gradient: LinearGradient(
           colors: [
             categoryColor,
-            categoryColor.withOpacity(0.85),
+            categoryColor.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: categoryColor.withOpacity(0.25),
+            color: categoryColor.withValues(alpha: 0.25),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -468,22 +514,25 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
+                const Icon(Icons.arrow_forward_rounded,
+                    color: Colors.white, size: 16),
               ],
             ),
           ),
         ),
       ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true))
-     .shimmer(delay: NumDurationExtensions(2).seconds, duration: NumDurationExtensions(1.5).seconds, color: Colors.white24);
+    ).animate(onPlay: (c) => c.repeat(reverse: true)).shimmer(
+        delay: NumDurationExtensions(2).seconds,
+        duration: NumDurationExtensions(1.5).seconds,
+        color: Colors.white24);
   }
 
   Widget _buildActions(
-    BuildContext context, 
-    bool isDark, 
-    Color cardColor, 
-    Color textColor, 
-    Color subtitleColor, 
+    BuildContext context,
+    bool isDark,
+    Color cardColor,
+    Color textColor,
+    Color subtitleColor,
     Color borderColor,
     bool isBn,
   ) {
@@ -494,7 +543,8 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
             context,
             icon: Icons.share_rounded,
             label: isBn ? 'শেয়ার' : 'Share',
-            onTap: () => Share.share('${widget.notification.title}\n\n${widget.notification.body}'),
+            onTap: () => Share.share(
+                '${widget.notification.title}\n\n${widget.notification.body}'),
             isDark: isDark,
             cardColor: cardColor,
             textColor: textColor,
@@ -511,16 +561,19 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
             onTap: () {
               Clipboard.setData(ClipboardData(text: widget.notification.body));
               Get.snackbar(
-                isBn ? 'অনুলিপি করা হয়েছে' : 'Copied', 
-                isBn ? 'নোটিফিকেশনের লেখা সফলভাবে কপি করা হয়েছে!' : 'Notification content copied to clipboard!',
+                isBn ? 'অনুলিপি করা হয়েছে' : 'Copied',
+                isBn
+                    ? 'নোটিফিকেশনের লেখা সফলভাবে কপি করা হয়েছে!'
+                    : 'Notification content copied to clipboard!',
                 snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: _getCategoryColor(widget.notification.category),
+                backgroundColor:
+                    _getCategoryColor(widget.notification.category),
                 colorText: Colors.white,
                 margin: const EdgeInsets.all(16),
                 borderRadius: 12,
                 boxShadows: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                   )
                 ],
@@ -554,18 +607,25 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.03)
+              : Colors.black.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: _getCategoryColor(widget.notification.category)),
+            Icon(icon,
+                size: 16,
+                color: _getCategoryColor(widget.notification.category)),
             const SizedBox(width: 8),
             Text(
               label,
-              style: GoogleFonts.poppins(fontSize: 13, color: subtitleColor, fontWeight: FontWeight.bold),
+              style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  color: subtitleColor,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -576,17 +636,20 @@ class _NotificationDetailsViewState extends State<NotificationDetailsView> {
   void _openFullscreenImage(BuildContext context, String imageUrl) {
     Get.to(() => Scaffold(
           backgroundColor: Colors.black,
-          appBar: AppBar(backgroundColor: Colors.transparent, foregroundColor: Colors.white),
+          appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white),
           body: PhotoView(
             imageProvider: CachedNetworkImageProvider(imageUrl),
-            heroAttributes: PhotoViewHeroAttributes(tag: 'notif_img_${widget.notification.id}'),
+            heroAttributes: PhotoViewHeroAttributes(
+                tag: 'notif_img_${widget.notification.id}'),
           ),
         ));
   }
 
   void _handleDeepLink(String deepLink) {
     final route = deepLink.trim().toLowerCase();
-    
+
     if (route.contains('tasbih')) {
       Get.toNamed(AppRoutes.tasbih);
     } else if (route.contains('qibla')) {
@@ -735,7 +798,9 @@ class _StarPatternPainter extends CustomPainter {
         center.dx + radius * _cos(angle),
         center.dy + radius * _sin(angle),
       );
-      i == 0 ? path.moveTo(point.dx, point.dy) : path.lineTo(point.dx, point.dy);
+      i == 0
+          ? path.moveTo(point.dx, point.dy)
+          : path.lineTo(point.dx, point.dy);
     }
     path.close();
     canvas.drawPath(path, paint);
