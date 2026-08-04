@@ -86,6 +86,7 @@ class AdminDashboardController extends GetxController {
   // App Update Config
   final versionController = TextEditingController();
   final buildNumberController = TextEditingController();
+  final updateUrlController = TextEditingController(text: 'https://quran-205d8.web.app/app-release.apk');
   final RxBool forceUpdateEnabled = false.obs;
   final RxBool maintenanceModeEnabled = false.obs;
   final Rxn<DateTime> maintenanceEndTime = Rxn<DateTime>();
@@ -194,6 +195,7 @@ class AdminDashboardController extends GetxController {
       final data = doc.data();
       versionController.text = data?['version'] ?? '1.0.0';
       buildNumberController.text = (data?['buildNumber'] ?? 1).toString();
+      updateUrlController.text = data?['updateUrl'] ?? 'https://quran-205d8.web.app/app-release.apk';
       forceUpdateEnabled.value = data?['forceUpdate'] ?? false;
       maintenanceModeEnabled.value = data?['maintenanceMode'] ?? false;
       showAnnouncement.value = data?['showAnnouncement'] ?? false;
@@ -214,6 +216,9 @@ class AdminDashboardController extends GetxController {
       await _firestore.collection('app_settings').doc('update_config').set({
         'version': versionController.text.trim(),
         'buildNumber': int.tryParse(buildNumberController.text.trim()) ?? 1,
+        'updateUrl': updateUrlController.text.trim().isNotEmpty
+            ? updateUrlController.text.trim()
+            : 'https://quran-205d8.web.app/app-release.apk',
         'forceUpdate': forceUpdateEnabled.value,
         'maintenanceMode': maintenanceModeEnabled.value,
         'maintenanceEndTime': maintenanceEndTime.value != null ? Timestamp.fromDate(maintenanceEndTime.value!) : null,
@@ -228,7 +233,61 @@ class AdminDashboardController extends GetxController {
       });
       Get.snackbar('Success', 'App update configuration saved');
     } catch (e) {
-      Get.snackbar('Error', 'Failed to save update config');
+      Get.snackbar('Error', 'Failed to save update config: $e');
+    } finally {
+      isUpdateConfigSaving.value = false;
+    }
+  }
+
+  Future<void> pushForceUpdateNotification() async {
+    try {
+      isUpdateConfigSaving.value = true;
+      forceUpdateEnabled.value = true;
+      final int nextBuildNumber = (int.tryParse(buildNumberController.text.trim()) ?? 1) + 1;
+      buildNumberController.text = nextBuildNumber.toString();
+
+      final String apkUrl = updateUrlController.text.trim().isNotEmpty
+          ? updateUrlController.text.trim()
+          : 'https://quran-205d8.web.app/app-release.apk';
+
+      await _firestore.collection('app_settings').doc('update_config').set({
+        'version': versionController.text.trim(),
+        'buildNumber': nextBuildNumber,
+        'updateUrl': apkUrl,
+        'forceUpdate': true,
+        'maintenanceMode': maintenanceModeEnabled.value,
+        'maintenanceEndTime': maintenanceEndTime.value != null ? Timestamp.fromDate(maintenanceEndTime.value!) : null,
+        'showAnnouncement': showAnnouncement.value,
+        'isNamazGuideActive': isNamazGuideActive.value,
+        'isLiveSupportBotEnabled': liveSupportEnabled.value,
+        'announcementTitle': announcementTitleController.text.trim(),
+        'announcementBody': announcementBodyController.text.trim(),
+        'announcementImageUrl': announcementImageController.text.trim(),
+        'announcementId': DateTime.now().millisecondsSinceEpoch.toString(),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+
+      // Broadcast update notification to all users
+      await _firestore.collection('broadcast_notifications').add({
+        'title': '⚡ New App Update Available',
+        'body': 'A required app update (v${versionController.text.trim()}) is available. Tap here to download and install now!',
+        'sentAt': FieldValue.serverTimestamp(),
+        'payload': apkUrl,
+        'action': 'update',
+        'updateUrl': apkUrl,
+        'imageUrl': 'https://quran-205d8.web.app/logo.png',
+      });
+
+      Get.snackbar(
+        'Success',
+        '🚀 Force update activated and notification sent to all users!',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF1B5E35),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to push force update: $e');
     } finally {
       isUpdateConfigSaving.value = false;
     }

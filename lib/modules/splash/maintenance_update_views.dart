@@ -279,8 +279,16 @@ class ForceUpdateView extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.nexora.quran_app'));
+                  onPressed: () async {
+                    String targetUrl = 'https://quran-205d8.web.app/app-release.apk';
+                    try {
+                      final doc = await FirebaseFirestore.instance.collection('app_settings').doc('update_config').get();
+                      if (doc.exists && doc.data()?['updateUrl'] != null && (doc.data()?['updateUrl'] as String).trim().isNotEmpty) {
+                        targetUrl = doc.data()!['updateUrl'].toString().trim();
+                      }
+                    } catch (_) {}
+                    final Uri url = Uri.parse(targetUrl);
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFC9A84C),

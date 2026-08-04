@@ -977,6 +977,8 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
           const SizedBox(height: 16),
           _buildTextField(controller.buildNumberController, 'Build Number (e.g. 12)', Icons.format_list_numbered_rounded),
           const SizedBox(height: 16),
+          _buildTextField(controller.updateUrlController, 'Update APK URL', Icons.link_rounded),
+          const SizedBox(height: 16),
           Row(
             children: [
               const Expanded(
@@ -994,6 +996,20 @@ class AdminDashboardView extends GetView<AdminDashboardController> {
                     activeColor: const Color(0xFF1B5E35),
                   )),
             ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => controller.pushForceUpdateNotification(),
+              icon: const Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 18),
+              label: const Text('Push Force Update Notification to All Users', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC9A84C),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Row(
