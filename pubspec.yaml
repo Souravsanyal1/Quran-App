@@ -93,6 +93,8 @@ dependencies:
   flutter_timezone: ^5.1.0
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
+  ota_update: ^7.1.0
+  open_filex: ^4.7.0
   firebase_crashlytics: ^4.3.10
 
 dev_dependencies:

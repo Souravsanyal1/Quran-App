@@ -182,29 +182,45 @@ class MaintenanceView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          'Expected completion: ${DateFormat('hh:mm:ss a').format(endTime)}',
-                          style: const TextStyle(color: Colors.white24, fontSize: 12, fontWeight: FontWeight.w500),
-                        ),
-                      ],
+                      ),
                     );
-                  },
-                );
-              }),
-              const SizedBox(height: 40),
-              TextButton.icon(
-                onPressed: _launchSupport,
-                icon: const Icon(Icons.support_agent_rounded, color: Colors.white70),
-                label: const Text(
-                  'Contact Support',
-                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
-                ),
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.05),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
+                  }),
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Get.find<SettingsController>().checkMaintenanceStatus();
+                        Get.snackbar('Checking...', 'Re-checking maintenance status.', snackPosition: SnackPosition.BOTTOM);
+                      },
+                      icon: const Icon(Icons.refresh_rounded, color: Colors.black),
+                      label: const Text(
+                        'Check Status Again',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC9A84C),
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextButton.icon(
+                    onPressed: _launchSupport,
+                    icon: const Icon(Icons.help_outline_rounded, color: Colors.white38, size: 20),
+                    label: const Text(
+                      'Need urgent help? Contact Support',
+                      style: TextStyle(color: Colors.white38, fontSize: 13),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -215,113 +231,23 @@ class MaintenanceView extends StatelessWidget {
   }
 }
 
-class ForceUpdateView extends StatelessWidget {
+class ForceUpdateView extends StatefulWidget {
   const ForceUpdateView({super.key});
+
+  @override
+  State<ForceUpdateView> createState() => _ForceUpdateViewState();
+}
+
+class _ForceUpdateViewState extends State<ForceUpdateView> {
+  bool _isDownloading = false;
+  double _downloadProgress = 0.0;
+  String _statusMessage = '';
 
   Future<void> _launchSupport() async {
     final Uri url = Uri.parse('https://wa.me/8801307460389');
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF141420),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0D3B1E), Color(0xFF141420)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-              Lottie.network(
-                'https://assets2.lottiefiles.com/packages/lf20_y9m8vtbc.json',
-                height: 240,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.system_update_rounded,
-                  size: 100,
-                  color: Color(0xFFC9A84C),
-                ),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'New Version Available',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Please update your app to the latest version to enjoy new features and improved stability.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white60,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    String targetUrl = 'https://quran-205d8.web.app/app-release.apk';
-                    try {
-                      final doc = await FirebaseFirestore.instance.collection('app_settings').doc('update_config').get();
-                      if (doc.exists && doc.data()?['updateUrl'] != null && (doc.data()?['updateUrl'] as String).trim().isNotEmpty) {
-                        targetUrl = doc.data()!['updateUrl'].toString().trim();
-                      }
-                    } catch (_) {}
-                    final Uri url = Uri.parse(targetUrl);
-                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFC9A84C),
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    'Update Now',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              TextButton.icon(
-                onPressed: _launchSupport,
-                icon: const Icon(Icons.help_outline_rounded, color: Colors.white38, size: 20),
-                label: const Text(
-                  'Need help? Contact Support',
-                  style: TextStyle(color: Colors.white38, fontSize: 13),
-                ),
-              ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
