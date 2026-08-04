@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.quranapp.quran_app"
-    compileSdk = 35
+    compileSdk = 36
     buildToolsVersion = "36.0.0"
     ndkVersion = flutter.ndkVersion
 
@@ -28,7 +28,7 @@ android {
     defaultConfig {
         applicationId = "com.quranapp.quran_app"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
